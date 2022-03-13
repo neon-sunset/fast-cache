@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- <TargetFrameworks>net6.0;net7.0</TargetFrameworks> -->
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <!-- <TargetFramework>net6.0</TargetFramework> -->
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\FastCache\FastCache.csproj" />
+    <ProjectReference Include="..\..\src\FastCache.Cached\FastCache.Cached.csproj" />
   </ItemGroup>
 
 </Project>

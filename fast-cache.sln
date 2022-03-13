@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BB4200D9-5D9A-4269-8F7B-5EB41CA0DDDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache", "src\FastCache\FastCache.csproj", "{4F2E3438-2F2A-4DEB-B20E-5698539C834E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache", "src\FastCache.Cached\FastCache.Cached.csproj", "{4F2E3438-2F2A-4DEB-B20E-5698539C834E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{582C21B3-939D-4A06-B52B-B0E6B1BF2618}"
 EndProject

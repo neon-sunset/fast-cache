@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\FastCache\FastCache.csproj" />
+    <ProjectReference Include="..\..\src\FastCache.Cached\FastCache.Cached.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

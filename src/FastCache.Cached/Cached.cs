@@ -8,56 +8,51 @@ public partial struct Cached<T> where T : notnull
 {
     internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_cachedStore = new();
     internal static (bool IsStored, CachedInner<T> Inner) s_default = (false, default);
-    internal static ExpectedExpiryMark<T> s_expiryMark = new(false, default);
 
     private readonly int _identifier;
-    private readonly bool _saveExpiryMark;
     public readonly T Value;
 
     public Cached() => throw new InvalidOperationException("Cached<T> must not be initialized with default constructor");
 
-    internal Cached(int identifier, T value, bool saveExpiryMark = false)
+    internal Cached(int identifier, T value)
     {
         _identifier = identifier;
-        _saveExpiryMark = saveExpiryMark;
-
         Value = value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Save(T value)
+    public T Save(T value, TimeSpan expiration)
+    {
+        s_cachedStore[_identifier] = new(value, expiration);
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T SaveIndefinitely(T value)
     {
         s_cachedStore[_identifier] = new(value);
-
-        if (_saveExpiryMark)
-        {
-            // TODO: refactor API and move storing expiry timeframe and handling to 'cached.Save(value, ?timespan?)'
-        }
-
         return value;
     }
 }
 
+[StructLayout(LayoutKind.Auto)]
 internal readonly struct CachedInner<TInner> where TInner : notnull
 {
     public readonly TInner Value;
-    public readonly DateTime Timestamp;
+    public readonly long ExpiresAt;
+
+    public CachedInner(TInner value, TimeSpan expiration)
+    {
+        Value = value;
+        ExpiresAt = DateTime.UtcNow.Ticks + expiration.Ticks;
+    }
 
     public CachedInner(TInner value)
     {
         Value = value;
-        Timestamp = DateTime.UtcNow;
+        ExpiresAt = DateTime.MaxValue.Ticks;
     }
-}
 
-internal readonly struct ExpectedExpiryMark<T> where T : notnull
-{
-    public readonly bool IsSet;
-    public readonly TimeSpan Value;
-
-    public ExpectedExpiryMark(bool isSet, TimeSpan value)
-    {
-        IsSet = isSet;
-        Value = value;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsNotExpired() => DateTime.UtcNow.Ticks < ExpiresAt;
 }
