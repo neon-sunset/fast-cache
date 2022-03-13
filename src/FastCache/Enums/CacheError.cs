@@ -2,5 +2,6 @@ namespace FastCache;
 
 public enum CacheError
 {
-    ItemAlreadyExists = 0x0
+    NotFound = 0x0,
+    Expired = 0x1
 }

@@ -1,11 +1,9 @@
-using System.Runtime.CompilerServices;
-
 namespace FastCache;
 
 public partial struct Cached<T> where T : notnull
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T? Last() => Cached<T>.s_default.Value;
+    public static T? Last() => s_default.IsStored ? s_default.Inner.Value : default;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T? Last<T1>(T1 value1)
@@ -78,20 +76,18 @@ public partial struct Cached<T> where T : notnull
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T? Last(params object[] @params)
     {
-        var hashCode = new HashCode();
+        var accumulator = new HashCode();
         foreach (var param in @params)
         {
-            hashCode.Add(param);
+            accumulator.Add(param);
         }
 
-        return LastInternal(hashCode.ToHashCode());
+        return LastInternal(accumulator.ToHashCode());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static T? LastInternal(int identifier)
     {
-        _ = Cached<T>.s_cachedStore.TryGetValue(identifier, out var inner);
-
-        return inner.Value;
+        return s_cachedStore.TryGetValue(identifier, out var inner) ? inner.Value : default;
     }
 }

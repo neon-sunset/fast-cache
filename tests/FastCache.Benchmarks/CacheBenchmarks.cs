@@ -1,11 +1,15 @@
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 
 namespace FastCache.Benchmarks;
 
-[SimpleJob]
+// [SimpleJob(RuntimeMoniker.HostProcess)]
+// [SimpleJob(RuntimeMoniker.Net60, baseline: true)]
 [MemoryDiagnoser]
 public class CacheBenchmarks
 {
+    private static readonly TimeSpan Expiration = TimeSpan.FromMinutes(10);
+
     [GlobalSetup]
     public void Initialize()
     {
@@ -18,7 +22,7 @@ public class CacheBenchmarks
     [Benchmark]
     public string? LastNone() => Cached<string>.Last();
 
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public string? LastSingle() => Cached<string>.Last("one");
 
     [Benchmark]
@@ -28,27 +32,68 @@ public class CacheBenchmarks
     public string? LastNine() => Cached<string>.Last("one", "two", "three", "four", "five", "six", "seven", "eight", "nine");
 
     [Benchmark]
-    public bool TryGetNone() => Cached<string>.TryGet(out _);
+    public string TryGetNone()
+    {
+        if (Cached<string>.TryGetLast(out var value))
+        {
+            return value;
+        }
+
+        return "default".Cache();
+    }
 
     [Benchmark]
-    public bool TryGetSingle() => Cached<string>.TryGet("one", out _);
+    public string TryGetSingle()
+    {
+        if (Cached<string>.TryGetLast("one", out var cached))
+        {
+            return cached.Value;
+        }
+
+        return cached.Save("single");
+    }
 
     [Benchmark]
-    public bool TryGetEight() => Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", "eight", out _);
+    public string TryGetEight()
+    {
+        if (Cached<string>.TryGetLast("one", "two", "three", "four", "five", "six", "seven", "eight", out var cached))
+        {
+            return cached.Value;
+        }
+
+        return cached.Save("eight");
+    }
 
     [Benchmark]
     public string GetAndSaveSingle()
     {
-        _ = Cached<string>.TryGet("one", out var holder);
+        if (!Cached<string>.TryGetLast("one", out var cached))
+        {
+            return cached.Value;
+        }
 
-        return holder.Save("single");
+        return cached.Save("single");
     }
 
     [Benchmark]
     public string GetAndSaveEight()
     {
-        _ = Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", "eight", out var holder);
+        if (!Cached<string>.TryGetLast("one", "two", "three", "four", "five", "six", "seven", "eight", out var cached))
+        {
+            return cached.Value;
+        }
 
-        return holder.Save("eight");
+        return cached.Save("eight");
+    }
+
+    [Benchmark]
+    public string GetAndSaveSingleWithExpiration()
+    {
+        if (!Cached<string>.TryGet("one", Expiration, out var cached))
+        {
+            return cached.Value;
+        }
+
+        return cached.Save("single");
     }
 }
