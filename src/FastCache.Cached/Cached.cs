@@ -44,12 +44,14 @@ internal readonly struct CachedInner<TInner> where TInner : notnull
     public readonly TInner Value;
     public readonly long ExpiresAtTicks;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CachedInner(TInner value, long expiresAtTicks)
     {
         Value = value;
         ExpiresAtTicks = expiresAtTicks;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CachedInner(TInner value)
     {
         Value = value;
