@@ -1,6 +1,6 @@
 namespace FastCache;
 
-public partial struct Cached<T> where T : notnull
+public readonly partial struct Cached<T> where T : notnull
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T? Last() => s_default.IsStored ? s_default.Inner.Value : default;

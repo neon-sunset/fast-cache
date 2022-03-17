@@ -73,4 +73,9 @@ public class CacheBenchmarks
 
         return cached.Save("eight", OneHour);
     }
+
+    [Benchmark]
+    public string GetOrCompute() => Cached.GetOrCompute("new computed value", v => Delegate(v), OneHour);
+
+    private static string Delegate(string input) => $"computed: {input}";
 }

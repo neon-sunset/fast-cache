@@ -1,0 +1,4 @@
+- [ ] Add unit tests coverage
+- [ ] Automate nuget publishing
+- [ ] Implement generic `MemoryCache<T>`
+- [ ] Implement configurable cache item eviction for `Cached<T>`

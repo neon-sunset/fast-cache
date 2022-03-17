@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace FastCache;
 
 [StructLayout(LayoutKind.Auto)]
-public partial struct Cached<T> where T : notnull
+public readonly partial struct Cached<T> where T : notnull
 {
     internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_cachedStore = new();
     internal static (bool IsStored, CachedInner<T> Inner) s_default = (false, default);
@@ -23,7 +23,8 @@ public partial struct Cached<T> where T : notnull
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Save(T value, TimeSpan expiration)
     {
-        s_cachedStore[_identifier] = new(value, expiration);
+        var expiresAt = DateTime.UtcNow + expiration;
+        s_cachedStore[_identifier] = new(value, expiresAt.Ticks);
         return value;
     }
 
@@ -38,21 +39,23 @@ public partial struct Cached<T> where T : notnull
 [StructLayout(LayoutKind.Auto)]
 internal readonly struct CachedInner<TInner> where TInner : notnull
 {
-    public readonly TInner Value;
-    public readonly long ExpiresAt;
+    private static readonly long MaxExpirationTicks = DateTime.MaxValue.Ticks;
 
-    public CachedInner(TInner value, TimeSpan expiration)
+    public readonly TInner Value;
+    public readonly long ExpiresAtTicks;
+
+    public CachedInner(TInner value, long expiresAtTicks)
     {
         Value = value;
-        ExpiresAt = DateTime.UtcNow.Ticks + expiration.Ticks;
+        ExpiresAtTicks = expiresAtTicks;
     }
 
     public CachedInner(TInner value)
     {
         Value = value;
-        ExpiresAt = DateTime.MaxValue.Ticks;
+        ExpiresAtTicks = MaxExpirationTicks;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsNotExpired() => DateTime.UtcNow.Ticks < ExpiresAt;
+    public bool IsNotExpired() => DateTime.UtcNow.Ticks < ExpiresAtTicks;
 }

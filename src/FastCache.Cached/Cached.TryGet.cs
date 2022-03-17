@@ -1,6 +1,6 @@
 namespace FastCache;
 
-public partial struct Cached<T> where T : notnull
+public readonly partial struct Cached<T> where T : notnull
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGet(out T value)
