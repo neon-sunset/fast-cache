@@ -20,4 +20,4 @@ jobs:
     - name: Build
       run: dotnet build -f net6.0
     - name: Test
-      run: dotnet test --no-build --verbosity normal -f net6.0
+      run: dotnet test --verbosity normal -f net6.0
