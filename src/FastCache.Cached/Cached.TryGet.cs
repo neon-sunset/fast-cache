@@ -22,6 +22,7 @@ public readonly partial struct Cached<T> where T : notnull
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGet<T1, T2>(T1 param1, T2 param2, out Cached<T> cached) =>
         TryGetInternal(HashCode.Combine(param1, param2), out cached);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGet<T1, T2, T3>(T1 param1, T2 param2, T3 param3, out Cached<T> cached) =>
         TryGetInternal(HashCode.Combine(param1, param2, param3), out cached);
