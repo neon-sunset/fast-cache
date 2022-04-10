@@ -1,15 +1,10 @@
-using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
-
 namespace FastCache;
 
 [StructLayout(LayoutKind.Auto)]
 public readonly partial struct Cached<T> where T : notnull
 {
-    internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_cachedStore = new();
-    internal static (bool IsStored, CachedInner<T> Inner) s_default = (false, default);
-
     private readonly int _identifier;
+
     public readonly T Value;
 
     public Cached() => throw new InvalidOperationException("Cached<T> must not be initialized with default constructor");
@@ -33,6 +28,12 @@ public readonly partial struct Cached<T> where T : notnull
     {
         s_cachedStore[_identifier] = new(value);
         return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T SaveLRU(T value)
+    {
+        throw new NotImplementedException();
     }
 }
 

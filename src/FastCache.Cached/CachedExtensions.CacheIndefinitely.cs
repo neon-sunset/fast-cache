@@ -57,15 +57,12 @@ public static partial class CachedExtensions
             accumulator.Add(param);
         }
 
-        Cached<T>.s_cachedStore[accumulator.ToHashCode()] = new(value);
-
-        return value;
+        return CacheIndefinitelyInternal(value, accumulator.ToHashCode());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static T CacheIndefinitelyInternal<T>(T value, int identifier) where T : notnull
     {
-        Cached<T>.s_cachedStore[identifier] = new(value);
-        return value;
+        return new Cached<T>(identifier, default!).SaveIndefinitely(value);
     }
 }

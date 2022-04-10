@@ -64,8 +64,6 @@ public static partial class CachedExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static T CacheInternal<T>(T value, int identifier, TimeSpan expiration) where T : notnull
     {
-        var expiresAt = DateTime.UtcNow + expiration;
-        Cached<T>.s_cachedStore[identifier] = new(value, expiresAt.Ticks);
-        return value;
+        return new Cached<T>(identifier, default!).Save(value, expiration);
     }
 }

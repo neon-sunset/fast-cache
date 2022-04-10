@@ -4,7 +4,6 @@ using BenchmarkDotNet.Jobs;
 namespace FastCache.Benchmarks;
 
 [SimpleJob(RuntimeMoniker.HostProcess)]
-[SimpleJob(RuntimeMoniker.Net60, baseline: true)]
 [MemoryDiagnoser]
 public class CacheBenchmarks
 {
