@@ -18,8 +18,9 @@ public readonly partial struct Cached<T> where T : notnull
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Save(T value, TimeSpan expiration)
     {
-        var expiresAt = DateTime.UtcNow + expiration;
-        s_cachedStore[_identifier] = new(value, expiresAt.Ticks);
+        var expiresAtTicks = (DateTime.UtcNow + expiration).Ticks;
+        s_cachedStore[_identifier] = new(value, expiresAtTicks);
+        s_oldestEntries.Add(_identifier, expiresAtTicks);
         return value;
     }
 
