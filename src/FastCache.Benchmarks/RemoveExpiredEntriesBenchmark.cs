@@ -5,7 +5,7 @@ using FastCache.Jobs;
 namespace FastCache.Benchmarks;
 
 [MemoryDiagnoser]
-[SimpleJob(invocationCount: 100000, runtimeMoniker: RuntimeMoniker.HostProcess)]
+[SimpleJob(invocationCount: 1000, runtimeMoniker: RuntimeMoniker.HostProcess)]
 public class RemoveExpiredEntriesBenchmark
 {
     private static readonly TimeSpan Expiration = TimeSpan.FromMilliseconds(1);
@@ -13,8 +13,8 @@ public class RemoveExpiredEntriesBenchmark
     [IterationSetup]
     public void Initialize()
     {
-        const int parallelism = 1;
-        const int limit = 6144 / parallelism;
+        const int parallelism = 10;
+        const int limit = 100_000 / parallelism;
         Parallel.For(0, parallelism, static num => Seed(num, limit));
 
         static void Seed(int num, int limit)
