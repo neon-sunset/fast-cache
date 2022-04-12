@@ -5,7 +5,7 @@ internal static class Constants
     // OldestEntries list and eviction batch size length limits.
     // Higher limit works well with short-lived first-gen-contained cache items
     // but performs poorly if many items of the same type have inconsistent lifetimes.
-    public static readonly int CacheBufferSize = int.TryParse(GetVar("FASTCACHE_BUFFER_LENGTH"), out var parsed) ? parsed : 16384;
+    public static readonly int CacheBufferSize = int.TryParse(GetVar("FASTCACHE_BUFFER_LENGTH"), out var parsed) ? parsed : 32768;
 
     // Frequency with which CacheItemsEvictionJob is run. Scheduling it often is only recommended when cache consists of
     // numerous frequently added short-lived items and not running it often enough will result in high memory usage.
