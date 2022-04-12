@@ -16,7 +16,6 @@ internal static class CacheItemsEvictionJob
             return;
         }
 
-        var bufferSize = Constants.CacheBufferSize;
         var now = DateTime.UtcNow.Ticks;
 
         if (RemoveOldestEntries<T>(now))
@@ -26,9 +25,8 @@ internal static class CacheItemsEvictionJob
         }
 
         var store = Cached<T>.s_cachedStore;
-        var expiredEntries = ArrayPool<int>.Shared.Rent(bufferSize);
-
-        var totalExpired = 0;
+        var expiredEntries = ArrayPool<int>.Shared.Rent(Constants.CacheBufferSize * 2);
+        var expiredEntriesLength = expiredEntries.Length;
 
         while (true)
         {
@@ -40,9 +38,8 @@ internal static class CacheItemsEvictionJob
                 {
                     expiredEntries[expiredEntriesCount] = identifier;
                     expiredEntriesCount++;
-                    totalExpired++;
 
-                    if (expiredEntriesCount >= bufferSize)
+                    if (expiredEntriesCount >= expiredEntriesLength)
                     {
                         break;
                     }
@@ -54,7 +51,7 @@ internal static class CacheItemsEvictionJob
                 store.Remove(expiredEntries[i], out _);
             }
 
-            if (expiredEntriesCount < bufferSize)
+            if (expiredEntriesCount < expiredEntriesLength)
             {
                 break;
             }
@@ -71,16 +68,12 @@ internal static class CacheItemsEvictionJob
         var continueEviction = store.Count < Constants.CacheBufferSize;
 
         var arrPool = ArrayPool<int>.Shared;
-        var removedIndexesBuf = arrPool.Rent(Constants.CacheBufferSize);
-        var survivedIndexesBuf = arrPool.Rent(Constants.CacheBufferSize);
+        var entriesSurvivedIndexes = arrPool.Rent(Constants.CacheBufferSize);
 
         lock (oldestEntries)
         {
             var entriesRemoved = 0;
-            var entriesRemovedIndexes = ((Span<int>)removedIndexesBuf)[..Constants.CacheBufferSize];
-
             var entriesSurvived = 0;
-            var entriesSurvivedIndexes = ((Span<int>)survivedIndexesBuf)[..Constants.CacheBufferSize];
 
             for (var i = 0; i < oldestEntries.Count; i++)
             {
@@ -89,7 +82,6 @@ internal static class CacheItemsEvictionJob
                 if (now > expiresAtTicks)
                 {
                     store.Remove(identifier, out _);
-                    entriesRemovedIndexes[entriesRemoved] = i;
                     entriesRemoved++;
                 }
                 else
@@ -103,15 +95,13 @@ internal static class CacheItemsEvictionJob
             {
                 oldestEntries.Clear();
 
-                arrPool.Return(removedIndexesBuf);
-                arrPool.Return(survivedIndexesBuf);
+                arrPool.Return(entriesSurvivedIndexes);
                 return continueEviction;
             }
 
             if (entriesRemoved == 0)
             {
-                arrPool.Return(removedIndexesBuf);
-                arrPool.Return(survivedIndexesBuf);
+                arrPool.Return(entriesSurvivedIndexes);
                 return continueEviction;
             }
 
@@ -124,8 +114,7 @@ internal static class CacheItemsEvictionJob
             }
 
             Cached<T>.s_oldestEntries = new(updatedOldestEntries);
-            arrPool.Return(removedIndexesBuf);
-            arrPool.Return(survivedIndexesBuf);
+            arrPool.Return(entriesSurvivedIndexes);
             return continueEviction;
         }
     }
