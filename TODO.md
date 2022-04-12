@@ -1,3 +1,5 @@
+- [ ] Cache metrics (OpenTelemetry?)
+- [ ] README and documentation
 - [ ] Add unit tests coverage
 - [ ] Automate nuget publishing
 - [ ] Implement generic `MemoryCache<T>`

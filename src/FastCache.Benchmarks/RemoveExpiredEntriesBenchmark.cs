@@ -1,11 +1,12 @@
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Jobs;
 using FastCache.Jobs;
 
 namespace FastCache.Benchmarks;
 
 [MemoryDiagnoser]
-[SimpleJob(invocationCount: 1000, runtimeMoniker: RuntimeMoniker.HostProcess)]
+[SimpleJob(runtimeMoniker: RuntimeMoniker.HostProcess, runStrategy: RunStrategy.Throughput, targetCount: 500)]
 public class RemoveExpiredEntriesBenchmark
 {
     private static readonly TimeSpan Expiration = TimeSpan.FromMilliseconds(1);
@@ -13,8 +14,8 @@ public class RemoveExpiredEntriesBenchmark
     [IterationSetup]
     public void Initialize()
     {
-        const int parallelism = 10;
-        const int limit = 100_000 / parallelism;
+        const int parallelism = 1;
+        const int limit = 10000 / parallelism;
         Parallel.For(0, parallelism, static num => Seed(num, limit));
 
         static void Seed(int num, int limit)
@@ -29,5 +30,5 @@ public class RemoveExpiredEntriesBenchmark
     }
 
     [Benchmark]
-    public void Run() => RemoveExpiredEntriesJob.Run<string>();
+    public void Run() => CacheItemsEvictionJob.RunInternal<string>();
 }

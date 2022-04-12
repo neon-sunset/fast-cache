@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using FastCache.Jobs;
 
 namespace FastCache;
 
@@ -6,17 +7,16 @@ public partial struct Cached<T>
 {
     internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_cachedStore = new();
 
-    internal static CachedOldestEntries<T> s_oldestEntries = new(new(Constants.OldestEntriesLimit));
+    internal static readonly JobHolder<T> s_removeExpiredJob = new(
+        new Timer(
+            static _ => CacheItemsEvictionJob.Run<T>(),
+            null,
+            Constants.CacheItemsEvictionInterval,
+            Constants.CacheItemsEvictionInterval));
+
+    internal static CachedOldestEntries<T> s_oldestEntries = new(new(Constants.CacheBufferSize));
 
     internal static (bool IsStored, CachedInner<T> Inner) s_default = (false, default);
-
-    // internal static readonly (Timer, T) s_removeExpiredJob = (
-    //     new Timer(
-    //         static _ => RemoveExpiredEntriesJob.Run<T>(),
-    //         null,
-    //         TimeSpan.FromSeconds(10),
-    //         TimeSpan.FromSeconds(10)),
-    //     default!);
 }
 
 internal readonly struct CachedOldestEntries<T> where T : notnull
@@ -33,10 +33,22 @@ internal readonly struct CachedOldestEntries<T> where T : notnull
     {
         lock (Entries)
         {
-            if (Entries.Count < Constants.OldestEntriesLimit)
+            if (Entries.Count < Constants.CacheBufferSize)
             {
                 Entries.Add((value, expiresAtTicks));
             }
         }
+    }
+}
+
+internal sealed class JobHolder<T>
+{
+    public readonly Timer Timer;
+
+    public readonly SemaphoreSlim InstanceLock = new(2, 2);
+
+    public JobHolder(Timer timer)
+    {
+        Timer = timer;
     }
 }

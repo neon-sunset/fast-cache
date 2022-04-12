@@ -26,8 +26,13 @@ public static class GetOrCompute
         // In fact, the second call has returned the same cached string instance we received earlier from 'FetchWeather'
         Debug.Assert(ReferenceEquals(weather, cachedWeather));
 
+        for (int i = 0; i < 1_000_000; i++)
+        {
+            $"some new string right here with value of {i}".Cache(i, TimeSpan.FromSeconds(5));
+        }
+
         // Wait for one second
-        await Task.Delay(oneSecond);
+        await Task.Delay(TimeSpan.FromSeconds(15));
 
         // Retrieve weather once again because previously cached value has expired
         stopwatch.Restart();

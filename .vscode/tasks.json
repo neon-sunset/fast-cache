@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/src/FastCache.Benchmarks/FastCache.Benchmarks.csproj",
+                "${workspaceFolder}/examples/CachedExample/CachedExample.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/src/FastCache.Benchmarks/FastCache.Benchmarks.csproj",
+                "${workspaceFolder}/examples/CachedExample/CachedExample.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/src/FastCache.Benchmarks/FastCache.Benchmarks.csproj"
+                "${workspaceFolder}/examples/CachedExample/CachedExample.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
