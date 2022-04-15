@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/examples/CachedExample/bin/Debug/net6.0/CachedExample.dll",
             "args": [],
             "cwd": "${workspaceFolder}/examples/CachedExample",
-            "console": "internalConsole",
+            "console": "integratedTerminal",
             "stopAtEntry": false
         },
         {

@@ -4,7 +4,7 @@ namespace CachedExample;
 
 public static class GetOrCompute
 {
-    private static HttpClient Http = new();
+    private static readonly HttpClient Http = new();
 
     public static async ValueTask Run()
     {
@@ -31,7 +31,7 @@ public static class GetOrCompute
         Seed(DateTime.UtcNow);
 
         // Wait for one second
-        await Task.Delay(TimeSpan.FromSeconds(15));
+        await Task.Delay(oneSecond);
 
         // Retrieve weather once again because previously cached value has expired
         stopwatch.Restart();
@@ -52,9 +52,12 @@ public static class GetOrCompute
 
     private static void Seed<T>(T value)
     {
-        for (int i = 0; i < 1_000_000; i++)
+        const int count = 1_000_000;
+        for (int i = 0; i < count; i++)
         {
-            ($"some new string right here with value of {i} and value of {value}", value).Cache(i, TimeSpan.FromMinutes(10));
+            ($"some new string right here with value of {i} and value of {value}", value).Cache(i, TimeSpan.FromSeconds(15));
         }
+
+        Console.WriteLine($"Added {count} of {typeof((string, T)).Name} to cache.");
     }
 }

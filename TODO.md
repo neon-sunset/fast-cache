@@ -1,3 +1,4 @@
+- [ ] Figure out how to efficiently solve duplicate entries in 'QuickList'
 - [ ] Cache metrics (OpenTelemetry?)
 - [ ] README and documentation
 - [ ] Add unit tests coverage

@@ -9,12 +9,7 @@ public partial struct Cached<T>
 {
     internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_cachedStore = new();
 
-    internal static readonly JobHolder<T> s_quickListEvictionJob = new(
-        new Timer(
-            static _ => CacheEvictionJob.EvictFromQuickList<T>(DateTime.UtcNow.Ticks),
-            null,
-            Constants.QuickListEvictionInterval,
-            Constants.QuickListEvictionInterval));
+    internal static readonly JobHolder<T> s_quickListEvictionJob = new();
 
     internal static readonly CachedQuickEvictList<T> s_quickEvictList = new();
 
@@ -56,13 +51,27 @@ internal sealed class CachedQuickEvictList<T> where T : notnull
 
 internal sealed class JobHolder<T> where T : notnull
 {
-    public readonly Timer Timer;
+    public readonly Timer QuickListEvictionTimer;
 
-    public readonly SemaphoreSlim InstanceLock = new(2, 2);
+    public readonly Timer FullEvictionTimer;
 
-    public JobHolder(Timer timer)
+    public readonly SemaphoreSlim InstanceLock = new(1, 1);
+
+    public JobHolder()
     {
-        Timer = timer;
+        QuickListEvictionTimer = new(
+            static _ => CacheEvictionJob.EvictFromQuickList<T>(DateTime.UtcNow.Ticks),
+            null,
+            Constants.QuickListEvictionInterval,
+            Constants.QuickListEvictionInterval);
+
+        // Full eviction interval is always computed with jitter. Store to local so that start and repeat intervals are equal.
+        var fullEvictionInterval = Constants.FullEvictionInterval;
+        FullEvictionTimer = new(
+            static _ => CacheEvictionJob.QueueFullEviction<T>(),
+            null,
+            fullEvictionInterval,
+            fullEvictionInterval);
 
         Gen2GcCallback.Register(static () => CacheEvictionJob.QueueFullEviction<T>());
     }
