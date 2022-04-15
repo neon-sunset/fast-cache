@@ -1,5 +1,7 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using FastCache.Jobs;
+using FastCache.Utils;
 
 namespace FastCache;
 
@@ -7,41 +9,52 @@ public partial struct Cached<T>
 {
     internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_cachedStore = new();
 
-    internal static readonly JobHolder<T> s_removeExpiredJob = new(
+    internal static readonly JobHolder<T> s_quickListEvictionJob = new(
         new Timer(
-            static _ => CacheItemsEvictionJob.Run<T>(),
+            static _ => CacheEvictionJob.EvictFromQuickList<T>(DateTime.UtcNow.Ticks),
             null,
-            Constants.CacheItemsEvictionInterval,
-            Constants.CacheItemsEvictionInterval));
+            Constants.QuickListEvictionInterval,
+            Constants.QuickListEvictionInterval));
 
-    internal static CachedOldestEntries<T> s_oldestEntries = new(new(Constants.CacheBufferSize));
+    internal static readonly CachedQuickEvictList<T> s_quickEvictList = new();
 
     internal static (bool IsStored, CachedInner<T> Inner) s_default = (false, default);
 }
 
-internal readonly struct CachedOldestEntries<T> where T : notnull
+internal sealed class CachedQuickEvictList<T> where T : notnull
 {
-    public readonly List<(int, long)> Entries;
+    public (int, long)[] Entries { get; private set; }
 
-    public CachedOldestEntries(List<(int, long)> entries)
+    public int Count { get; private set; }
+
+    public CachedQuickEvictList()
     {
-        Entries = entries;
+        Entries = ArrayPool<(int, long)>.Shared.Rent(Constants.CacheBufferSize);
+        Count = 0;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add(int value, long expiresAtTicks)
     {
         lock (Entries)
         {
-            if (Entries.Count < Constants.CacheBufferSize)
+            if (Count < Constants.CacheBufferSize)
             {
-                Entries.Add((value, expiresAtTicks));
+                Entries[Count] = (value, expiresAtTicks);
+                Count++;
             }
         }
     }
+
+    public void Reset() => Count = 0;
+
+    public void Replace((int, long)[] entries, int count)
+    {
+        Entries = entries;
+        Count = count;
+    }
 }
 
-internal sealed class JobHolder<T>
+internal sealed class JobHolder<T> where T : notnull
 {
     public readonly Timer Timer;
 
@@ -50,5 +63,7 @@ internal sealed class JobHolder<T>
     public JobHolder(Timer timer)
     {
         Timer = timer;
+
+        Gen2GcCallback.Register(static () => CacheEvictionJob.QueueFullEviction<T>());
     }
 }

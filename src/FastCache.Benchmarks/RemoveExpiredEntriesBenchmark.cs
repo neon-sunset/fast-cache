@@ -9,20 +9,19 @@ namespace FastCache.Benchmarks;
 [SimpleJob(runtimeMoniker: RuntimeMoniker.HostProcess, runStrategy: RunStrategy.Throughput, targetCount: 500)]
 public class RemoveExpiredEntriesBenchmark
 {
-    private static readonly TimeSpan Expiration = TimeSpan.FromMilliseconds(1);
-
     [IterationSetup]
     public void Initialize()
     {
         const int parallelism = 1;
-        const int limit = 10000 / parallelism;
+        const int limit = 30000 / parallelism;
         Parallel.For(0, parallelism, static num => Seed(num, limit));
 
         static void Seed(int num, int limit)
         {
             for (int i = 0; i < limit; i++)
             {
-                $"string value of {i} at {num}".Cache(i, num, Expiration);
+                var exp = Random.Shared.Next(0, 10) > 4 ? TimeSpan.FromHours(1) : TimeSpan.FromMilliseconds(1);
+                $"string value of {i} and {num}".Cache(i, exp);
             }
         }
 
@@ -30,5 +29,5 @@ public class RemoveExpiredEntriesBenchmark
     }
 
     [Benchmark]
-    public void Run() => CacheItemsEvictionJob.RunInternal<string>();
+    public void Run() => CacheEvictionJob.EvictExpired<string>();
 }

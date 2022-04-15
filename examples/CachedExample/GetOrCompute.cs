@@ -26,10 +26,9 @@ public static class GetOrCompute
         // In fact, the second call has returned the same cached string instance we received earlier from 'FetchWeather'
         Debug.Assert(ReferenceEquals(weather, cachedWeather));
 
-        for (int i = 0; i < 1_000_000; i++)
-        {
-            $"some new string right here with value of {i}".Cache(i, TimeSpan.FromSeconds(5));
-        }
+        Seed(32);
+        Seed(512ul);
+        Seed(DateTime.UtcNow);
 
         // Wait for one second
         await Task.Delay(TimeSpan.FromSeconds(15));
@@ -38,11 +37,24 @@ public static class GetOrCompute
         stopwatch.Restart();
         weather = await Cached.GetOrCompute(query, FetchWeather, oneSecond);
         Console.WriteLine($"New: {weather} in {stopwatch.ElapsedMilliseconds}");
+        while (Console.ReadLine() != "S")
+        {
+            Console.WriteLine("Doing full GC");
+            GC.Collect();
+        }
     }
 
     private static async Task<string> FetchWeather(string query)
     {
         Console.WriteLine($"Fetching weather for {query}");
         return await Http.GetStringAsync($"https://wttr.in/{query}");
+    }
+
+    private static void Seed<T>(T value)
+    {
+        for (int i = 0; i < 1_000_000; i++)
+        {
+            ($"some new string right here with value of {i} and value of {value}", value).Cache(i, TimeSpan.FromMinutes(10));
+        }
     }
 }

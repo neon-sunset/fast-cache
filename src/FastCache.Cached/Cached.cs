@@ -15,23 +15,20 @@ public readonly partial struct Cached<T> where T : notnull
         Value = value;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Save(T value, TimeSpan expiration)
     {
         var expiresAtTicks = (DateTime.UtcNow + expiration).Ticks;
         s_cachedStore[_identifier] = new(value, expiresAtTicks);
-        s_oldestEntries.Add(_identifier, expiresAtTicks);
+        s_quickEvictList.Add(_identifier, expiresAtTicks);
         return value;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T SaveIndefinitely(T value)
     {
         s_cachedStore[_identifier] = new(value);
         return value;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T SaveLRU(T value)
     {
         throw new NotImplementedException();
