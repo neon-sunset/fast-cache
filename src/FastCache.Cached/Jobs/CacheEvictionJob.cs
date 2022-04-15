@@ -6,7 +6,6 @@ public static class CacheEvictionJob
 {
     public static bool QueueFullEviction<T>() where T : notnull
     {
-        Console.WriteLine($"Full eviction for {typeof(T)} queued.");
         return ThreadPool.QueueUserWorkItem(static _ => EvictExpired<T>());
     }
 
@@ -67,8 +66,6 @@ public static class CacheEvictionJob
     /// </summary>
     public static bool EvictFromQuickList<T>(long now) where T : notnull
     {
-        Console.WriteLine($"Quick list eviction for {typeof(T)}.");
-
         var store = Cached<T>.s_cachedStore;
         var continueEviction = store.Count < Constants.CacheBufferSize;
 
