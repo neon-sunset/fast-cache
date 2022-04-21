@@ -8,9 +8,7 @@ namespace FastCache;
 public partial struct Cached<T>
 {
     internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_cachedStore = new();
-
     internal static readonly JobHolder<T> s_evictionJob = new();
-
     internal static readonly QuickEvictList<T> s_quickEvictList = new();
 
     internal static (bool IsStored, CachedInner<T> Inner) s_default = (false, default);

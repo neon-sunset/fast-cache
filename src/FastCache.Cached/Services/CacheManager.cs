@@ -143,7 +143,6 @@ public static class CacheManager
 
         ArrayPool<int>.Shared.Return(buffer);
 
-        Console.WriteLine($"{DateTime.Now}: Main cache eviction for {typeof(T)} complete.");
         return totalRemoved;
     }
 
@@ -160,8 +159,6 @@ public static class CacheManager
         }
 
         await Task.Delay(Constants.FullEvictionInterval / 2);
-
-        Console.WriteLine($"{DateTime.Now}: Requesting forced full GC.");
         GC.Collect(2, GCCollectionMode.Forced, blocking: false, compacting: true);
 
         FullGCLock.Release();
