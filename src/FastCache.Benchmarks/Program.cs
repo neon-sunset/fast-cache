@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 using FastCache;
 using FastCache.Benchmarks;
-using FastCache.Jobs;
+using FastCache.Services;
 
-BenchmarkRunner.Run<RemoveExpiredEntriesBenchmark>();
+BenchmarkRunner.Run<CachedLastBenchmarks>();

@@ -1,0 +1,6 @@
+# configuration file for dotnet-releaser
+[msbuild]
+project = "fast-cache.sln"
+[github]
+user = "neon-sunset"
+repo = "fast-cache"

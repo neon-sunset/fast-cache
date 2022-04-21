@@ -52,10 +52,10 @@ public static class GetOrCompute
 
     private static void Seed<T>(T value)
     {
-        const int count = 1_000_000;
+        const int count = 7_500_000;
         for (int i = 0; i < count; i++)
         {
-            ($"some new string right here with value of {i} and value of {value}", value).Cache(i, TimeSpan.FromSeconds(15));
+            ($"some new string right here with value of {i} and value of {value}", value).Cache(i, TimeSpan.FromSeconds(30));
         }
 
         Console.WriteLine($"Added {count} of {typeof((string, T)).Name} to cache.");

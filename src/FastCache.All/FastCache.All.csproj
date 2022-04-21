@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FastCache.Cached" Version="0.2.1-alpha" />
+    <PackageReference Include="FastCache.Cached" Version="0.2.5-alpha" />
   </ItemGroup>
 
 </Project>

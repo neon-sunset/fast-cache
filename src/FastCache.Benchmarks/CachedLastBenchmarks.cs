@@ -63,7 +63,7 @@ public class CachedLastBenchmarks
     }
 
     [Benchmark]
-    public string GetOrCompute() => Cached.LastOrCompute("new computed value", v => Delegate(v));
+    public string GetOrCompute() => Cached.LastOrCompute("new computed value", Delegate);
 
     private static string Delegate(string input) => $"computed: {input}";
 }

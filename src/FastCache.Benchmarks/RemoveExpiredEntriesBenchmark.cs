@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Jobs;
-using FastCache.Jobs;
+using FastCache.Services;
 
 namespace FastCache.Benchmarks;
 
@@ -29,5 +29,5 @@ public class RemoveExpiredEntriesBenchmark
     }
 
     [Benchmark]
-    public void Run() => CacheEvictionJob.EvictExpired<string>();
+    public async ValueTask Run() => await CacheManager.PerformFullEviction<string>();
 }

@@ -1,3 +1,4 @@
+- [ ] Refactor code structure - works well but is a complete mess 
 - [ ] Figure out how to efficiently solve duplicate entries in 'QuickList'
 - [ ] Cache metrics (OpenTelemetry?)
 - [ ] README and documentation

@@ -1,6 +1,6 @@
 using System.Buffers;
 using System.Collections.Concurrent;
-using FastCache.Jobs;
+using FastCache.Services;
 using FastCache.Utils;
 
 namespace FastCache;
@@ -9,20 +9,20 @@ public partial struct Cached<T>
 {
     internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_cachedStore = new();
 
-    internal static readonly JobHolder<T> s_quickListEvictionJob = new();
+    internal static readonly JobHolder<T> s_evictionJob = new();
 
-    internal static readonly CachedQuickEvictList<T> s_quickEvictList = new();
+    internal static readonly QuickEvictList<T> s_quickEvictList = new();
 
     internal static (bool IsStored, CachedInner<T> Inner) s_default = (false, default);
 }
 
-internal sealed class CachedQuickEvictList<T> where T : notnull
+internal sealed class QuickEvictList<T> where T : notnull
 {
     public (int, long)[] Entries { get; private set; }
 
     public int Count { get; private set; }
 
-    public CachedQuickEvictList()
+    public QuickEvictList()
     {
         Entries = ArrayPool<(int, long)>.Shared.Rent(Constants.CacheBufferSize);
         Count = 0;
@@ -52,15 +52,15 @@ internal sealed class CachedQuickEvictList<T> where T : notnull
 internal sealed class JobHolder<T> where T : notnull
 {
     public readonly Timer QuickListEvictionTimer;
-
     public readonly Timer FullEvictionTimer;
+    public readonly SemaphoreSlim FullEvictionLock = new(1, 1);
 
-    public readonly SemaphoreSlim InstanceLock = new(1, 1);
+    public int ReportedEvictionsCount;
 
     public JobHolder()
     {
         QuickListEvictionTimer = new(
-            static _ => CacheEvictionJob.EvictFromQuickList<T>(DateTime.UtcNow.Ticks),
+            static _ => CacheManager.EvictFromQuickList<T>(DateTime.UtcNow.Ticks),
             null,
             Constants.QuickListEvictionInterval,
             Constants.QuickListEvictionInterval);
@@ -68,11 +68,11 @@ internal sealed class JobHolder<T> where T : notnull
         // Full eviction interval is always computed with jitter. Store to local so that start and repeat intervals are equal.
         var fullEvictionInterval = Constants.FullEvictionInterval;
         FullEvictionTimer = new(
-            static _ => CacheEvictionJob.QueueFullEviction<T>(),
+            static _ => CacheManager.QueueFullEviction<T>(),
             null,
             fullEvictionInterval,
             fullEvictionInterval);
 
-        Gen2GcCallback.Register(static () => CacheEvictionJob.QueueFullEviction<T>());
+        Gen2GcCallback.Register(static () => CacheManager.QueueFullEviction<T>());
     }
 }
