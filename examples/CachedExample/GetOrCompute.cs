@@ -32,6 +32,12 @@ public static class GetOrCompute
         ThreadPool.QueueUserWorkItem(_ => Seed(new { Date = DateTime.Now, Bytes = new byte[] { 1, 2, 3, 4 } }));
         ThreadPool.QueueUserWorkItem(_ => Seed(new { A = "hello world", B = 420 }));
 
+        ThreadPool.QueueUserWorkItem(_ => Seed(32U));
+        ThreadPool.QueueUserWorkItem(_ => Seed(512F));
+        ThreadPool.QueueUserWorkItem(_ => Seed(1337D));
+        ThreadPool.QueueUserWorkItem(_ => Seed(new { Date = DateTime.Now, Ints = new int[] { 1, 2, 3, 4 } }));
+        ThreadPool.QueueUserWorkItem(_ => Seed(new { A = "hello world", B = 420F }));
+
         // Wait for one second
         await Task.Delay(oneSecond);
 
@@ -54,11 +60,11 @@ public static class GetOrCompute
 
     private static void Seed<T>(T value) where T : notnull
     {
-        const int count = 5_000_000;
+        const int count = 1_000_000;
 
         for (int i = 0; i < count; i++)
         {
-            value.Cache(i, TimeSpan.FromSeconds(60));
+            value.Cache(i, TimeSpan.FromSeconds(30));
         }
 
         Console.WriteLine($"Added {count} of {typeof(T).Name} to cache.");
