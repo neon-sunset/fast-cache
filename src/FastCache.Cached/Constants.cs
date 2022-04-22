@@ -54,5 +54,7 @@ internal static class Constants
         }
     }
 
+    public static readonly TimeSpan GarbageCollectionDelay = QuickListEvictionInterval * 2;
+
     private static string? GetVar(string key) => Environment.GetEnvironmentVariable(key);
 }

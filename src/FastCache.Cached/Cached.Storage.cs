@@ -52,8 +52,10 @@ internal sealed class JobHolder<T> where T : notnull
     public readonly Timer QuickListEvictionTimer;
     public readonly Timer FullEvictionTimer;
     public readonly SemaphoreSlim FullEvictionLock = new(1, 1);
+    public readonly int EvictionBackoffLimit = 4;
 
     public int ReportedEvictionsCount;
+    public int EvictionBackoffCount;
 
     public JobHolder()
     {
@@ -66,11 +68,11 @@ internal sealed class JobHolder<T> where T : notnull
         // Full eviction interval is always computed with jitter. Store to local so that start and repeat intervals are equal.
         var fullEvictionInterval = Constants.FullEvictionInterval;
         FullEvictionTimer = new(
-            static _ => CacheManager.QueueFullEviction<T>(),
+            static _ => CacheManager.QueueFullEviction<T>(triggeredByTimer: true),
             null,
             fullEvictionInterval,
             fullEvictionInterval);
 
-        Gen2GcCallback.Register(static () => CacheManager.QueueFullEviction<T>());
+        Gen2GcCallback.Register(static () => CacheManager.QueueFullEviction<T>(triggeredByTimer: false));
     }
 }

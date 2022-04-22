@@ -9,6 +9,8 @@ namespace FastCache.Benchmarks;
 [SimpleJob(runtimeMoniker: RuntimeMoniker.HostProcess, runStrategy: RunStrategy.Throughput, targetCount: 500)]
 public class RemoveExpiredEntriesBenchmark
 {
+    private long _now;
+
     [IterationSetup]
     public void Initialize()
     {
@@ -25,9 +27,11 @@ public class RemoveExpiredEntriesBenchmark
             }
         }
 
+        _now = DateTime.UtcNow.Ticks;
+
         Thread.Sleep(2);
     }
 
     [Benchmark]
-    public async ValueTask Run() => await CacheManager.PerformFullEviction<string>();
+    public void Run() => CacheManager.EvictFromQuickList<string>(_now);
 }

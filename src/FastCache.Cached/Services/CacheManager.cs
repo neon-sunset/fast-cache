@@ -6,14 +6,18 @@ public static class CacheManager
 {
     private static readonly SemaphoreSlim FullGCLock = new(1, 1);
 
-    public static bool QueueFullEviction<T>() where T : notnull
+    public static bool QueueFullEviction<T>(bool triggeredByTimer) where T : notnull
     {
-        return ThreadPool.QueueUserWorkItem(async static _ => await PerformFullEviction<T>());
+        return ThreadPool.QueueUserWorkItem(
+            async static triggeredByTimer => await PerformFullEviction<T>(triggeredByTimer),
+            triggeredByTimer,
+            preferLocal: false);
     }
 
-    internal static async ValueTask PerformFullEviction<T>() where T : notnull
+    internal static async ValueTask PerformFullEviction<T>(bool triggeredByTimer) where T : notnull
     {
-        if (!Cached<T>.s_evictionJob.FullEvictionLock.Wait(0))
+        var evictionJob = Cached<T>.s_evictionJob;
+        if (!evictionJob.FullEvictionLock.Wait(0))
         {
             return;
         }
@@ -26,16 +30,34 @@ public static class CacheManager
         await Task.Delay(Constants.QuickListEvictionDelay);
         if (EvictFromQuickList<T>(now))
         {
-            Cached<T>.s_evictionJob.FullEvictionLock.Release();
+            evictionJob.FullEvictionLock.Release();
             return;
         }
 
         await Task.Delay(Constants.CacheStoreEvictionDelay);
         var evictedFromMainCache = EvictFromMainCache<T>(now);
-        Interlocked.Add(ref Cached<T>.s_evictionJob.ReportedEvictionsCount, evictedFromMainCache);
+        if (evictedFromMainCache > 0)
+        {
+            Interlocked.Add(ref evictionJob.ReportedEvictionsCount, evictedFromMainCache);
+        }
+        else if (triggeredByTimer)
+        {
+            evictionJob.EvictionBackoffCount++;
+
+            if (evictionJob.EvictionBackoffCount < evictionJob.EvictionBackoffLimit)
+            {
+                var interval = Constants.FullEvictionInterval;
+                for (int i = 0; i < evictionJob.EvictionBackoffCount; i++)
+                {
+                    interval += Constants.FullEvictionInterval;
+                }
+
+                evictionJob.FullEvictionTimer.Change(interval, interval);
+            }
+        }
 
         ThreadPool.QueueUserWorkItem(async static _ => await ConsiderFullGC<T>());
-        Cached<T>.s_evictionJob.FullEvictionLock.Release();
+        evictionJob.FullEvictionLock.Release();
     }
 
     /// <summary>
@@ -158,7 +180,7 @@ public static class CacheManager
             return;
         }
 
-        await Task.Delay(Constants.FullEvictionInterval / 2);
+        await Task.Delay(Constants.GarbageCollectionDelay);
         GC.Collect(2, GCCollectionMode.Forced, blocking: false, compacting: true);
 
         FullGCLock.Release();

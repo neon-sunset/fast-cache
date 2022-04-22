@@ -26,9 +26,11 @@ public static class GetOrCompute
         // In fact, the second call has returned the same cached string instance we received earlier from 'FetchWeather'
         Debug.Assert(ReferenceEquals(weather, cachedWeather));
 
-        Seed(32);
-        Seed(512ul);
-        Seed(DateTime.UtcNow);
+        ThreadPool.QueueUserWorkItem(_ => Seed(32));
+        ThreadPool.QueueUserWorkItem(_ => Seed(512UL));
+        ThreadPool.QueueUserWorkItem(_ => Seed(1337L));
+        ThreadPool.QueueUserWorkItem(_ => Seed(new { Date = DateTime.Now, Bytes = new byte[] { 1, 2, 3, 4 } }));
+        ThreadPool.QueueUserWorkItem(_ => Seed(new { A = "hello world", B = 420 }));
 
         // Wait for one second
         await Task.Delay(oneSecond);
@@ -50,14 +52,15 @@ public static class GetOrCompute
         return await Http.GetStringAsync($"https://wttr.in/{query}");
     }
 
-    private static void Seed<T>(T value)
+    private static void Seed<T>(T value) where T : notnull
     {
-        const int count = 7_500_000;
+        const int count = 5_000_000;
+
         for (int i = 0; i < count; i++)
         {
-            ($"some new string right here with value of {i} and value of {value}", value).Cache(i, TimeSpan.FromSeconds(30));
+            value.Cache(i, TimeSpan.FromSeconds(60));
         }
 
-        Console.WriteLine($"Added {count} of {typeof((string, T)).Name} to cache.");
+        Console.WriteLine($"Added {count} of {typeof(T).Name} to cache.");
     }
 }
