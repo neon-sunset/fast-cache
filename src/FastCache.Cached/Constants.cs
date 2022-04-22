@@ -3,7 +3,7 @@ namespace FastCache;
 internal static class Constants
 {
     private const int DefaultCacheBufferSize = 32768;
-    private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan MaxQuickListInterval = TimeSpan.FromSeconds(30);
 
     // OldestEntries list and eviction batch size length limits.
@@ -13,6 +13,8 @@ internal static class Constants
         .TryParse(GetVar("FASTCACHE_QUICKLIST_LENGTH"), out var parsed)
             ? parsed
             : DefaultCacheBufferSize;
+
+    public static readonly ulong AggregatedGCThreshold = (ulong)CacheBufferSize * 4;
 
     // Frequency with which CacheItemsEvictionJob is run. Scheduling it often is only recommended when cache consists of
     // numerous frequently added short-lived items and not running it often enough will result in high memory usage.

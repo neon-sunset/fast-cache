@@ -52,9 +52,7 @@ internal sealed class JobHolder<T> where T : notnull
     public readonly Timer QuickListEvictionTimer;
     public readonly Timer FullEvictionTimer;
     public readonly SemaphoreSlim FullEvictionLock = new(1, 1);
-    public readonly int EvictionBackoffLimit = 4;
-
-    public int ReportedEvictionsCount;
+    public readonly int EvictionBackoffLimit = 5;
     public int EvictionBackoffCount;
 
     public JobHolder()

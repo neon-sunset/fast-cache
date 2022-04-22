@@ -5,7 +5,8 @@ namespace FastCache.Services;
 public static class CacheManager
 {
     private static readonly SemaphoreSlim FullGCLock = new(1, 1);
-    private static readonly Mutex GcMutex = new();
+
+    private static ulong s_AggregatedEvictionsCount;
 
     public static bool QueueFullEviction<T>(bool triggeredByTimer) where T : notnull
     {
@@ -13,6 +14,16 @@ public static class CacheManager
             async static triggeredByTimer => await PerformFullEviction<T>(triggeredByTimer),
             triggeredByTimer,
             preferLocal: false);
+    }
+
+    private static void ImmediateFullEvictionWithGC<T>() where T : notnull
+    {
+        throw new NotImplementedException();
+    }
+
+    private static async ValueTask StaggeredFullEviction<T>() where T : notnull
+    {
+        throw new NotImplementedException();
     }
 
     internal static async ValueTask PerformFullEviction<T>(bool triggeredByTimer) where T : notnull
@@ -39,25 +50,31 @@ public static class CacheManager
         var evictedFromMainCache = EvictFromMainCache<T>(now);
         if (evictedFromMainCache > 0)
         {
-            Interlocked.Add(ref evictionJob.ReportedEvictionsCount, evictedFromMainCache);
+            ReportEvicted<T>("cache store", evictedFromMainCache);
+            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromMainCache);
         }
         else if (triggeredByTimer)
         {
-            evictionJob.EvictionBackoffCount++;
-
             if (evictionJob.EvictionBackoffCount < evictionJob.EvictionBackoffLimit)
             {
+                evictionJob.EvictionBackoffCount++;
+
                 var interval = Constants.FullEvictionInterval;
                 for (int i = 0; i < evictionJob.EvictionBackoffCount; i++)
                 {
                     interval += Constants.FullEvictionInterval;
                 }
 
+                Console.WriteLine($"FastCache: full eviction backoff for {typeof(T).Name}. New interval {interval}");
                 evictionJob.FullEvictionTimer.Change(interval, interval);
             }
         }
 
-        ThreadPool.QueueUserWorkItem(async static _ => await ConsiderFullGC<T>());
+        if (triggeredByTimer)
+        {
+            ThreadPool.QueueUserWorkItem(async static _ => await ConsiderFullGC<T>());
+        }
+
         evictionJob.FullEvictionLock.Release();
     }
 
@@ -99,7 +116,7 @@ public static class CacheManager
             {
                 Cached<T>.s_quickEvictList.Reset();
                 ArrayPool<int>.Shared.Return(entriesSurvivedIndexes);
-                Interlocked.Add(ref Cached<T>.s_evictionJob.ReportedEvictionsCount, entriesRemovedCount);
+                Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)entriesRemovedCount);
 
                 return continueEviction;
             }
@@ -121,7 +138,7 @@ public static class CacheManager
             Cached<T>.s_quickEvictList.Replace(entriesSurvived, entriesSurvivedCount);
             ArrayPool<(int, long)>.Shared.Return(quickListEntries);
             ArrayPool<int>.Shared.Return(entriesSurvivedIndexes);
-            Interlocked.Add(ref Cached<T>.s_evictionJob.ReportedEvictionsCount, entriesRemovedCount);
+            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)entriesRemovedCount);
 
             return continueEviction;
         }
@@ -171,7 +188,7 @@ public static class CacheManager
 
     private static async ValueTask ConsiderFullGC<T>() where T : notnull
     {
-        if (Cached<T>.s_evictionJob.ReportedEvictionsCount <= Constants.CacheBufferSize)
+        if (s_AggregatedEvictionsCount <= Constants.AggregatedGCThreshold)
         {
             return;
         }
@@ -184,6 +201,13 @@ public static class CacheManager
         await Task.Delay(Constants.GarbageCollectionDelay);
         GC.Collect(2, GCCollectionMode.Forced, blocking: false, compacting: true);
 
+        Console.WriteLine($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}");
+        s_AggregatedEvictionsCount = 0;
         FullGCLock.Release();
+    }
+
+    private static void ReportEvicted<T>(string type, int count) where T : notnull
+    {
+        Console.WriteLine($"FastCache: Evicted {count} of {typeof(T).Name} from {type}");
     }
 }
