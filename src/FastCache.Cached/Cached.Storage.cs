@@ -59,6 +59,13 @@ internal sealed class JobHolder<T> where T : notnull
 
     public JobHolder()
     {
+        if (Constants.DisableEviction)
+        {
+            QuickListEvictionTimer = new Timer(_ => { });
+            FullEvictionTimer = new Timer(_ => { });
+            return;
+        }
+
         QuickListEvictionTimer = new(
             static _ => CacheManager.EvictFromQuickList<T>(DateTime.UtcNow.Ticks),
             null,

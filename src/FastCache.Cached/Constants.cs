@@ -23,6 +23,9 @@ internal static class Constants
                 : MaxQuickListInterval
             : DefaultQuickListInterval;
 
+    public static readonly bool DisableEviction = bool
+        .TryParse(GetVar("FASTCACHE_DISABLE_EVICTION"), out var parsed) && parsed;
+
     // Full eviction interval uses a multiple of quick list eviction interval.
     // Rationale: if cache size is larger than quick list, then running full eviction too often will cause
     // performance stalls and thrashing anyway. For situations where items are added to cache faster than

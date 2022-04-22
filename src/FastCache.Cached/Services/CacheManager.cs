@@ -5,6 +5,7 @@ namespace FastCache.Services;
 public static class CacheManager
 {
     private static readonly SemaphoreSlim FullGCLock = new(1, 1);
+    private static readonly Mutex GcMutex = new();
 
     public static bool QueueFullEviction<T>(bool triggeredByTimer) where T : notnull
     {
@@ -63,7 +64,7 @@ public static class CacheManager
     /// <summary>
     /// Returns true if resident cache size is contained within quicklist and full eviction is not required.
     /// </summary>
-    public static bool EvictFromQuickList<T>(long now) where T : notnull
+    internal static bool EvictFromQuickList<T>(long now) where T : notnull
     {
         var store = Cached<T>.s_cachedStore;
         var continueEviction = store.Count < Constants.CacheBufferSize;
@@ -73,10 +74,10 @@ public static class CacheManager
             var quickListEntries = Cached<T>.s_quickEvictList.Entries;
             var entriesCount = Cached<T>.s_quickEvictList.Count;
 
+            var entriesSurvivedIndexes = ArrayPool<int>.Shared.Rent(Constants.CacheBufferSize);
+
             var entriesRemovedCount = 0;
             var entriesSurvivedCount = 0;
-
-            var entriesSurvivedIndexes = ArrayPool<int>.Shared.Rent(Constants.CacheBufferSize);
 
             for (var i = 0; i < entriesCount; i++)
             {
