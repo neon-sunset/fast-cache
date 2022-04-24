@@ -29,7 +29,7 @@ public static class CacheManager
     internal static async ValueTask PerformFullEviction<T>(bool triggeredByTimer) where T : notnull
     {
         var evictionJob = Cached<T>.s_evictionJob;
-        if (!evictionJob.FullEvictionLock.Wait(0))
+        if (!await evictionJob.FullEvictionLock.WaitAsync(millisecondsTimeout: 0))
         {
             return;
         }
@@ -55,12 +55,12 @@ public static class CacheManager
         }
         else if (triggeredByTimer)
         {
-            if (evictionJob.EvictionBackoffCount < evictionJob.EvictionBackoffLimit)
+            if (evictionJob.EvictionBackoffCount < Constants.EvictionBackoffLimit)
             {
                 evictionJob.EvictionBackoffCount++;
 
                 var interval = Constants.FullEvictionInterval;
-                for (int i = 0; i < evictionJob.EvictionBackoffCount; i++)
+                for (var i = 0; i < evictionJob.EvictionBackoffCount; i++)
                 {
                     interval += Constants.FullEvictionInterval;
                 }
@@ -193,7 +193,7 @@ public static class CacheManager
             return;
         }
 
-        if (!FullGCLock.Wait(0))
+        if (!await FullGCLock.WaitAsync(millisecondsTimeout: 0))
         {
             return;
         }

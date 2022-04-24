@@ -28,11 +28,11 @@ internal sealed class QuickEvictList<T> where T : notnull
 
     public void Add(int value, long expiresAtTicks)
     {
-        lock (Entries)
+        if (Count < Constants.CacheBufferSize)
         {
-            if (Count < Constants.CacheBufferSize)
+            lock (Entries)
             {
-                Entries[Count] = (value, expiresAtTicks);
+                Entries[Math.Min(Count, Entries.Length - 1)] = (value, expiresAtTicks);
                 Count++;
             }
         }
@@ -52,7 +52,7 @@ internal sealed class JobHolder<T> where T : notnull
     public readonly Timer QuickListEvictionTimer;
     public readonly Timer FullEvictionTimer;
     public readonly SemaphoreSlim FullEvictionLock = new(1, 1);
-    public readonly int EvictionBackoffLimit = 5;
+
     public int EvictionBackoffCount;
 
     public JobHolder()
