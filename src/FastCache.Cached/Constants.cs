@@ -47,7 +47,7 @@ internal static class Constants
         }
     }
 
-    public static readonly TimeSpan QuickListEvictionDelay = TimeSpan.FromMilliseconds(500);
+    public static readonly TimeSpan QuickListEvictionDelayOnGC = TimeSpan.FromMilliseconds(500);
 
     public static TimeSpan CacheStoreEvictionDelay
     {
@@ -59,7 +59,7 @@ internal static class Constants
         }
     }
 
-    public static readonly TimeSpan GarbageCollectionDelay = QuickListEvictionInterval * 2;
+    public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval * 2;
 
     public const int EvictionBackoffLimit = 5;
 
