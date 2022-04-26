@@ -54,6 +54,7 @@ internal sealed class JobHolder<T> where T : notnull
     public readonly SemaphoreSlim FullEvictionLock = new(1, 1);
 
     public int EvictionBackoffCount;
+    public int EvictionGCNotificationsCount;
 
     public JobHolder()
     {

@@ -47,19 +47,21 @@ internal static class Constants
         }
     }
 
-    public static readonly TimeSpan QuickListEvictionDelayOnGC = TimeSpan.FromMilliseconds(500);
+    public static readonly TimeSpan EvictionCooldownDelayOnGC = QuickListEvictionInterval / 5;
 
     public static TimeSpan CacheStoreEvictionDelay
     {
         get
         {
-            var delay = QuickListEvictionInterval.Ticks;
-            var jitter = Random.Shared.NextInt64(0, delay);
+            var delay = QuickListEvictionInterval.Ticks * 2;
+            var jitter = Random.Shared.NextInt64(0, delay * 2);
             return TimeSpan.FromTicks(delay + jitter);
         }
     }
 
-    public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval * 2;
+    public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval * 4;
+
+    public static readonly TimeSpan CooldownDelayAfterFullGC = QuickListEvictionInterval * 4;
 
     public const int EvictionBackoffLimit = 5;
 

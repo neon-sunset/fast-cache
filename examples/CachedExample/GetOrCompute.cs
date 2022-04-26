@@ -62,15 +62,15 @@ public static class GetOrCompute
     {
         await Task.Yield();
 
-        const int count = 5_000_000;
-
-        //var ticksMin = TimeSpan.FromMinutes(1).Ticks;
-        //var ticksMax = TimeSpan.FromMinutes(60).Ticks;
-        //var rand = TimeSpan.FromTicks(Random.Shared.NextInt64(ticksMin, ticksMax));
+        const int count = 250_000;
 
         for (int i = 0; i < count; i++)
         {
-            value.Cache(i, TimeSpan.FromMinutes(60));
+            var ticksMin = TimeSpan.Zero.Ticks;
+            var ticksMax = TimeSpan.FromMinutes(30).Ticks;
+            var rand = TimeSpan.FromTicks(Random.Shared.NextInt64(ticksMin, ticksMax));
+
+            value.Cache(i, rand);
         }
 
         Console.WriteLine($"Added {count} of {typeof(T).Name} to cache.");
