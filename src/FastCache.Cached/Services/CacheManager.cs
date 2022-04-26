@@ -12,8 +12,28 @@ public static class CacheManager
     public static bool QueueFullEviction<T>(bool triggeredByTimer) where T : notnull
     {
         return triggeredByTimer
-            ? ThreadPool.QueueUserWorkItem(static _ => ImmediateFullEvictionByTimer<T>())
-            : ThreadPool.QueueUserWorkItem(async static _ => await StaggeredFullEvictionByGC<T>());
+            ? ThreadPool.QueueUserWorkItem(static _ =>
+                {
+                    try
+                    {
+                        ImmediateFullEvictionByTimer<T>();
+                    }
+                    catch (Exception ex)
+                    {
+                        ReportException<T>(ex);
+                    }
+                })
+            : ThreadPool.QueueUserWorkItem(async static _ =>
+                {
+                    try
+                    {
+                        await StaggeredFullEvictionByGC<T>();
+                    }
+                    catch (Exception ex)
+                    {
+                        ReportException<T>(ex);
+                    }
+                });
     }
 
     private static void ImmediateFullEvictionByTimer<T>() where T : notnull
@@ -237,5 +257,10 @@ public static class CacheManager
     private static void ReportEvicted<T>(string type, int count, long milliseconds) where T : notnull
     {
         Console.WriteLine($"FastCache: Evicted {count} of {typeof(T).Name} from {type} in {milliseconds}");
+    }
+
+    private static void ReportException<T>(Exception ex)
+    {
+        Console.WriteLine($"FastCache: Hit an exception during eviction of {typeof(T).Name}! Message {ex.Message}\n{ex.StackTrace}");
     }
 }

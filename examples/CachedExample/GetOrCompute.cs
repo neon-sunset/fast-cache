@@ -62,7 +62,7 @@ public static class GetOrCompute
     {
         await Task.Yield();
 
-        const int count = 250_000;
+        const int count = 7_500_000;
 
         for (int i = 0; i < count; i++)
         {
