@@ -1,33 +1,27 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Jobs;
 using FastCache.Services;
 
 namespace FastCache.Benchmarks;
 
 [MemoryDiagnoser]
-[SimpleJob(runtimeMoniker: RuntimeMoniker.HostProcess, invocationCount: 8192)]
+[SimpleJob(runtimeMoniker: RuntimeMoniker.HostProcess)]
 public class RemoveExpiredEntriesBenchmark
 {
-    [GlobalSetup]
+    [IterationSetup]
     public void Initialize()
     {
-        const int parallelism = 1;
-        const int limit = 32000 / parallelism;
-        Parallel.For(0, parallelism, static num => Seed(num, limit));
+        const int limit = 32000;
 
-        static void Seed(int num, int limit)
+        // var ticksMax = TimeSpan.FromSeconds(30).Ticks;
+
+        for (int i = 0; i < limit; i++)
         {
-            var ticksMax = TimeSpan.FromSeconds(30).Ticks;
-
-            for (int i = 0; i < limit; i++)
-            {
-                var expTicks = Random.Shared.NextInt64(0, ticksMax);
-                $"string value of {i} and {num}".Cache(i, TimeSpan.FromTicks(expTicks));
-            }
+            // var expiration = TimeSpan.FromTicks(Random.Shared.NextInt64(0, ticksMax));
+            $"string value of {i}".Cache(i, TimeSpan.Zero);
         }
     }
 
     [Benchmark]
-    public void Run() => CacheManager.EvictFromQuickList<string>(DateTime.UtcNow.Ticks);
+    public void Run() => CacheManager.EvictFromQuickList<string>(Environment.TickCount);
 }

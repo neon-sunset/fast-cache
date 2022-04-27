@@ -5,8 +5,9 @@ public static partial class CachedExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Cache<T>(this T value, TimeSpan expiration) where T : notnull
     {
-        var expiresAt = DateTime.UtcNow + expiration;
-        Cached<T>.s_default = (true, new(value, expiresAt.Ticks));
+        var expiresAtTicks = Environment.TickCount + (int)expiration.TotalMilliseconds;
+
+        Cached<T>.s_default = (true, new(value, expiresAtTicks));
         return value;
     }
 

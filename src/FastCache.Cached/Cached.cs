@@ -17,7 +17,8 @@ public readonly partial struct Cached<T> where T : notnull
 
     public T Save(T value, TimeSpan expiration)
     {
-        var expiresAtTicks = (DateTime.UtcNow + expiration).Ticks;
+        var expiresAtTicks = GetExpirationTicks(expiration);
+
         s_cachedStore[_identifier] = new(value, expiresAtTicks);
         s_quickEvictList.Add(_identifier, expiresAtTicks);
         return value;
@@ -29,34 +30,37 @@ public readonly partial struct Cached<T> where T : notnull
         return value;
     }
 
-    public T SaveLRU(T value)
-    {
-        throw new NotImplementedException();
-    }
+    private static int GetExpirationTicks(TimeSpan expiration) => Environment.TickCount + (int)expiration.TotalMilliseconds;
 }
 
 [StructLayout(LayoutKind.Auto)]
 internal readonly struct CachedInner<TInner> where TInner : notnull
 {
-    private static readonly long MaxExpirationTicks = DateTime.MaxValue.Ticks;
+    private const int MaxExpirationTicks = int.MaxValue;
 
     public readonly TInner Value;
-    public readonly long ExpiresAtTicks;
+    private readonly int _expiresAt;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CachedInner(TInner value, long expiresAtTicks)
+    public CachedInner(TInner value, int expiresAt)
     {
         Value = value;
-        ExpiresAtTicks = expiresAtTicks;
+        _expiresAt = expiresAt;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CachedInner(TInner value)
     {
         Value = value;
-        ExpiresAtTicks = MaxExpirationTicks;
+        _expiresAt = MaxExpirationTicks;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsNotExpired() => DateTime.UtcNow.Ticks < ExpiresAtTicks;
+    public bool IsNotExpired() => Environment.TickCount < _expiresAt;
+
+    public void Deconstruct(out TInner value, out int expiresAt)
+    {
+        value = Value;
+        expiresAt = _expiresAt;
+    }
 }

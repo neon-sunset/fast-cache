@@ -16,17 +16,17 @@ public partial struct Cached<T>
 
 internal sealed class QuickEvictList<T> where T : notnull
 {
-    public (int, long)[] Entries { get; private set; }
+    public (int, int)[] Entries { get; private set; }
 
     public int Count { get; private set; }
 
     public QuickEvictList()
     {
-        Entries = ArrayPool<(int, long)>.Shared.Rent(Constants.CacheBufferSize);
+        Entries = ArrayPool<(int, int)>.Shared.Rent(Constants.CacheBufferSize);
         Count = 0;
     }
 
-    public void Add(int value, long expiresAtTicks)
+    public void Add(int value, int expiresAtTicks)
     {
         if (Count < Constants.CacheBufferSize)
         {
@@ -40,7 +40,7 @@ internal sealed class QuickEvictList<T> where T : notnull
 
     public void Reset() => Count = 0;
 
-    public void Replace((int, long)[] entries, int count)
+    public void Replace((int, int)[] entries, int count)
     {
         Entries = entries;
         Count = count;
@@ -66,7 +66,7 @@ internal sealed class JobHolder<T> where T : notnull
         }
 
         QuickListEvictionTimer = new(
-            static _ => CacheManager.EvictFromQuickList<T>(DateTime.UtcNow.Ticks),
+            static _ => CacheManager.EvictFromQuickList<T>(Environment.TickCount),
             null,
             Constants.QuickListEvictionInterval,
             Constants.QuickListEvictionInterval);

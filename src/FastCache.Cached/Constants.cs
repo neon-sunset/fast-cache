@@ -10,9 +10,7 @@ internal static class Constants
     // Higher limit works well with short-lived first-gen-contained cache items
     // but performs poorly if many items of the same type have inconsistent lifetimes.
     public static readonly int CacheBufferSize = int
-        .TryParse(GetVar("FASTCACHE_QUICKLIST_LENGTH"), out var parsed)
-            ? parsed
-            : DefaultCacheBufferSize;
+        .TryParse(GetVar("FASTCACHE_QUICKLIST_LENGTH"), out var parsed) ? parsed : DefaultCacheBufferSize;
 
     public static readonly ulong AggregatedGCThreshold = (ulong)CacheBufferSize * 4;
 
@@ -27,6 +25,9 @@ internal static class Constants
 
     public static readonly bool DisableEviction = bool
         .TryParse(GetVar("FASTCACHE_DISABLE_EVICTION"), out var parsed) && parsed;
+
+    public static readonly bool ConsiderFullGC = bool
+        .TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) ? parsed : true;
 
     // Full eviction interval uses a multiple of quick list eviction interval.
     // Rationale: if cache size is larger than quick list, then running full eviction too often will cause

@@ -32,11 +32,11 @@ public static class GetOrCompute
         ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { Date = DateTime.Now, Bytes = new byte[] { 1, 2, 3, 4 } }));
         ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { A = "hello world", B = 420 }));
 
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(32U));
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(512F));
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(1337D));
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { Date = DateTime.Now, Ints = new int[] { 1, 2, 3, 4 } }));
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { A = "hello world", B = 420F }));
+        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(32U));
+        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(512F));
+        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(1337D));
+        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { Date = DateTime.Now, Ints = new int[] { 1, 2, 3, 4 } }));
+        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { A = "hello world", B = 420F }));
 
         // Wait for one second
         await Task.Delay(oneSecond);
@@ -62,12 +62,12 @@ public static class GetOrCompute
     {
         await Task.Yield();
 
-        const int count = 7_500_000;
+        const int count = 3_000_000;
 
         for (int i = 0; i < count; i++)
         {
             var ticksMin = TimeSpan.Zero.Ticks;
-            var ticksMax = TimeSpan.FromMinutes(30).Ticks;
+            var ticksMax = TimeSpan.FromMinutes(3).Ticks;
             var rand = TimeSpan.FromTicks(Random.Shared.NextInt64(ticksMin, ticksMax));
 
             value.Cache(i, rand);
