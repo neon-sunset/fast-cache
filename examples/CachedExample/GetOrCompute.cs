@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace CachedExample;
 
@@ -26,17 +27,19 @@ public static class GetOrCompute
         // In fact, the second call has returned the same cached string instance we received earlier from 'FetchWeather'
         Debug.Assert(ReferenceEquals(weather, cachedWeather));
 
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(32));
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(512UL));
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(1337L));
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { Date = DateTime.Now, Bytes = new byte[] { 1, 2, 3, 4 } }));
-        ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { A = "hello world", B = 420 }));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(32));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(512UL));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(1337L));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(new { Date = DateTime.Now, Bytes = new byte[] { 1, 2, 3, 4 } }));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(new { A = "hello world", B = 420 }));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(new { A = "hello world", B = 420 }));
 
-        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(32U));
-        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(512F));
-        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(1337D));
-        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { Date = DateTime.Now, Ints = new int[] { 1, 2, 3, 4 } }));
-        // ThreadPool.QueueUserWorkItem(async static _ => await Seed(new { A = "hello world", B = 420F }));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(32U));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(512F));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(1337D));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(new { Date = DateTime.Now, Ints = new int[] { 1, 2, 3, 4 } }));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(new { A = "hello world", B = 420F }));
+        ThreadPool.QueueUserWorkItem(static _ => Seed(new { A = "hello world", B = 420F }));
 
         // Wait for one second
         await Task.Delay(oneSecond);
@@ -58,17 +61,13 @@ public static class GetOrCompute
         return await Http.GetStringAsync($"https://wttr.in/{query}");
     }
 
-    private static async Task Seed<T>(T value) where T : notnull
+    private static void Seed<T>(T value) where T : notnull
     {
-        await Task.Yield();
-
         const int count = 10_000_000;
 
         for (int i = 0; i < count; i++)
         {
-            var ticksMin = TimeSpan.Zero.Ticks;
-            var ticksMax = TimeSpan.FromMinutes(3).Ticks;
-            var rand = TimeSpan.FromTicks(Random.Shared.NextInt64(ticksMin, ticksMax));
+            var rand = TimeSpan.FromMinutes(RandomNumberGenerator.GetInt32(0, 30));
 
             value.Cache(i, rand);
         }

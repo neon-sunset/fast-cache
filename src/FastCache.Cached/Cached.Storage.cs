@@ -16,34 +16,36 @@ public partial struct Cached<T>
 
 internal sealed class QuickEvictList<T> where T : notnull
 {
+    private long _count;
+
     public (int, int)[] Entries { get; private set; }
 
-    public int Count { get; private set; }
+    public int Count => (int)Interlocked.Read(ref _count);
 
     public QuickEvictList()
     {
         Entries = ArrayPool<(int, int)>.Shared.Rent(Constants.CacheBufferSize);
-        Count = 0;
+        _count = 0;
     }
 
     public void Add(int value, int expiresAtTicks)
     {
-        if (Count < Constants.CacheBufferSize)
+        if (Count < Entries.Length)
         {
             lock (Entries)
             {
-                Entries[Math.Min(Count, Entries.Length - 1)] = (value, expiresAtTicks);
-                Count++;
+                Entries[Count] = (value, expiresAtTicks);
+                Interlocked.Increment(ref _count);
             }
         }
     }
 
-    public void Reset() => Count = 0;
+    public void Reset() => _count = 0;
 
     public void Replace((int, int)[] entries, int count)
     {
         Entries = entries;
-        Count = count;
+        _count = count;
     }
 }
 

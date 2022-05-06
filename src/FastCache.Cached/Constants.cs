@@ -3,7 +3,7 @@ namespace FastCache;
 internal static class Constants
 {
     private const int DefaultCacheBufferSize = 32768;
-    private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan MaxQuickListInterval = TimeSpan.FromSeconds(30);
 
     // OldestEntries list and eviction batch size length limits.

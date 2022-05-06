@@ -256,7 +256,7 @@ public static class CacheManager
         }
 
         await Task.Delay(Constants.DelayToFullGC);
-        GC.Collect(2, GCCollectionMode.Forced, blocking: false, compacting: true);
+        GC.Collect(2, GCCollectionMode.Optimized, blocking: false, compacting: true);
 
         Console.WriteLine($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}");
         Interlocked.Exchange(ref s_AggregatedEvictionsCount, 0);
