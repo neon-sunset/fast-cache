@@ -8,6 +8,8 @@ namespace FastCache.Benchmarks;
 [SimpleJob(runtimeMoniker: RuntimeMoniker.HostProcess)]
 public class RemoveExpiredEntriesBenchmark
 {
+    readonly int tickCount = Environment.TickCount;
+
     [IterationSetup]
     public void Initialize()
     {
@@ -23,5 +25,5 @@ public class RemoveExpiredEntriesBenchmark
     }
 
     [Benchmark]
-    public void Run() => CacheManager.EvictFromQuickList<string>(Environment.TickCount);
+    public void Run() => CacheManager.EvictFromQuickList<string>(tickCount);
 }

@@ -1,28 +1,28 @@
 ﻿using CachedExample;
 using FastCache.Services;
 
-// await GetOrCompute.Run();
+await GetOrCompute.Run();
 
-Initialize();
+// Initialize();
 
-CacheManager.QueueFullEviction<string>();
+// CacheManager.QueueFullEviction<string>();
 
-Console.ReadLine();
+// Console.ReadLine();
 
-void Initialize()
-{
-    const int parallelism = 1;
-    const int limit = 32000 / parallelism;
-    Parallel.For(0, parallelism, static num => Seed(num, limit));
+// void Initialize()
+// {
+//     const int parallelism = 1;
+//     const int limit = 32000 / parallelism;
+//     Parallel.For(0, parallelism, static num => Seed(num, limit));
 
-    static void Seed(int num, int limit)
-    {
-        // var ticksMax = TimeSpan.FromSeconds(30).Ticks;
+//     static void Seed(int num, int limit)
+//     {
+//         // var ticksMax = TimeSpan.FromSeconds(30).Ticks;
 
-        for (int i = 0; i < limit; i++)
-        {
-            // var expiration = TimeSpan.FromTicks(Random.Shared.NextInt64(0, ticksMax));
-            $"string value of {i} and {num}".Cache(i, TimeSpan.Zero);
-        }
-    }
-}
+//         for (int i = 0; i < limit; i++)
+//         {
+//             // var expiration = TimeSpan.FromTicks(Random.Shared.NextInt64(0, ticksMax));
+//             $"string value of {i} and {num}".Cache(i, TimeSpan.Zero);
+//         }
+//     }
+// }
