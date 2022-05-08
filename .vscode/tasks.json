@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/examples/CachedExample/CachedExample.csproj",
+                "${workspaceFolder}/examples/Weather/Weather.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/examples/CachedExample/CachedExample.csproj",
+                "${workspaceFolder}/examples/Weather/Weather.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/examples/CachedExample/CachedExample.csproj"
+                "${workspaceFolder}/examples/Weather/Weather.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

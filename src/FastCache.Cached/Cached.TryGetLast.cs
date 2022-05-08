@@ -55,7 +55,7 @@ public readonly partial struct Cached<T> where T : notnull
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryGetLastInternal(int identifier, out Cached<T> cached)
     {
-        if (s_cachedStore.TryGetValue(identifier, out var inner))
+        if (s_store.TryGetValue(identifier, out var inner))
         {
             cached = new(identifier, inner.Value);
             return true;

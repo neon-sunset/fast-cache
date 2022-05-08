@@ -1,27 +1,26 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32427.441
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BB4200D9-5D9A-4269-8F7B-5EB41CA0DDDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache.Cached", "src\FastCache.Cached\FastCache.Cached.csproj", "{4F2E3438-2F2A-4DEB-B20E-5698539C834E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastCache.Cached", "src\FastCache.Cached\FastCache.Cached.csproj", "{4F2E3438-2F2A-4DEB-B20E-5698539C834E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{52329FE0-02E9-47AF-8BB1-5BA73D75E373}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CachedExample", "examples\CachedExample\CachedExample.csproj", "{8AB1527C-C371-4FDC-94A8-695722523A66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Weather", "examples\Weather\Weather.csproj", "{8AB1527C-C371-4FDC-94A8-695722523A66}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache.Benchmarks", "src\FastCache.Benchmarks\FastCache.Benchmarks.csproj", "{4E7B4956-26F5-46E3-99EF-3CBCC0A787E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastCache.Benchmarks", "src\FastCache.Benchmarks\FastCache.Benchmarks.csproj", "{4E7B4956-26F5-46E3-99EF-3CBCC0A787E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache.All", "src\FastCache.All\FastCache.All.csproj", "{7C377054-2A43-4754-B96E-5191AA4A3B87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastCache.All", "src\FastCache.All\FastCache.All.csproj", "{7C377054-2A43-4754-B96E-5191AA4A3B87}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache.Sandbox", "src\FastCache.Sandbox\FastCache.Sandbox.csproj", "{C574E401-620F-451A-9EC4-BF01D88294F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{4F2E3438-2F2A-4DEB-B20E-5698539C834E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -40,11 +39,22 @@ Global
 		{7C377054-2A43-4754-B96E-5191AA4A3B87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C377054-2A43-4754-B96E-5191AA4A3B87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C377054-2A43-4754-B96E-5191AA4A3B87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C574E401-620F-451A-9EC4-BF01D88294F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C574E401-620F-451A-9EC4-BF01D88294F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C574E401-620F-451A-9EC4-BF01D88294F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C574E401-620F-451A-9EC4-BF01D88294F5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4F2E3438-2F2A-4DEB-B20E-5698539C834E} = {BB4200D9-5D9A-4269-8F7B-5EB41CA0DDDF}
 		{8AB1527C-C371-4FDC-94A8-695722523A66} = {52329FE0-02E9-47AF-8BB1-5BA73D75E373}
 		{4E7B4956-26F5-46E3-99EF-3CBCC0A787E5} = {BB4200D9-5D9A-4269-8F7B-5EB41CA0DDDF}
 		{7C377054-2A43-4754-B96E-5191AA4A3B87} = {BB4200D9-5D9A-4269-8F7B-5EB41CA0DDDF}
+		{C574E401-620F-451A-9EC4-BF01D88294F5} = {BB4200D9-5D9A-4269-8F7B-5EB41CA0DDDF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {268C3894-4142-4229-B810-D7BD348C2CB9}
 	EndGlobalSection
 EndGlobal

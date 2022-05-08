@@ -4,14 +4,20 @@ using BenchmarkDotNet.Jobs;
 namespace FastCache.Benchmarks;
 
 [SimpleJob(RuntimeMoniker.HostProcess)]
+[SimpleJob(RuntimeMoniker.Net60)]
 [MemoryDiagnoser]
-public class CacheBenchmarks
+public class CachedString
 {
     private static readonly TimeSpan OneHour = TimeSpan.FromMinutes(60);
 
     [GlobalSetup]
     public void Initialize()
     {
+        for (int i = 0; i < 100_000; i++)
+        {
+            DateTime.UtcNow.ToString().Cache(i, OneHour);
+        }
+
         _ = "default".Cache(OneHour);
         _ = "single".Cache("one", OneHour);
         _ = "eight".Cache("one", "two", "three", "four", "five", "six", "seven", "eight", OneHour);

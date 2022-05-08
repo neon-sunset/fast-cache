@@ -7,8 +7,8 @@ namespace FastCache;
 
 public partial struct Cached<T>
 {
-    internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_cachedStore = new();
-    internal static readonly JobHolder<T> s_evictionJob = new();
+    internal static readonly ConcurrentDictionary<int, CachedInner<T>> s_store = new();
+    internal static readonly EvictionJob<T> s_evictionJob = new();
     internal static readonly QuickEvictList<T> s_quickEvictList = new();
 
     internal static (bool IsStored, CachedInner<T> Inner) s_default = (false, default);
@@ -40,7 +40,7 @@ internal sealed class QuickEvictList<T> where T : notnull
         }
     }
 
-    public void Reset() => _count = 0;
+    public void Reset() => Interlocked.Exchange(ref _count, 0);
 
     public void Replace((int, int)[] entries, int count)
     {
@@ -49,7 +49,7 @@ internal sealed class QuickEvictList<T> where T : notnull
     }
 }
 
-internal sealed class JobHolder<T> where T : notnull
+internal sealed class EvictionJob<T> where T : notnull
 {
     public readonly Timer QuickListEvictionTimer;
     public readonly Timer FullEvictionTimer;
@@ -58,7 +58,7 @@ internal sealed class JobHolder<T> where T : notnull
     public int EvictionBackoffCount;
     public int EvictionGCNotificationsCount;
 
-    public JobHolder()
+    public EvictionJob()
     {
         if (Constants.DisableEviction)
         {

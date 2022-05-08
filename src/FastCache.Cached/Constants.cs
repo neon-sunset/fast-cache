@@ -12,8 +12,6 @@ internal static class Constants
     public static readonly int CacheBufferSize = int
         .TryParse(GetVar("FASTCACHE_QUICKLIST_LENGTH"), out var parsed) ? parsed : DefaultCacheBufferSize;
 
-    public static readonly ulong AggregatedGCThreshold = (ulong)CacheBufferSize * 4;
-
     // Frequency with which CacheItemsEvictionJob is run. Scheduling it often is only recommended when cache consists of
     // numerous frequently added short-lived items and not running it often enough will result in high memory usage.
     public static readonly TimeSpan QuickListEvictionInterval = TimeSpan
@@ -23,11 +21,9 @@ internal static class Constants
                 : MaxQuickListInterval
             : DefaultQuickListInterval;
 
-    public static readonly bool DisableEviction = bool
-        .TryParse(GetVar("FASTCACHE_DISABLE_EVICTION"), out var parsed) && parsed;
+    public static readonly bool DisableEviction = bool.TryParse(GetVar("FASTCACHE_DISABLE_EVICTION"), out var parsed) && parsed;
 
-    public static readonly bool ConsiderFullGC = bool
-        .TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) ? parsed : true;
+    public static readonly bool ConsiderFullGC = !bool.TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) || parsed;
 
     // Full eviction interval uses a multiple of quick list eviction interval.
     // Rationale: if cache size is larger than quick list, then running full eviction too often will cause
@@ -48,23 +44,22 @@ internal static class Constants
         }
     }
 
-    public static readonly TimeSpan EvictionCooldownDelayOnGC = QuickListEvictionInterval / 5;
-
     public static TimeSpan CacheStoreEvictionDelay
     {
         get
         {
-            var delay = QuickListEvictionInterval.Ticks * 2;
+            var delay = QuickListEvictionInterval.Ticks;
             var jitter = Random.Shared.NextInt64(0, delay * 2);
             return TimeSpan.FromTicks(delay + jitter);
         }
     }
 
-    public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval * 4;
-
-    public static readonly TimeSpan CooldownDelayAfterFullGC = QuickListEvictionInterval * 4;
-
     public const int EvictionBackoffLimit = 5;
+
+    public static readonly TimeSpan EvictionCooldownDelayOnGC = QuickListEvictionInterval / 5;
+    public static readonly ulong AggregatedGCThreshold = (ulong)CacheBufferSize * 8;
+    public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval * 4;
+    public static readonly TimeSpan CooldownDelayAfterFullGC = QuickListEvictionInterval * 4;
 
     private static string? GetVar(string key) => Environment.GetEnvironmentVariable(key);
 }

@@ -53,6 +53,6 @@ public readonly partial struct Cached<T> where T : notnull
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static T? LastInternal(int identifier)
     {
-        return s_cachedStore.TryGetValue(identifier, out var inner) ? inner.Value : default;
+        return s_store.TryGetValue(identifier, out var inner) ? inner.Value : default;
     }
 }

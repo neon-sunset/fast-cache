@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\FastCache.Cached\FastCache.Cached.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+	  <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+
+</Project>

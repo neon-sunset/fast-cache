@@ -19,14 +19,14 @@ public readonly partial struct Cached<T> where T : notnull
     {
         var expiresAtTicks = GetExpirationTicks(expiration);
 
-        s_cachedStore[_identifier] = new(value, expiresAtTicks);
+        s_store[_identifier] = new(value, expiresAtTicks);
         s_quickEvictList.Add(_identifier, expiresAtTicks);
         return value;
     }
 
     public T SaveIndefinitely(T value)
     {
-        s_cachedStore[_identifier] = new(value);
+        s_store[_identifier] = new(value);
         return value;
     }
 

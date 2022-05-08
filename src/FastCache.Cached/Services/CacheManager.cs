@@ -9,6 +9,9 @@ public static class CacheManager
 
     private static ulong s_AggregatedEvictionsCount;
 
+    /// <summary>
+    /// Submit full eviction for specified Cached<T> value
+    /// </summary>
     public static bool QueueFullEviction<T>() where T : notnull => QueueFullEviction<T>(triggeredByTimer: true);
 
     internal static bool QueueFullEviction<T>(bool triggeredByTimer) where T : notnull
@@ -20,9 +23,11 @@ public static class CacheManager
                     {
                         ImmediateFullEvictionByTimer<T>();
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        ReportException<T>(ex);
+#if DEBUG
+                        throw;
+#endif
                     }
                 })
             : ThreadPool.QueueUserWorkItem(async static _ =>
@@ -31,99 +36,13 @@ public static class CacheManager
                     {
                         await StaggeredFullEvictionByGC<T>();
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        ReportException<T>(ex);
+#if DEBUG
+                        throw;
+#endif
                     }
                 });
-    }
-
-    private static void ImmediateFullEvictionByTimer<T>() where T : notnull
-    {
-        var evictionJob = Cached<T>.s_evictionJob;
-
-        if (!evictionJob.FullEvictionLock.Wait(millisecondsTimeout: 0))
-        {
-            return;
-        }
-
-        var now = Environment.TickCount;
-
-        if (EvictFromQuickList<T>(now))
-        {
-            evictionJob.FullEvictionLock.Release();
-            return;
-        }
-
-        var stopwatch = Stopwatch.StartNew();
-        var evictedFromMainCache = EvictFromMainCache<T>(now);
-        if (evictedFromMainCache > 0)
-        {
-            ReportEvicted<T>("cache store", evictedFromMainCache, stopwatch.ElapsedMilliseconds);
-            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromMainCache);
-        }
-        else if (evictionJob.EvictionBackoffCount < Constants.EvictionBackoffLimit)
-        {
-            evictionJob.EvictionBackoffCount++;
-
-            var interval = Constants.FullEvictionInterval;
-            for (var i = 0; i < evictionJob.EvictionBackoffCount; i++)
-            {
-                interval += Constants.FullEvictionInterval;
-            }
-
-            Console.WriteLine($"FastCache: full eviction backoff for {typeof(T).Name}. New interval {interval}");
-            evictionJob.FullEvictionTimer.Change(interval, interval);
-        }
-
-        ThreadPool.QueueUserWorkItem(async static _ => await ConsiderFullGC<T>());
-
-        evictionJob.FullEvictionLock.Release();
-    }
-
-    private static async ValueTask StaggeredFullEvictionByGC<T>() where T : notnull
-    {
-        var evictionJob = Cached<T>.s_evictionJob;
-
-        if (!await evictionJob.FullEvictionLock.WaitAsync(millisecondsTimeout: 0))
-        {
-            return;
-        }
-
-        var now = Environment.TickCount;
-
-        if (EvictFromQuickList<T>(now))
-        {
-            // When a lot of items are being added to cache, it triggers GC
-            // which may decrease adding performance by constantly locking quick list.
-            // Avoid this by holding full eviction lock by additional 500 ms.
-            await Task.Delay(Constants.EvictionCooldownDelayOnGC);
-            evictionJob.FullEvictionLock.Release();
-            return;
-        }
-
-        evictionJob.EvictionGCNotificationsCount++;
-        if (evictionJob.EvictionGCNotificationsCount < 4)
-        {
-            await Task.Delay(Constants.EvictionCooldownDelayOnGC);
-            evictionJob.FullEvictionLock.Release();
-            return;
-        }
-
-        await Task.Delay(Constants.CacheStoreEvictionDelay);
-
-        var stopwatch = Stopwatch.StartNew();
-        var evictedFromMainCache = EvictFromMainCache<T>(now);
-        if (evictedFromMainCache > 0)
-        {
-            ReportEvicted<T>("cache store", evictedFromMainCache, stopwatch.ElapsedMilliseconds);
-            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromMainCache);
-        }
-
-        await Task.Delay(Constants.EvictionCooldownDelayOnGC);
-
-        evictionJob.EvictionGCNotificationsCount = 0;
-        evictionJob.FullEvictionLock.Release();
     }
 
     /// <summary>
@@ -131,7 +50,7 @@ public static class CacheManager
     /// </summary>
     internal static bool EvictFromQuickList<T>(int now) where T : notnull
     {
-        var store = Cached<T>.s_cachedStore;
+        var store = Cached<T>.s_store;
         var totalCount = store.Count;
         if (totalCount is 0)
         {
@@ -154,7 +73,7 @@ public static class CacheManager
 
                 if (now > expiresAtTicks)
                 {
-                    store.Remove(identifier, out _);
+                    store.TryRemove(identifier, out _);
                     entriesRemovedCount++;
                 }
                 else
@@ -196,44 +115,113 @@ public static class CacheManager
         }
     }
 
-    private static int EvictFromMainCache<T>(int now) where T : notnull
+    private static void ImmediateFullEvictionByTimer<T>() where T : notnull
     {
-        var store = Cached<T>.s_cachedStore;
-        var buffer = ArrayPool<int>.Shared.Rent(Constants.CacheBufferSize * 2);
-        var bufferLength = buffer.Length;
-        var totalRemoved = 0;
+        var evictionJob = Cached<T>.s_evictionJob;
 
-        while (true)
+        if (!evictionJob.FullEvictionLock.Wait(millisecondsTimeout: 0))
         {
-            var expiredEntriesCount = 0;
-
-            foreach (var (identifier, (_, expiresAt)) in store)
-            {
-                if (now > expiresAt)
-                {
-                    buffer[expiredEntriesCount] = identifier;
-                    expiredEntriesCount++;
-
-                    if (expiredEntriesCount >= bufferLength)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            for (var i = 0; i < expiredEntriesCount; i++)
-            {
-                store.Remove(buffer[i], out _);
-                totalRemoved++;
-            }
-
-            if (expiredEntriesCount < bufferLength)
-            {
-                break;
-            }
+            return;
         }
 
-        ArrayPool<int>.Shared.Return(buffer);
+        var now = Environment.TickCount;
+
+        if (EvictFromQuickList<T>(now))
+        {
+            evictionJob.FullEvictionLock.Release();
+            return;
+        }
+
+        var stopwatch = Stopwatch.StartNew();
+        var evictedFromMainCache = EvictFromMainCache<T>(now);
+        if (evictedFromMainCache > 0)
+        {
+#if DEBUG
+            ReportEvicted<T>("cache store", evictedFromMainCache, stopwatch.Elapsed);
+#endif
+            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromMainCache);
+        }
+        else if (evictionJob.EvictionBackoffCount < Constants.EvictionBackoffLimit)
+        {
+            evictionJob.EvictionBackoffCount++;
+
+            var interval = Constants.FullEvictionInterval;
+            for (var i = 0; i < evictionJob.EvictionBackoffCount; i++)
+            {
+                interval += Constants.FullEvictionInterval;
+            }
+#if DEBUG
+            Debug.Print($"FastCache: full eviction backoff for {typeof(T).Name}. New interval {interval}");
+#endif
+
+            evictionJob.FullEvictionTimer.Change(interval, interval);
+        }
+
+        ThreadPool.QueueUserWorkItem(async static _ => await ConsiderFullGC<T>());
+
+        evictionJob.FullEvictionLock.Release();
+    }
+
+    private static async ValueTask StaggeredFullEvictionByGC<T>() where T : notnull
+    {
+        var evictionJob = Cached<T>.s_evictionJob;
+
+        if (!evictionJob.FullEvictionLock.Wait(millisecondsTimeout: 0))
+        {
+            return;
+        }
+
+        var now = Environment.TickCount;
+
+        if (EvictFromQuickList<T>(now))
+        {
+            // When a lot of items are being added to cache, it triggers GC
+            // which may decrease adding performance by constantly locking quick list.
+            // Avoid this by holding full eviction lock by additional 500 ms.
+            await Task.Delay(Constants.EvictionCooldownDelayOnGC);
+            evictionJob.FullEvictionLock.Release();
+            return;
+        }
+
+        evictionJob.EvictionGCNotificationsCount++;
+        if (evictionJob.EvictionGCNotificationsCount < 4)
+        {
+            await Task.Delay(Constants.EvictionCooldownDelayOnGC);
+            evictionJob.FullEvictionLock.Release();
+            return;
+        }
+
+        await Task.Delay(Constants.CacheStoreEvictionDelay);
+
+        var stopwatch = Stopwatch.StartNew();
+        var evictedFromMainCache = EvictFromMainCache<T>(now);
+        if (evictedFromMainCache > 0)
+        {
+#if DEBUG
+            ReportEvicted<T>("cache store", evictedFromMainCache, stopwatch.Elapsed);
+#endif
+            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromMainCache);
+        }
+
+        await Task.Delay(Constants.EvictionCooldownDelayOnGC);
+
+        evictionJob.EvictionGCNotificationsCount = 0;
+        evictionJob.FullEvictionLock.Release();
+    }
+
+    private static int EvictFromMainCache<T>(int now) where T : notnull
+    {
+        var store = Cached<T>.s_store;
+        var totalRemoved = 0;
+
+        foreach (var (identifier, (_, expiresAt)) in store)
+        {
+            if (now > expiresAt)
+            {
+                store.TryRemove(identifier, out _);
+                totalRemoved++;
+            }
+        }
 
         return totalRemoved;
     }
@@ -250,28 +238,27 @@ public static class CacheManager
             return;
         }
 
-        if (!await FullGCLock.WaitAsync(millisecondsTimeout: 0))
+        if (!FullGCLock.Wait(millisecondsTimeout: 0))
         {
             return;
         }
 
         await Task.Delay(Constants.DelayToFullGC);
-        GC.Collect(2, GCCollectionMode.Optimized, blocking: false, compacting: true);
+        GC.Collect(2, GCCollectionMode.Default, blocking: false);
 
-        Console.WriteLine($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}");
+#if DEBUG
+        Debug.Print($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}");
+#endif
         Interlocked.Exchange(ref s_AggregatedEvictionsCount, 0);
 
         await Task.Delay(Constants.CooldownDelayAfterFullGC);
         FullGCLock.Release();
     }
 
-    private static void ReportEvicted<T>(string type, int count, long milliseconds) where T : notnull
+#if DEBUG
+    private static void ReportEvicted<T>(string type, int count, TimeSpan elapsed) where T : notnull
     {
-        Console.WriteLine($"FastCache: Evicted {count} of {typeof(T).Name} from {type} in {milliseconds}");
+        Debug.Print($"FastCache: Evicted {count} of {typeof(T).Name} from {type}. Took {elapsed.TotalMilliseconds} ms.");
     }
-
-    private static void ReportException<T>(Exception ex)
-    {
-        Console.WriteLine($"FastCache: Hit an exception during eviction of {typeof(T).Name}! Message {ex.Message}\n{ex.StackTrace}");
-    }
+#endif
 }

@@ -9,9 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/examples/CachedExample/bin/Debug/net6.0/CachedExample.dll",
+            "program": "${workspaceFolder}/examples/Weather/bin/Debug/net6.0/Weather.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/examples/CachedExample",
+            "cwd": "${workspaceFolder}/examples/Weather",
             "console": "integratedTerminal",
             "stopAtEntry": false
         },
