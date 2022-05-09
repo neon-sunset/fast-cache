@@ -12,6 +12,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>net7.0</TargetFramework>
+    <Description>FastCache.Cached is a high-performance yet thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
+Features include automatic eviction, lock-free and wait-free access and storage, allocation-free access and low memory footprint.
+Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.</Description>
   </PropertyGroup>
 
   <ItemGroup>

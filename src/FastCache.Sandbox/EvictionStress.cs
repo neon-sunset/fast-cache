@@ -14,12 +14,11 @@ public static class EvictionStress
             DateTime.Now) { }
     }
 
-    private readonly record struct Struct(int Key, int Value, string Comment)
+    private readonly record struct Struct(int Key, int Value)
     {
         public Struct() : this(
             RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue),
-            RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue),
-            $"https://example.org{RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue)}") { }
+            RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue)) { }
     }
 
     private sealed class Uri2 : Uri
@@ -30,25 +29,28 @@ public static class EvictionStress
     public static void Run()
     {
         ThreadPool.QueueUserWorkItem(_ => Seed<User>());
-        ThreadPool.QueueUserWorkItem(_ => Seed<Struct>());
-        ThreadPool.QueueUserWorkItem(_ => Seed<Uri2>());
-        ThreadPool.QueueUserWorkItem(_ => Seed<decimal>());
-        ThreadPool.QueueUserWorkItem(_ => Seed<nuint>());
-
+        // ThreadPool.QueueUserWorkItem(_ => Seed<Struct>());
+        // ThreadPool.QueueUserWorkItem(_ => Seed<Uri2>());
+        // ThreadPool.QueueUserWorkItem(_ => Seed<decimal>());
+        // ThreadPool.QueueUserWorkItem(_ => Seed<nuint>());
         Console.ReadLine();
     }
 
     private static void Seed<T>() where T : notnull, new()
     {
-        const int count = 1_000_000;
+        const int count = 2_000_000;
 
-        for (int i = 0; i < count; i++)
+        Parallel.For(0, 25, static num =>
         {
-            var rand = TimeSpan.FromMinutes(RandomNumberGenerator.GetInt32(1, 3));
+            var offset = num * count;
+            for (int i = offset; i < count + offset; i++)
+            {
+                var rand = TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(1, 900));
 
-            new T().Cache(i, rand);
-        }
+                new T().Cache(i, rand);
+            }
 
-        Console.WriteLine($"Added {count} of {typeof(T).Name} to cache.");
+            Console.WriteLine($"Added {count} of {typeof(T).Name} to cache.");
+        });
     }
 }
