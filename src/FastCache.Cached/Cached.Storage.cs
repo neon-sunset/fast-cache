@@ -99,7 +99,7 @@ internal sealed class EvictionJob<T> where T : notnull
     public void RescheduleTimers()
     {
         var milliseconds = Interlocked.Read(ref _averageExpirationMilliseconds);
-        var averageExpiration = TimeSpan.FromSeconds(milliseconds);
+        var averageExpiration = TimeSpan.FromMilliseconds(milliseconds);
 
         var adjustedQuicklistInterval =
             ((averageExpiration / Constants.EvictionIntervalMultiplyFactor) + Constants.QuickListEvictionInterval) / 2;
