@@ -40,11 +40,11 @@ public static class EvictionStress
 
     private static void Seed<T>() where T : notnull, new()
     {
-        const int count = 5_000_000;
+        const int count = 1_000_000;
 
         for (int i = 0; i < count; i++)
         {
-            var rand = TimeSpan.FromMinutes(RandomNumberGenerator.GetInt32(1, 10));
+            var rand = TimeSpan.FromMinutes(RandomNumberGenerator.GetInt32(1, 3));
 
             new T().Cache(i, rand);
         }

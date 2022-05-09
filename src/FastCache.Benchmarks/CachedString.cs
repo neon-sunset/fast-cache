@@ -4,7 +4,6 @@ using BenchmarkDotNet.Jobs;
 namespace FastCache.Benchmarks;
 
 [SimpleJob(RuntimeMoniker.HostProcess)]
-[SimpleJob(RuntimeMoniker.Net60)]
 [MemoryDiagnoser]
 public class CachedString
 {
@@ -13,11 +12,6 @@ public class CachedString
     [GlobalSetup]
     public void Initialize()
     {
-        for (int i = 0; i < 100_000; i++)
-        {
-            DateTime.UtcNow.ToString().Cache(i, OneHour);
-        }
-
         _ = "default".Cache(OneHour);
         _ = "single".Cache("one", OneHour);
         _ = "eight".Cache("one", "two", "three", "four", "five", "six", "seven", "eight", OneHour);
@@ -55,6 +49,12 @@ public class CachedString
         }
 
         return cached.Save("eight", OneHour);
+    }
+
+    [Benchmark]
+    public void SaveSingle()
+    {
+        _ = "single".Cache("one", OneHour);
     }
 
     [Benchmark]

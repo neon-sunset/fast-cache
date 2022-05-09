@@ -16,46 +16,51 @@ public partial struct Cached<T>
 
 internal sealed class QuickEvictList<T> where T : notnull
 {
+    private (int, long)[] _active;
+    private (int, long)[] _inactive;
     private long _count;
 
-    public (int, int)[] Entries { get; private set; }
-
+    public (int, long)[] Entries => _active;
+    public (int, long)[] Inactive => _inactive;
     public int Count => (int)Interlocked.Read(ref _count);
 
     public QuickEvictList()
     {
-        Entries = ArrayPool<(int, int)>.Shared.Rent(Constants.CacheBufferSize);
+        _active = new (int, long)[Constants.CacheBufferSize];
+        _inactive = new (int, long)[Constants.CacheBufferSize];
         _count = 0;
     }
 
-    public void Add(int value, int expiresAtTicks)
+    public void Add(int value, long expiresAt)
     {
-        if (Count < Entries.Length)
+        var entries = Entries;
+        var count = Count;
+        if (count < entries.Length)
         {
-            lock (Entries)
-            {
-                Entries[Count] = (value, expiresAtTicks);
-                Interlocked.Increment(ref _count);
-            }
+            entries[count] = (value, expiresAt);
+
+            Interlocked.CompareExchange(ref _count, count + 1, count);
         }
     }
 
     public void Reset() => Interlocked.Exchange(ref _count, 0);
 
-    public void Replace((int, int)[] entries, int count)
+    public void SwapOnEviction(int survivedCount)
     {
-        Entries = entries;
-        _count = count;
+        Interlocked.Exchange(ref _count, survivedCount);
+
+        _inactive = Interlocked.Exchange(ref _active, _inactive);
     }
 }
 
 internal sealed class EvictionJob<T> where T : notnull
 {
+    private long _averageExpirationMilliseconds;
+
     public readonly Timer QuickListEvictionTimer;
     public readonly Timer FullEvictionTimer;
     public readonly SemaphoreSlim FullEvictionLock = new(1, 1);
 
-    public int EvictionBackoffCount;
     public int EvictionGCNotificationsCount;
 
     public EvictionJob()
@@ -68,7 +73,7 @@ internal sealed class EvictionJob<T> where T : notnull
         }
 
         QuickListEvictionTimer = new(
-            static _ => CacheManager.EvictFromQuickList<T>(Environment.TickCount),
+            static _ => CacheManager.EvictFromQuickList<T>(Environment.TickCount64),
             null,
             Constants.QuickListEvictionInterval,
             Constants.QuickListEvictionInterval);
@@ -82,5 +87,37 @@ internal sealed class EvictionJob<T> where T : notnull
             fullEvictionInterval);
 
         Gen2GcCallback.Register(static () => CacheManager.QueueFullEviction<T>(triggeredByTimer: false));
+    }
+
+    public void ReportExpiration(long milliseconds)
+    {
+        var previous = _averageExpirationMilliseconds;
+
+        _averageExpirationMilliseconds = (milliseconds + previous) / 2;
+    }
+
+    public void RescheduleTimers()
+    {
+        var milliseconds = Interlocked.Read(ref _averageExpirationMilliseconds);
+        var averageExpiration = TimeSpan.FromSeconds(milliseconds);
+
+        var adjustedQuicklistInterval =
+            ((averageExpiration / Constants.EvictionIntervalMultiplyFactor) + Constants.QuickListEvictionInterval) / 2;
+
+        if (adjustedQuicklistInterval > Constants.QuickListEvictionInterval)
+        {
+            QuickListEvictionTimer.Change(adjustedQuicklistInterval, adjustedQuicklistInterval);
+        }
+
+        var newFullEvictionInterval = Constants.FullEvictionInterval;
+        var adjustedFullEvictionInterval = (averageExpiration + newFullEvictionInterval) / 2;
+        if (adjustedFullEvictionInterval > newFullEvictionInterval)
+        {
+            FullEvictionTimer.Change(adjustedFullEvictionInterval, adjustedFullEvictionInterval);
+        }
+        else
+        {
+            FullEvictionTimer.Change(newFullEvictionInterval, newFullEvictionInterval);
+        }
     }
 }

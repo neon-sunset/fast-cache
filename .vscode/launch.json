@@ -5,13 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": "Debug Weather example",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/examples/Weather/bin/Debug/net6.0/Weather.dll",
             "args": [],
             "cwd": "${workspaceFolder}/examples/Weather",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Debug Benchmarks",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/FastCache.Benchmarks/bin/Debug/net6.0/FastCache.Benchmarks.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FastCache.Benchmarks",
             "console": "integratedTerminal",
             "stopAtEntry": false
         },

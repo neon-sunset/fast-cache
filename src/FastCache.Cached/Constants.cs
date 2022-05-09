@@ -3,6 +3,8 @@ namespace FastCache;
 internal static class Constants
 {
     private const int DefaultCacheBufferSize = 32768;
+    private const int DefaultIntervalMultiplyFactor = 10;
+
     private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan MaxQuickListInterval = TimeSpan.FromSeconds(30);
 
@@ -21,6 +23,10 @@ internal static class Constants
                 : MaxQuickListInterval
             : DefaultQuickListInterval;
 
+    public static readonly int EvictionIntervalMultiplyFactor = int
+        .TryParse(GetVar("FASTCACHE_INTERVAL_MULTIPLY_FACTOR"), out var parsed)
+            ? parsed : DefaultIntervalMultiplyFactor;
+
     public static readonly bool DisableEviction = bool.TryParse(GetVar("FASTCACHE_DISABLE_EVICTION"), out var parsed) && parsed;
 
     public static readonly bool ConsiderFullGC = !bool.TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) || parsed;
@@ -38,7 +44,7 @@ internal static class Constants
             // Calculate full eviction interval with jitter.
             // This is necessary to avoid application stalling induced by all caches getting collected at the same time.
             var quickListTicks = QuickListEvictionInterval.Ticks;
-            var delay = quickListTicks * 10;
+            var delay = quickListTicks * EvictionIntervalMultiplyFactor;
             var jitter = Random.Shared.NextInt64(-quickListTicks, (quickListTicks * 2) + 1);
             return TimeSpan.FromTicks(delay + jitter);
         }
@@ -53,8 +59,6 @@ internal static class Constants
             return TimeSpan.FromTicks(delay + jitter);
         }
     }
-
-    public const int EvictionBackoffLimit = 5;
 
     public static readonly TimeSpan EvictionCooldownDelayOnGC = QuickListEvictionInterval / 5;
     public static readonly ulong AggregatedGCThreshold = (ulong)CacheBufferSize * 8;

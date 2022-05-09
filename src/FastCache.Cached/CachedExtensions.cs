@@ -1,13 +1,13 @@
 namespace FastCache;
 
-public static partial class CachedExtensions
+public static class CachedExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Cache<T>(this T value, TimeSpan expiration) where T : notnull
     {
-        var expiresAtTicks = Environment.TickCount + (int)expiration.TotalMilliseconds;
+        var expiresAt = Environment.TickCount64 + (long)expiration.TotalMilliseconds;
 
-        Cached<T>.s_default = (true, new(value, expiresAtTicks));
+        Cached<T>.s_default = (true, new(value, expiresAt));
         return value;
     }
 
