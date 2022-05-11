@@ -55,13 +55,14 @@ public readonly partial struct Cached<T> where T : notnull
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryGetInternal(int identifier, out Cached<T> cached)
     {
-        if (s_store.TryGetValue(identifier, out var inner) && inner.IsNotExpired())
+        bool notExpiredOrNew = true;
+        if (s_store.TryGetValue(identifier, out var inner) && (notExpiredOrNew = inner.IsNotExpired()))
         {
-            cached = new(identifier, inner.Value);
+            cached = new(identifier, updatesExisting: true, inner.Value);
             return true;
         }
 
-        cached = new(identifier, default!);
+        cached = new(identifier, !notExpiredOrNew, default!);
         return false;
     }
 }

@@ -58,6 +58,12 @@ public class CachedString
     }
 
     [Benchmark]
+    public void SaveEight()
+    {
+        _ = "eight".Cache("one", "two", "three", "four", "five", "six", "seven", "eight", OneHour);
+    }
+
+    [Benchmark]
     public string GetAndSaveSingle()
     {
         if (!Cached<string>.TryGet("one", out var cached))

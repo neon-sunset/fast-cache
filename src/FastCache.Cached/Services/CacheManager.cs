@@ -77,6 +77,10 @@ public static class CacheManager
         {
             return true;
         }
+        else if (quickList.Count is 0)
+        {
+            return false;
+        }
 
         lock (quickList)
         {
