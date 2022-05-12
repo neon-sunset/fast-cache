@@ -87,7 +87,7 @@ public static class CacheManager
             var quickListEntries = quickList.Entries;
             var entriesCount = quickList.Count;
 
-            var entriesSurvivedIndexes = ArrayPool<int>.Shared.Rent(Constants.CacheBufferSize);
+            var entriesSurvivedIndexes = ArrayPool<int>.Shared.Rent(Constants.QuickListLength);
 
             var entriesRemovedCount = 0;
             var entriesSurvivedCount = 0;
@@ -98,8 +98,27 @@ public static class CacheManager
 
                 if (now > expiresAt)
                 {
-                    store.TryRemove(identifier, out _);
-                    entriesRemovedCount++;
+                    if (store.TryGetValue(identifier, out var inner))
+                    {
+                        var itemExpiresAt = inner._expiresAt;
+                        if (now > itemExpiresAt)
+                        {
+                            store.TryRemove(identifier, out _);
+                            entriesRemovedCount++;
+                        }
+                        else
+                        {
+                            quickListEntries[i] = (identifier, itemExpiresAt);
+                            entriesSurvivedCount++;
+                        }
+                    }
+                    else
+                    {
+                        // Duplicate entry present in quicklist has already been removed from cache store.
+                        // Count duplicates towards total removed count so they aren't copied as survived.
+                        // This will also count towards 's_AggregatedEvictionsCount' which is ok.
+                        entriesRemovedCount++;
+                    }
                 }
                 else
                 {
@@ -115,14 +134,14 @@ public static class CacheManager
                 ArrayPool<int>.Shared.Return(entriesSurvivedIndexes);
                 Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)entriesRemovedCount);
 
-                return entriesRemovedCount == totalCount;
+                return entriesRemovedCount >= totalCount;
             }
 
             if (entriesRemovedCount == 0)
             {
                 ArrayPool<int>.Shared.Return(entriesSurvivedIndexes);
 
-                return entriesSurvivedCount == totalCount;
+                return entriesSurvivedCount >= totalCount;
             }
 
             var entriesSurvived = quickList.Inactive;
@@ -137,7 +156,7 @@ public static class CacheManager
             ArrayPool<int>.Shared.Return(entriesSurvivedIndexes);
             Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)entriesRemovedCount);
 
-            return (entriesSurvivedCount + entriesRemovedCount) == totalCount;
+            return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
         }
     }
 
@@ -190,7 +209,7 @@ public static class CacheManager
         {
             // When a lot of items are being added to cache, it triggers GC
             // which may decrease adding performance by constantly locking quick list.
-            // Avoid this by holding full eviction lock by additional 500 ms.
+            // Avoid this by holding full eviction lock by additional 1000 ms (for 5s quicklist inerval).
             await Task.Delay(Constants.EvictionCooldownDelayOnGC);
             evictionJob.FullEvictionLock.Release();
             return;

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 
 namespace FastCache.Sandbox;
@@ -28,29 +29,32 @@ public static class EvictionStress
 
     public static void Run()
     {
-        ThreadPool.QueueUserWorkItem(_ => Seed<User>());
-        // ThreadPool.QueueUserWorkItem(_ => Seed<Struct>());
-        // ThreadPool.QueueUserWorkItem(_ => Seed<Uri2>());
-        // ThreadPool.QueueUserWorkItem(_ => Seed<decimal>());
-        // ThreadPool.QueueUserWorkItem(_ => Seed<nuint>());
+        // ThreadPool.QueueUserWorkItem(_ => Seed<User>());
+        ThreadPool.QueueUserWorkItem(_ => Seed<Struct>());
+        ThreadPool.QueueUserWorkItem(_ => Seed<Uri2>());
+        ThreadPool.QueueUserWorkItem(_ => Seed<decimal>());
+        ThreadPool.QueueUserWorkItem(_ => Seed<nuint>());
         Console.ReadLine();
     }
 
     private static void Seed<T>() where T : notnull, new()
     {
-        const int count = 2_000_000;
+        const int count = 1_000_000;
 
         Parallel.For(0, 25, static num =>
         {
+            var sw = Stopwatch.StartNew();
             var offset = num * count;
             for (int i = offset; i < count + offset; i++)
             {
-                var rand = TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(1, 900));
+                var rand = TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(1, 600));
 
                 new T().Cache(i, rand);
             }
 
-            Console.WriteLine($"Added {count} of {typeof(T).Name} to cache.");
+            var elapsed = sw.Elapsed;
+            var ticksPerItem = elapsed.Ticks / (double)count;
+            Console.WriteLine($"Added {count} of {typeof(T).Name} to cache. Took {elapsed}, {ticksPerItem} ticks per item");
         });
     }
 }

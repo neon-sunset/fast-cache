@@ -4,6 +4,7 @@ using BenchmarkDotNet.Jobs;
 namespace FastCache.Benchmarks;
 
 [SimpleJob(RuntimeMoniker.HostProcess)]
+[DisassemblyDiagnoser(maxDepth: 3, printSource: true, exportHtml: true)]
 [MemoryDiagnoser]
 public class CachedString
 {
@@ -12,6 +13,11 @@ public class CachedString
     [GlobalSetup]
     public void Initialize()
     {
+         var evictionJob = Cached<string>.s_evictionJob;
+
+        evictionJob.QuickListEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+        evictionJob.FullEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+
         _ = "default".Cache(OneHour);
         _ = "single".Cache("one", OneHour);
         _ = "eight".Cache("one", "two", "three", "four", "five", "six", "seven", "eight", OneHour);

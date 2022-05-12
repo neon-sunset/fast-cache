@@ -52,7 +52,7 @@ public readonly partial struct Cached<T> where T : notnull
 [StructLayout(LayoutKind.Auto)]
 internal readonly struct CachedInner<T> where T : notnull
 {
-    private readonly long _expiresAt;
+    internal readonly long _expiresAt;
 
     public readonly T Value;
 

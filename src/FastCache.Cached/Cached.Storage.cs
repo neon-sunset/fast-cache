@@ -26,8 +26,8 @@ internal sealed class QuickEvictList<T> where T : notnull
 
     public QuickEvictList()
     {
-        _active = new (int, long)[Constants.CacheBufferSize];
-        _inactive = new (int, long)[Constants.CacheBufferSize];
+        _active = new (int, long)[Constants.QuickListLength];
+        _inactive = new (int, long)[Constants.QuickListLength];
         _count = 0;
     }
 

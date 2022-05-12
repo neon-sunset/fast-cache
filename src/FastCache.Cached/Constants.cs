@@ -2,7 +2,7 @@ namespace FastCache;
 
 internal static class Constants
 {
-    private const int DefaultCacheBufferSize = 32768;
+    private const int DefaultQuickListSize = 32768;
     private const int DefaultIntervalMultiplyFactor = 10;
 
     private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(10);
@@ -11,8 +11,8 @@ internal static class Constants
     // OldestEntries list and eviction batch size length limits.
     // Higher limit works well with short-lived first-gen-contained cache items
     // but performs poorly if many items of the same type have inconsistent lifetimes.
-    public static readonly int CacheBufferSize = int
-        .TryParse(GetVar("FASTCACHE_QUICKLIST_LENGTH"), out var parsed) ? parsed : DefaultCacheBufferSize;
+    public static readonly int QuickListLength = int
+        .TryParse(GetVar("FASTCACHE_QUICKLIST_LENGTH"), out var parsed) ? parsed : DefaultQuickListSize;
 
     // Frequency with which CacheItemsEvictionJob is run. Scheduling it often is only recommended when cache consists of
     // numerous frequently added short-lived items and not running it often enough will result in high memory usage.
@@ -24,12 +24,14 @@ internal static class Constants
             : DefaultQuickListInterval;
 
     public static readonly int EvictionIntervalMultiplyFactor = int
-        .TryParse(GetVar("FASTCACHE_INTERVAL_MULTIPLY_FACTOR"), out var parsed)
-            ? parsed : DefaultIntervalMultiplyFactor;
+        .TryParse(GetVar("FASTCACHE_INTERVAL_MUL_FACTOR"), out var parsed) ? parsed : DefaultIntervalMultiplyFactor;
 
-    public static readonly bool DisableEviction = bool.TryParse(GetVar("FASTCACHE_DISABLE_EVICTION"), out var parsed) && parsed;
+    public static readonly ulong AggregatedGCThreshold = ulong
+        .TryParse(GetVar("FASTCACHE_GC_THRESHOLD"), out var parsed) ? parsed : (ulong)QuickListLength * 32;
 
     public static readonly bool ConsiderFullGC = !bool.TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) || parsed;
+
+    public static readonly bool DisableEviction = bool.TryParse(GetVar("FASTCACHE_DISABLE_EVICTION"), out var parsed) && parsed;
 
     // Full eviction interval uses a multiple of quick list eviction interval.
     // Rationale: if cache size is larger than quick list, then running full eviction too often will cause
@@ -61,7 +63,7 @@ internal static class Constants
     }
 
     public static readonly TimeSpan EvictionCooldownDelayOnGC = QuickListEvictionInterval / 5;
-    public static readonly ulong AggregatedGCThreshold = (ulong)CacheBufferSize * 8;
+
     public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval * 4;
     public static readonly TimeSpan CooldownDelayAfterFullGC = QuickListEvictionInterval * 4;
 
