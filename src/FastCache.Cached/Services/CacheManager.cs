@@ -12,7 +12,7 @@ public static class CacheManager
     /// <summary>
     /// Submit full eviction for specified Cached<T> value
     /// </summary>
-    public static void QueueFullEviction<T>() where T : notnull => QueueFullEviction<T>(triggeredByTimer: false);
+    public static void QueueFullEviction<T>() where T : notnull => QueueFullEviction<T>(triggeredByTimer: true);
 
     public static void QueueFullClear<T>() where T : notnull
     {
@@ -33,6 +33,10 @@ public static class CacheManager
         });
     }
 
+    public static void SuspendEviction<T>() where T : notnull => Cached<T>.s_evictionJob.Stop();
+
+    public static void ResumeEviction<T>() where T : notnull => Cached<T>.s_evictionJob.RescheduleConsideringExpiration();
+
     internal static bool QueueFullEviction<T>(bool triggeredByTimer) where T : notnull
     {
         return triggeredByTimer
@@ -40,7 +44,7 @@ public static class CacheManager
                 {
                     try
                     {
-                        ImmediateFullEvictionByTimer<T>();
+                        ImmediateFullEviction<T>();
                     }
                     catch
                     {
@@ -53,7 +57,7 @@ public static class CacheManager
                 {
                     try
                     {
-                        await StaggeredFullEvictionByGC<T>();
+                        await StaggeredFullEviction<T>();
                     }
                     catch
                     {
@@ -87,12 +91,12 @@ public static class CacheManager
             var quickListEntries = quickList.Entries;
             var entriesCount = quickList.Count;
 
-            var entriesSurvivedIndexes = ArrayPool<int>.Shared.Rent(Constants.QuickListLength);
+            var entriesSurvivedIndexes = ArrayPool<uint>.Shared.Rent((int)entriesCount);
 
-            var entriesRemovedCount = 0;
-            var entriesSurvivedCount = 0;
+            uint entriesRemovedCount = 0;
+            uint entriesSurvivedCount = 0;
 
-            for (var i = 0; i < entriesCount; i++)
+            for (uint i = 0; i < entriesCount; i++)
             {
                 var (identifier, expiresAt) = quickListEntries[i];
 
@@ -109,6 +113,7 @@ public static class CacheManager
                         else
                         {
                             quickListEntries[i] = (identifier, itemExpiresAt);
+                            entriesSurvivedIndexes[entriesSurvivedCount] = i;
                             entriesSurvivedCount++;
                         }
                     }
@@ -131,7 +136,7 @@ public static class CacheManager
             {
                 quickList.Reset();
 
-                ArrayPool<int>.Shared.Return(entriesSurvivedIndexes);
+                ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
                 Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)entriesRemovedCount);
 
                 return entriesRemovedCount >= totalCount;
@@ -139,28 +144,28 @@ public static class CacheManager
 
             if (entriesRemovedCount == 0)
             {
-                ArrayPool<int>.Shared.Return(entriesSurvivedIndexes);
+                ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
 
                 return entriesSurvivedCount >= totalCount;
             }
 
             var entriesSurvived = quickList.Inactive;
-            for (var j = 0; j < entriesSurvivedCount; j++)
+            for (uint j = 0; j < entriesSurvivedCount; j++)
             {
-                var entryIndex = entriesSurvivedIndexes[j];
+                uint entryIndex = entriesSurvivedIndexes[j];
                 entriesSurvived[j] = quickListEntries[entryIndex];
             }
 
             quickList.SwapOnEviction(entriesSurvivedCount);
 
-            ArrayPool<int>.Shared.Return(entriesSurvivedIndexes);
+            ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
             Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)entriesRemovedCount);
 
             return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
         }
     }
 
-    private static void ImmediateFullEvictionByTimer<T>() where T : notnull
+    private static void ImmediateFullEviction<T>() where T : notnull
     {
         var evictionJob = Cached<T>.s_evictionJob;
 
@@ -169,7 +174,7 @@ public static class CacheManager
             return;
         }
 
-        evictionJob.RescheduleTimers();
+        evictionJob.RescheduleConsideringExpiration();
 
         var now = Environment.TickCount64;
         if (EvictFromQuickList<T>(now))
@@ -185,18 +190,19 @@ public static class CacheManager
 
         if (Constants.ConsiderFullGC && evictedFromMainCache > 0)
         {
-#if DEBUG
-            ReportEvicted<T>("cache store", evictedFromMainCache, stopwatch.Elapsed);
-#endif
             Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromMainCache);
         }
+
+#if DEBUG
+        ReportEvicted<T>("cache store", evictedFromMainCache, stopwatch.Elapsed);
+#endif
 
         ThreadPool.QueueUserWorkItem(async static _ => await ConsiderFullGC<T>());
 
         evictionJob.FullEvictionLock.Release();
     }
 
-    private static async ValueTask StaggeredFullEvictionByGC<T>() where T : notnull
+    private static async ValueTask StaggeredFullEviction<T>() where T : notnull
     {
         var evictionJob = Cached<T>.s_evictionJob;
 
@@ -244,8 +250,15 @@ public static class CacheManager
         evictionJob.FullEvictionLock.Release();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static int EvictFromMainCache<T>(long now) where T : notnull
+    {
+        return Cached<T>.s_store.Count > Constants.ParallelEvictionThreshold
+            ? EvictFromMainCacheParallel<T>(now)
+            : EvictFromMainCacheSingleThreaded<T>(now);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    private static int EvictFromMainCacheSingleThreaded<T>(long now) where T : notnull
     {
         var store = Cached<T>.s_store;
         var totalRemoved = 0;
@@ -258,6 +271,31 @@ public static class CacheManager
                 totalRemoved++;
             }
         }
+
+        return totalRemoved;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    private static int EvictFromMainCacheParallel<T>(long now) where T : notnull
+    {
+        var store = Cached<T>.s_store;
+        var totalRemoved = 0;
+
+        void CheckAndRemove(int identifier, long expiresAt)
+        {
+            ref var count = ref totalRemoved;
+
+            if (now > expiresAt)
+            {
+                store!.TryRemove(identifier, out _);
+                count++;
+            }
+        }
+
+        Cached<T>.s_store
+            .AsParallel()
+            .AsUnordered()
+            .ForAll(item => CheckAndRemove(item.Key, item.Value._expiresAt));
 
         return totalRemoved;
     }
@@ -280,10 +318,14 @@ public static class CacheManager
         }
 
         await Task.Delay(Constants.DelayToFullGC);
+#if DEBUG
+        var sw = Stopwatch.StartNew();
+#endif
+
         GC.Collect(2, GCCollectionMode.Default, blocking: false);
 
 #if DEBUG
-        Debug.Print($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}");
+        Debug.Print($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}. Elapsed:{sw.ElapsedMilliseconds} ms");
 #endif
         Interlocked.Exchange(ref s_AggregatedEvictionsCount, 0);
 

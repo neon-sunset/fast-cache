@@ -2,8 +2,9 @@ namespace FastCache;
 
 internal static class Constants
 {
-    private const int DefaultQuickListSize = 32768;
-    private const int DefaultIntervalMultiplyFactor = 10;
+    private const uint DefaultQuickListSize = 32768;
+    private const uint DefaultIntervalMultiplyFactor = 10;
+    private const uint DefaultParallelEvictionThreshold = 1_048_576;
 
     private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan MaxQuickListInterval = TimeSpan.FromSeconds(30);
@@ -11,7 +12,7 @@ internal static class Constants
     // OldestEntries list and eviction batch size length limits.
     // Higher limit works well with short-lived first-gen-contained cache items
     // but performs poorly if many items of the same type have inconsistent lifetimes.
-    public static readonly int QuickListLength = int
+    public static readonly uint QuickListLength = uint
         .TryParse(GetVar("FASTCACHE_QUICKLIST_LENGTH"), out var parsed) ? parsed : DefaultQuickListSize;
 
     // Frequency with which CacheItemsEvictionJob is run. Scheduling it often is only recommended when cache consists of
@@ -23,11 +24,14 @@ internal static class Constants
                 : MaxQuickListInterval
             : DefaultQuickListInterval;
 
-    public static readonly int EvictionIntervalMultiplyFactor = int
+    public static readonly uint EvictionIntervalMultiplyFactor = uint
         .TryParse(GetVar("FASTCACHE_INTERVAL_MUL_FACTOR"), out var parsed) ? parsed : DefaultIntervalMultiplyFactor;
 
     public static readonly ulong AggregatedGCThreshold = ulong
         .TryParse(GetVar("FASTCACHE_GC_THRESHOLD"), out var parsed) ? parsed : (ulong)QuickListLength * 32;
+
+    public static readonly uint ParallelEvictionThreshold = uint
+        .TryParse(GetVar("FASTCACHE_PARALLEL_EVICTION_THRESHOLD"), out var parsed) ? parsed : DefaultParallelEvictionThreshold;
 
     public static readonly bool ConsiderFullGC = !bool.TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) || parsed;
 

@@ -6,17 +6,17 @@ namespace FastCache;
 public readonly partial struct Cached<T> where T : notnull
 {
     private readonly int _identifier;
-    private readonly bool _updatesExisting;
+    private readonly bool _found;
 
     public readonly T Value;
 
     public Cached() => throw new InvalidOperationException("Cached<T> must not be initialized with default constructor");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal Cached(int identifier, bool updatesExisting, T value)
+    internal Cached(int identifier, bool found, T value)
     {
         _identifier = identifier;
-        _updatesExisting = updatesExisting;
+        _found = found;
 
         Value = value;
     }
@@ -34,7 +34,7 @@ public readonly partial struct Cached<T> where T : notnull
         s_store[_identifier] = new(value, expiresAt);
         s_evictionJob.ReportExpiration(milliseconds);
 
-        if (!_updatesExisting)
+        if (!_found)
         {
             s_quickEvictList.Add(_identifier, expiresAt);
         }

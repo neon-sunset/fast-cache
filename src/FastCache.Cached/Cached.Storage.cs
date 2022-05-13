@@ -18,11 +18,11 @@ internal sealed class QuickEvictList<T> where T : notnull
 {
     private (int, long)[] _active;
     private (int, long)[] _inactive;
-    private long _count;
+    private ulong _count;
 
     public (int, long)[] Entries => _active;
     public (int, long)[] Inactive => _inactive;
-    public int Count => (int)Interlocked.Read(ref _count);
+    public uint Count => (uint)Interlocked.Read(ref _count);
 
     public QuickEvictList()
     {
@@ -45,7 +45,7 @@ internal sealed class QuickEvictList<T> where T : notnull
 
     public void Reset() => Interlocked.Exchange(ref _count, 0);
 
-    public void SwapOnEviction(int survivedCount)
+    public void SwapOnEviction(uint survivedCount)
     {
         Interlocked.Exchange(ref _count, survivedCount);
 
@@ -96,7 +96,7 @@ internal sealed class EvictionJob<T> where T : notnull
         _averageExpirationMilliseconds = (milliseconds + previous) / 2;
     }
 
-    public void RescheduleTimers()
+    public void RescheduleConsideringExpiration()
     {
         var milliseconds = Interlocked.Read(ref _averageExpirationMilliseconds);
         var averageExpiration = TimeSpan.FromMilliseconds(milliseconds);
@@ -119,5 +119,11 @@ internal sealed class EvictionJob<T> where T : notnull
         {
             FullEvictionTimer.Change(newFullEvictionInterval, newFullEvictionInterval);
         }
+    }
+
+    public void Stop()
+    {
+        QuickListEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+        FullEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
     }
 }

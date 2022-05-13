@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
+using FastCache.Extensions;
+using FastCache.Services;
 
 namespace FastCache.Sandbox;
 
@@ -31,9 +33,9 @@ public static class EvictionStress
     {
         // ThreadPool.QueueUserWorkItem(_ => Seed<User>());
         ThreadPool.QueueUserWorkItem(_ => Seed<Struct>());
-        ThreadPool.QueueUserWorkItem(_ => Seed<Uri2>());
-        ThreadPool.QueueUserWorkItem(_ => Seed<decimal>());
-        ThreadPool.QueueUserWorkItem(_ => Seed<nuint>());
+        // ThreadPool.QueueUserWorkItem(_ => Seed<Uri2>());
+        // ThreadPool.QueueUserWorkItem(_ => Seed<decimal>());
+        // ThreadPool.QueueUserWorkItem(_ => Seed<nuint>());
         Console.ReadLine();
     }
 
@@ -41,13 +43,15 @@ public static class EvictionStress
     {
         const int count = 1_000_000;
 
-        Parallel.For(0, 25, static num =>
+        CacheManager.SuspendEviction<T>();
+
+        Parallel.For(0, 10, static num =>
         {
             var sw = Stopwatch.StartNew();
             var offset = num * count;
             for (int i = offset; i < count + offset; i++)
             {
-                var rand = TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(1, 600));
+                var rand = TimeSpan.FromMilliseconds(1);
 
                 new T().Cache(i, rand);
             }
@@ -56,5 +60,7 @@ public static class EvictionStress
             var ticksPerItem = elapsed.Ticks / (double)count;
             Console.WriteLine($"Added {count} of {typeof(T).Name} to cache. Took {elapsed}, {ticksPerItem} ticks per item");
         });
+
+        CacheManager.QueueFullEviction<T>();
     }
 }

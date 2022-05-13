@@ -27,6 +27,18 @@
             "stopAtEntry": false
         },
         {
+            "name": "Debug Sandbox",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/FastCache.Sandbox/bin/Debug/net6.0/FastCache.Sandbox.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/FastCache.Benchmarks",
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+            "requireExactSource": false
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"

@@ -1,4 +1,4 @@
-namespace FastCache;
+namespace FastCache.Extensions;
 
 public static class CachedExtensions
 {
@@ -65,6 +65,6 @@ public static class CachedExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static T CacheInternal<T>(T value, int identifier, TimeSpan expiration) where T : notnull
     {
-        return new Cached<T>(identifier, updatesExisting: false, default!).Save(value, expiration);
+        return new Cached<T>(identifier, found: false, default!).Save(value, expiration);
     }
 }

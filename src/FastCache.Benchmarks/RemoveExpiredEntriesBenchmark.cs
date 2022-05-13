@@ -1,6 +1,7 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using FastCache.Extensions;
 using FastCache.Services;
 
 namespace FastCache.Benchmarks;

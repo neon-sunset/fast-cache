@@ -1,10 +1,10 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
+using FastCache.Extensions;
 
 namespace FastCache.Benchmarks;
 
-[SimpleJob(RuntimeMoniker.HostProcess)]
-[DisassemblyDiagnoser(maxDepth: 3, printSource: true, exportHtml: true)]
+// [SimpleJob(RuntimeMoniker.HostProcess)]
+// [DisassemblyDiagnoser(maxDepth: 3, printSource: true, exportHtml: true)]
 [MemoryDiagnoser]
 public class CachedString
 {
@@ -13,7 +13,7 @@ public class CachedString
     [GlobalSetup]
     public void Initialize()
     {
-         var evictionJob = Cached<string>.s_evictionJob;
+        var evictionJob = Cached<string>.s_evictionJob;
 
         evictionJob.QuickListEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
         evictionJob.FullEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
