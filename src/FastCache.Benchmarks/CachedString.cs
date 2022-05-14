@@ -1,5 +1,6 @@
 using BenchmarkDotNet.Attributes;
 using FastCache.Extensions;
+using FastCache.Services;
 
 namespace FastCache.Benchmarks;
 
@@ -13,10 +14,7 @@ public class CachedString
     [GlobalSetup]
     public void Initialize()
     {
-        var evictionJob = Cached<string>.s_evictionJob;
-
-        evictionJob.QuickListEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
-        evictionJob.FullEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+        CacheManager.SuspendEviction<string>();
 
         _ = "default".Cache(OneHour);
         _ = "single".Cache("one", OneHour);

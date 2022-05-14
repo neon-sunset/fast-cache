@@ -9,7 +9,7 @@ namespace FastCache.Benchmarks;
 [MemoryDiagnoser]
 [DisassemblyDiagnoser(maxDepth: 3, printSource: true, exportHtml: true)]
 [SimpleJob(runtimeMoniker: RuntimeMoniker.HostProcess)]
-public class RemoveExpiredEntriesBenchmark
+public class CacheManagerBenchmarks
 {
     // readonly int tickCount = Environment.TickCount64;
 
@@ -18,10 +18,7 @@ public class RemoveExpiredEntriesBenchmark
     {
         const int limit = 32768;
 
-        var evictionJob = Cached<string>.s_evictionJob;
-
-        evictionJob.QuickListEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
-        evictionJob.FullEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+        CacheManager.SuspendEviction<string>();
 
         // var ticksMax = TimeSpan.FromSeconds(90).Ticks;
 
@@ -39,5 +36,5 @@ public class RemoveExpiredEntriesBenchmark
     }
 
     [Benchmark]
-    public void Run() => CacheManager.EvictFromQuickList<string>(Environment.TickCount64);
+    public void Run() => Cached<string>.s_quickList.Evict(Environment.TickCount64);
 }

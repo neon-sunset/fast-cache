@@ -32,14 +32,19 @@ public readonly partial struct Cached<T> where T : notnull
         }
 
         s_store[_identifier] = new(value, expiresAt);
-        s_evictionJob.ReportExpiration(milliseconds);
+        s_evictionJob.ReportExpiration((ulong)milliseconds);
 
         if (!_found)
         {
-            s_quickEvictList.Add(_identifier, expiresAt);
+            s_quickList.Add(_identifier, expiresAt);
         }
 
         return value;
+    }
+
+    public void Remove()
+    {
+        s_store.TryRemove(_identifier, out _);
     }
 
     [DoesNotReturn]

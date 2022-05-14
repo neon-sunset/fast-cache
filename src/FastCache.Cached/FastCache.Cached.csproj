@@ -18,6 +18,10 @@ Features include automatic eviction, lock-free and wait-free access and storage,
 Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="NonBlocking" Version="2.0.0" />
   </ItemGroup>

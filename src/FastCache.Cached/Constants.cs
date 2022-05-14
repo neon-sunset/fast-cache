@@ -15,8 +15,6 @@ internal static class Constants
     public static readonly uint QuickListLength = uint
         .TryParse(GetVar("FASTCACHE_QUICKLIST_LENGTH"), out var parsed) ? parsed : DefaultQuickListSize;
 
-    // Frequency with which CacheItemsEvictionJob is run. Scheduling it often is only recommended when cache consists of
-    // numerous frequently added short-lived items and not running it often enough will result in high memory usage.
     public static readonly TimeSpan QuickListEvictionInterval = TimeSpan
         .TryParse(GetVar("FASTCACHE_QUICKLIST_EVICTION_INTERVAL"), out var parsed)
             ? parsed < MaxQuickListInterval
@@ -35,14 +33,14 @@ internal static class Constants
 
     public static readonly bool ConsiderFullGC = !bool.TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) || parsed;
 
-    public static readonly bool DisableEviction = bool.TryParse(GetVar("FASTCACHE_DISABLE_EVICTION"), out var parsed) && parsed;
+    public static readonly bool DisableEvictionJob = bool.TryParse(GetVar("FASTCACHE_DISABLE_AUTO_EVICTION"), out var parsed) && parsed;
 
     // Full eviction interval uses a multiple of quick list eviction interval.
     // Rationale: if cache size is larger than quick list, then running full eviction too often will cause
-    // performance stalls and thrashing anyway. For situations where items are added to cache faster than
+    // performance stalls and thrashing. For situations where items are added to cache faster than
     // eviction job can remove them, Gen2 GC callback is used to clear the cache before next scheduled run.
     // This allows us to avoid OOM situations while keeping full evictions sufficiently infrequent.
-    // Hopefully, this is sufficient to prevent unnecessary performance overhead and interruptions to application behavior.
+    // Hopefully, this is enough to prevent unnecessary performance overhead and interruptions to application behavior.
     public static TimeSpan FullEvictionInterval
     {
         get
