@@ -150,11 +150,12 @@ public static class CacheManager
 
         if (Constants.ConsiderFullGC && evictedFromCacheStore > 0)
         {
+            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromCacheStore);
+        }
+
 #if DEBUG
             ReportEvicted<T>("cache store", evictedFromCacheStore, stopwatch.Elapsed);
 #endif
-            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromCacheStore);
-        }
 
         await Task.Delay(Constants.EvictionCooldownDelayOnGC);
 
@@ -173,6 +174,7 @@ public static class CacheManager
     private static int EvictFromCacheStoreSingleThreaded<T>(long now) where T : notnull
     {
         var store = Cached<T>.s_store;
+        var quickList = Cached<T>.s_quickList;
         var totalRemoved = 0;
 
         foreach (var (identifier, (_, expiresAt)) in store)
@@ -182,12 +184,17 @@ public static class CacheManager
                 store.TryRemove(identifier, out _);
                 totalRemoved++;
             }
+            else
+            {
+                quickList.OverwritingNonAtomicAdd(identifier, expiresAt);
+            }
         }
 
         return totalRemoved;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    // TODO: Add backoff logic if not enough items expired compared to expected. Recalculate avg expiration?
     private static int EvictFromCacheStoreParallel<T>(long now) where T : notnull
     {
         var store = Cached<T>.s_store;
@@ -201,6 +208,10 @@ public static class CacheManager
             {
                 store!.TryRemove(identifier, out _);
                 count++;
+            }
+            else
+            {
+                Cached<T>.s_quickList.OverwritingNonAtomicAdd(identifier, expiresAt);
             }
         }
 
@@ -234,10 +245,10 @@ public static class CacheManager
         var sw = Stopwatch.StartNew();
 #endif
 
-        GC.Collect(2, GCCollectionMode.Default, blocking: false);
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Default, blocking: false);
 
 #if DEBUG
-        Debug.Print($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}. Elapsed:{sw.ElapsedMilliseconds} ms");
+        Console.WriteLine($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}. Elapsed:{sw.ElapsedMilliseconds} ms");
 #endif
         Interlocked.Exchange(ref s_AggregatedEvictionsCount, 0);
 
@@ -248,7 +259,7 @@ public static class CacheManager
 #if DEBUG
     private static void ReportEvicted<T>(string type, int count, TimeSpan elapsed) where T : notnull
     {
-        Debug.Print($"FastCache: Evicted {count} of {typeof(T).Name} from {type}. Took {elapsed.TotalMilliseconds} ms.");
+        Console.WriteLine($"FastCache: Evicted {count} of {typeof(T).Name} from {type}. Took {elapsed.TotalMilliseconds} ms.");
     }
 #endif
 }

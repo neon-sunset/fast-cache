@@ -4,6 +4,10 @@
     <ProjectReference Include="..\FastCache.Cached\FastCache.Cached.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-preview.4.22229.4" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
@@ -11,6 +15,10 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
 	  <ServerGarbageCollection>true</ServerGarbageCollection>
+    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+    <IlcTrimMetadata>true</IlcTrimMetadata>
+    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+    <IlcInstructionSet>avx2,bmi2,fma,pclmul,popcnt,aes,lzcnt</IlcInstructionSet>
   </PropertyGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics;
 using FastCache.Services;
 
 namespace FastCache;
@@ -32,12 +33,27 @@ internal sealed class EvictionQuickList<T> where T : notnull
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void OverwritingNonAtomicAdd(int value, long expiresAt)
+    {
+        var entries = _active;
+        uint count = (uint)_count;
+        if (count < entries.Length)
+        {
+            entries[count] = (value, expiresAt);
+            _count = count + 1;
+        }
+    }
+
     public void Reset() => Interlocked.Exchange(ref _count, 0);
 
     // Performs cache eviction by iterating through quick list and removing expired entries from cache store.
     // Returns 'true' if resident cache size is contained within quick list, 'false' if full eviction is required
     internal bool Evict(long now)
     {
+#if DEBUG
+        var sw = Stopwatch.StartNew();
+#endif
         var store = Cached<T>.s_store;
 
         var totalCount = store.Count;
@@ -45,7 +61,7 @@ internal sealed class EvictionQuickList<T> where T : notnull
         {
             return true;
         }
-        else if (Count is 0)
+        else if (_count is 0)
         {
             return false;
         }
@@ -102,14 +118,18 @@ internal sealed class EvictionQuickList<T> where T : notnull
 
                 ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
                 CacheManager.ReportEvictions(entriesRemovedCount);
-
+#if DEBUG
+                Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.ElapsedTicks / 10} us");
+#endif
                 return entriesRemovedCount >= totalCount;
             }
 
             if (entriesRemovedCount == 0)
             {
                 ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
-
+#if DEBUG
+                Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.ElapsedTicks / 10} us");
+#endif
                 return entriesSurvivedCount >= totalCount;
             }
 
@@ -129,6 +149,9 @@ internal sealed class EvictionQuickList<T> where T : notnull
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
             CacheManager.ReportEvictions(entriesRemovedCount);
 
+#if DEBUG
+            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.ElapsedTicks / 10} us");
+#endif
             return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
         }
     }
