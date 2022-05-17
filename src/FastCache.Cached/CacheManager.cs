@@ -44,7 +44,13 @@ public static class CacheManager
     /// </summary>
     public static void ResumeEviction<T>() where T : notnull => Cached<T>.s_evictionJob.Resume();
 
-    public static void ReportEvictions(ulong count) => Interlocked.Add(ref s_AggregatedEvictionsCount, count);
+    internal static void ReportEvictions<T>(uint count)
+    {
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        {
+            Interlocked.Add(ref s_AggregatedEvictionsCount, count);
+        }
+    }
 
     internal static bool QueueFullEviction<T>(bool triggeredByTimer) where T : notnull
     {
@@ -102,7 +108,7 @@ public static class CacheManager
 
         if (Constants.ConsiderFullGC && evictedFromCacheStore > 0)
         {
-            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromCacheStore);
+            ReportEvictions<T>(evictedFromCacheStore);
         }
 
 #if DEBUG
@@ -150,7 +156,7 @@ public static class CacheManager
 
         if (Constants.ConsiderFullGC && evictedFromCacheStore > 0)
         {
-            Interlocked.Add(ref s_AggregatedEvictionsCount, (ulong)evictedFromCacheStore);
+            ReportEvictions<T>(evictedFromCacheStore);
         }
 
 #if DEBUG
@@ -163,7 +169,7 @@ public static class CacheManager
         evictionJob.FullEvictionLock.Release();
     }
 
-    private static int EvictFromCacheStore<T>(long now) where T : notnull
+    private static uint EvictFromCacheStore<T>(long now) where T : notnull
     {
         return Cached<T>.s_store.Count > Constants.ParallelEvictionThreshold
             ? EvictFromCacheStoreParallel<T>(now)
@@ -171,11 +177,11 @@ public static class CacheManager
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    private static int EvictFromCacheStoreSingleThreaded<T>(long now) where T : notnull
+    private static uint EvictFromCacheStoreSingleThreaded<T>(long now) where T : notnull
     {
         var store = Cached<T>.s_store;
         var quickList = Cached<T>.s_quickList;
-        var totalRemoved = 0;
+        uint totalRemoved = 0;
 
         foreach (var (identifier, (_, expiresAt)) in store)
         {
@@ -195,10 +201,10 @@ public static class CacheManager
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     // TODO: Add backoff logic if not enough items expired compared to expected. Recalculate avg expiration?
-    private static int EvictFromCacheStoreParallel<T>(long now) where T : notnull
+    private static uint EvictFromCacheStoreParallel<T>(long now) where T : notnull
     {
         var store = Cached<T>.s_store;
-        var totalRemoved = 0;
+        uint totalRemoved = 0;
 
         void CheckAndRemove(int identifier, long expiresAt)
         {
@@ -257,7 +263,7 @@ public static class CacheManager
     }
 
 #if DEBUG
-    private static void ReportEvicted<T>(string type, int count, TimeSpan elapsed) where T : notnull
+    private static void ReportEvicted<T>(string type, uint count, TimeSpan elapsed) where T : notnull
     {
         Console.WriteLine($"FastCache: Evicted {count} of {typeof(T).Name} from {type}. Took {elapsed.TotalMilliseconds} ms.");
     }

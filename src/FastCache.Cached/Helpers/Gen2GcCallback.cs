@@ -1,6 +1,6 @@
 using System.Runtime.ConstrainedExecution;
 
-namespace FastCache.Utils;
+namespace FastCache.Helpers;
 
 internal sealed class Gen2GcCallback : CriticalFinalizerObject
 {

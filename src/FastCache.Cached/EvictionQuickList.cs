@@ -10,8 +10,6 @@ internal sealed class EvictionQuickList<T> where T : notnull
     private (int, long)[] _inactive;
     private ulong _count;
 
-    public (int, long)[] Entries => _active;
-    public (int, long)[] Inactive => _inactive;
     public uint Count => (uint)Interlocked.Read(ref _count);
 
     public EvictionQuickList()
@@ -23,7 +21,7 @@ internal sealed class EvictionQuickList<T> where T : notnull
 
     public void Add(int value, long expiresAt)
     {
-        var entries = Entries;
+        var entries = _active;
         var count = Count;
         if (count < entries.Length)
         {
@@ -37,7 +35,7 @@ internal sealed class EvictionQuickList<T> where T : notnull
     internal void OverwritingNonAtomicAdd(int value, long expiresAt)
     {
         var entries = _active;
-        uint count = (uint)_count;
+        var count = (uint)_count;
         if (count < entries.Length)
         {
             entries[count] = (value, expiresAt);
@@ -68,7 +66,7 @@ internal sealed class EvictionQuickList<T> where T : notnull
 
         lock (this)
         {
-            var entries = Entries;
+            var entries = _active;
             var entriesCount = Count;
 
             var entriesSurvivedIndexes = ArrayPool<uint>.Shared.Rent((int)entriesCount);
@@ -117,7 +115,7 @@ internal sealed class EvictionQuickList<T> where T : notnull
                 Reset();
 
                 ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
-                CacheManager.ReportEvictions(entriesRemovedCount);
+                CacheManager.ReportEvictions<T>(entriesRemovedCount);
 #if DEBUG
                 Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.ElapsedTicks / 10} us");
 #endif
@@ -133,10 +131,10 @@ internal sealed class EvictionQuickList<T> where T : notnull
                 return entriesSurvivedCount >= totalCount;
             }
 
-            var entriesSurvived = Inactive;
+            var entriesSurvived = _inactive;
             for (uint j = 0; j < entriesSurvivedCount; j++)
             {
-                uint entryIndex = entriesSurvivedIndexes[j];
+                var entryIndex = entriesSurvivedIndexes[j];
                 entriesSurvived[j] = entries[entryIndex];
             }
 
@@ -147,7 +145,7 @@ internal sealed class EvictionQuickList<T> where T : notnull
             Volatile.Write(ref _count, entriesSurvivedCount);
 
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
-            CacheManager.ReportEvictions(entriesRemovedCount);
+            CacheManager.ReportEvictions<T>(entriesRemovedCount);
 
 #if DEBUG
             Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.ElapsedTicks / 10} us");
