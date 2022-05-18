@@ -63,7 +63,7 @@ public static class CacheManager
                     }
                     catch
                     {
-#if DEBUG
+#if FASTCACHE_DEBUG
                         throw;
 #endif
                     }
@@ -76,7 +76,7 @@ public static class CacheManager
                     }
                     catch
                     {
-#if DEBUG
+#if FASTCACHE_DEBUG
                         throw;
 #endif
                     }
@@ -95,13 +95,13 @@ public static class CacheManager
         evictionJob.RescheduleConsideringExpiration();
 
         var now = Environment.TickCount64;
-        if (Cached<T>.s_quickList.Evict(now))
+        if (Cached<T>.s_quickList.Evict(now, resize: true))
         {
             evictionJob.FullEvictionLock.Release();
             return;
         }
 
-#if DEBUG
+#if FASTCACHE_DEBUG
         var stopwatch = Stopwatch.StartNew();
 #endif
         var evictedFromCacheStore = EvictFromCacheStore<T>(now);
@@ -111,8 +111,8 @@ public static class CacheManager
             ReportEvictions<T>(evictedFromCacheStore);
         }
 
-#if DEBUG
-        ReportEvicted<T>("cache store", evictedFromCacheStore, stopwatch.Elapsed);
+#if FASTCACHE_DEBUG
+        PrintEvicted<T>("cache store", evictedFromCacheStore, stopwatch.Elapsed);
 #endif
 
         ThreadPool.QueueUserWorkItem(async static _ => await ConsiderFullGC<T>());
@@ -149,7 +149,7 @@ public static class CacheManager
 
         await Task.Delay(Constants.CacheStoreEvictionDelay);
 
-#if DEBUG
+#if FASTCACHE_DEBUG
         var stopwatch = Stopwatch.StartNew();
 #endif
         var evictedFromCacheStore = EvictFromCacheStore<T>(Environment.TickCount64);
@@ -159,8 +159,8 @@ public static class CacheManager
             ReportEvictions<T>(evictedFromCacheStore);
         }
 
-#if DEBUG
-            ReportEvicted<T>("cache store", evictedFromCacheStore, stopwatch.Elapsed);
+#if FASTCACHE_DEBUG
+            PrintEvicted<T>("cache store", evictedFromCacheStore, stopwatch.Elapsed);
 #endif
 
         await Task.Delay(Constants.EvictionCooldownDelayOnGC);
@@ -247,13 +247,13 @@ public static class CacheManager
         }
 
         await Task.Delay(Constants.DelayToFullGC);
-#if DEBUG
+#if FASTCACHE_DEBUG
         var sw = Stopwatch.StartNew();
 #endif
 
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Default, blocking: false);
 
-#if DEBUG
+#if FASTCACHE_DEBUG
         Console.WriteLine($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}. Elapsed:{sw.ElapsedMilliseconds} ms");
 #endif
         Interlocked.Exchange(ref s_AggregatedEvictionsCount, 0);
@@ -262,8 +262,8 @@ public static class CacheManager
         FullGCLock.Release();
     }
 
-#if DEBUG
-    private static void ReportEvicted<T>(string type, uint count, TimeSpan elapsed) where T : notnull
+#if FASTCACHE_DEBUG
+    private static void PrintEvicted<T>(string type, uint count, TimeSpan elapsed) where T : notnull
     {
         Console.WriteLine($"FastCache: Evicted {count} of {typeof(T).Name} from {type}. Took {elapsed.TotalMilliseconds} ms.");
     }

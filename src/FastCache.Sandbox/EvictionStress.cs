@@ -32,31 +32,29 @@ public static class EvictionStress
 
     public static void Run()
     {
-        // ThreadPool.QueueUserWorkItem(_ => SeedExpirable<User>(4));
-        // ThreadPool.QueueUserWorkItem(_ => SeedIndefinite<User>(15));
-        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<Struct>(10));
-        // ThreadPool.QueueUserWorkItem(_ => Seed<Uri2>());
-        // ThreadPool.QueueUserWorkItem(_ => Seed<decimal>());
-        // ThreadPool.QueueUserWorkItem(_ => SeedExpirable<nuint>(75));
-        // ThreadPool.QueueUserWorkItem(_ => SeedIndefinite<nuint>(125));
+        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<User>(10));
+        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<Struct>(5));
+        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<Uri2>(10));
+        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<decimal>(5));
+        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<nuint>(15));
 
         Console.ReadLine();
     }
 
     private static void SeedExpirable<T>(int millions) where T : notnull, new()
     {
-        const int secondsMin = 1;
-        const int secondsMax = 180_000;
-        const uint count = 250_000;
+        const int secondsMin = 60;
+        const int secondsMax = 1800;
+        const uint count = 100_000;
 
         // CacheManager.SuspendEviction<T>();
 
-        Parallel.For(0, millions * 4, static num =>
+        Parallel.For(0, millions * 10, static num =>
         {
             var sw = Stopwatch.StartNew();
             for (uint i = 0; i < count; i++)
             {
-                var rand = TimeSpan.FromMilliseconds(Random.Shared.Next(secondsMin, secondsMax));
+                var rand = TimeSpan.FromSeconds(Random.Shared.Next(secondsMin, secondsMax));
 
                 new T().Cache(i, num, rand);
             }

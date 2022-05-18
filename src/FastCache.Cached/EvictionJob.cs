@@ -64,7 +64,7 @@ internal sealed class EvictionJob<T> where T : notnull
         if (adjustedQuicklistInterval > Constants.QuickListEvictionInterval)
         {
             _quickListEvictionTimer.Change(adjustedQuicklistInterval, adjustedQuicklistInterval);
-#if DEBUG
+#if FASTCACHE_DEBUG
             Console.WriteLine($"FastCache: {typeof(T).Name} eviction interval from quick list has been rescheduled to {adjustedQuicklistInterval}.");
 #endif
         }
@@ -74,7 +74,7 @@ internal sealed class EvictionJob<T> where T : notnull
         if (adjustedFullEvictionInterval > newFullEvictionInterval)
         {
             _fullEvictionTimer.Change(adjustedFullEvictionInterval, adjustedFullEvictionInterval);
-#if DEBUG
+#if FASTCACHE_DEBUG
             Console.WriteLine($"FastCache: {typeof(T).Name} eviction interval from cache store has been rescheduled to {adjustedFullEvictionInterval}.");
 #endif
         }

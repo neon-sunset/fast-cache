@@ -2,18 +2,24 @@ namespace FastCache;
 
 internal static class Constants
 {
-    private const uint DefaultQuickListSize = 32768;
-    private const uint DefaultIntervalMultiplyFactor = 10;
+    private const uint DefaultQuickListMinLengthFactor = 128;
+    private const uint DefaultQuickListAutoLengthPercent = 5;
+    private const uint DefaultIntervalMultiplyFactor = 15;
     private const uint DefaultParallelEvictionThreshold = 1_048_576;
+    private const uint DefaultAggregatedGCThreshold = 1_572_864;
 
-    private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(10);
-    private static readonly TimeSpan MaxQuickListInterval = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan MaxQuickListInterval = TimeSpan.FromSeconds(60);
 
     // OldestEntries list and eviction batch size length limits.
     // Higher limit works well with short-lived first-gen-contained cache items
     // but performs poorly if many items of the same type have inconsistent lifetimes.
-    public static readonly uint QuickListLength = uint
-        .TryParse(GetVar("FASTCACHE_QUICKLIST_LENGTH"), out var parsed) ? parsed : DefaultQuickListSize;
+    public static readonly uint QuickListMinLength = (uint
+        .TryParse(GetVar("FASTCACHE_QUICKLIST_MIN_LENGTH_FACTOR"), out var parsed) ? parsed : DefaultQuickListMinLengthFactor) * 128;
+
+    public static readonly uint QuickListAdjustableLengthRatio = uint
+        .TryParse(GetVar("FASTCACHE_QUICKLIST_AUTO_LENGTH_PERCENT"), out var parsed) && parsed <= 25
+            ? parsed : DefaultQuickListAutoLengthPercent;
 
     public static readonly TimeSpan QuickListEvictionInterval = TimeSpan
         .TryParse(GetVar("FASTCACHE_QUICKLIST_EVICTION_INTERVAL"), out var parsed)
@@ -26,7 +32,7 @@ internal static class Constants
         .TryParse(GetVar("FASTCACHE_INTERVAL_MUL_FACTOR"), out var parsed) ? parsed : DefaultIntervalMultiplyFactor;
 
     public static readonly ulong AggregatedGCThreshold = ulong
-        .TryParse(GetVar("FASTCACHE_GC_THRESHOLD"), out var parsed) ? parsed : (ulong)QuickListLength * 32;
+        .TryParse(GetVar("FASTCACHE_GC_THRESHOLD"), out var parsed) ? parsed : DefaultAggregatedGCThreshold;
 
     public static readonly uint ParallelEvictionThreshold = uint
         .TryParse(GetVar("FASTCACHE_PARALLEL_EVICTION_THRESHOLD"), out var parsed) ? parsed : DefaultParallelEvictionThreshold;
