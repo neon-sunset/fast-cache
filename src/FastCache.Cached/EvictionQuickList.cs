@@ -70,8 +70,11 @@ internal sealed class EvictionQuickList<T> where T : notnull
         var totalCount = store.Count;
         if (totalCount is 0)
         {
-            ResizeInactive((int)Constants.QuickListMinLength);
-            AtomicSwapActive(0);
+            if (_inactive.Length != Constants.QuickListMinLength)
+            {
+                ResizeInactive((int)Constants.QuickListMinLength);
+                AtomicSwapActive(0);
+            }
 
             s_evictionLock.Release();
             return true;
@@ -216,7 +219,7 @@ internal sealed class EvictionQuickList<T> where T : notnull
         }
 
         ArrayPool<(int, long)>.Shared.Return(_inactive);
-        _inactive = ArrayPool<(int,long)>.Shared.Rent(requestedLength);
+        _inactive = ArrayPool<(int, long)>.Shared.Rent(requestedLength);
 
 #if FASTCACHE_DEBUG
         Console.WriteLine($"FastCache: _inactive has been resized. New length: {_inactive.Length}");
