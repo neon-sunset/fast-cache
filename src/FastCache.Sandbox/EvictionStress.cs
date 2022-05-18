@@ -32,16 +32,17 @@ public static class EvictionStress
 
     public static void Run()
     {
-        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<User>(10));
-        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<Struct>(5));
-        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<Uri2>(10));
-        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<decimal>(5));
-        ThreadPool.QueueUserWorkItem(_ => SeedExpirable<nuint>(15));
+        ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<User>());
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(10));
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>(5));
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Uri2>(10));
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<decimal>(5));
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<nuint>(15));
 
         Console.ReadLine();
     }
 
-    private static void SeedExpirable<T>(int millions) where T : notnull, new()
+    private static void SeedRandomlyExpirable<T>(int millions) where T : notnull, new()
     {
         const int secondsMin = 60;
         const int secondsMax = 1800;
@@ -67,6 +68,34 @@ public static class EvictionStress
         // Thread.Sleep(10000);
 
         // CacheManager.QueueFullEviction<T>();
+    }
+
+    private static void SeedSequentiallyExpirable<T>() where T : notnull, new()
+    {
+        const int countPerStep = 250_000;
+
+        const int steps = 20;
+        const int secondsMin = 30;
+        const int secondsMax = 300;
+
+        const int stepIncrement = (secondsMax - secondsMin) / steps;
+
+        var sw = Stopwatch.StartNew();
+
+        for (int i = 0; i < steps; i++)
+        {
+            var exp = TimeSpan.FromSeconds(secondsMin + (stepIncrement * i));
+
+            for (int j = 0; j < countPerStep; j++)
+            {
+                new T().Cache(i, j, exp);
+            }
+        }
+
+        const int count = countPerStep * steps;
+        var elapsed = sw.Elapsed;
+        var ticksPerItem = elapsed.Ticks / (double)count / 10;
+        Console.WriteLine($"Added {count} of {typeof(T).Name} to cache. Took {elapsed}, {ticksPerItem} us per item");
     }
 
     private static void SeedIndefinite<T>(int millions) where T : notnull, new()
