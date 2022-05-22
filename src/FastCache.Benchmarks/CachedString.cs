@@ -16,10 +16,14 @@ public class CachedString
     {
         CacheManager.SuspendEviction<string>();
 
-        _ = "default".Cache(OneHour);
-        _ = "single".Cache("one", OneHour);
-        _ = "eight".Cache("one", "two", "three", "four", "five", "six", "seven", "eight", OneHour);
-        _ = "nine".Cache(OneHour, "one", "two", "three", "four", "five", "six", "seven", "eight", "nine");
+        for (uint i = 0; i < 1000; i++)
+        {
+            $"seeded string number {i}".Cache(i, OneHour);
+        }
+
+        "default".Cache(OneHour);
+        "single".Cache("one", OneHour);
+        "eight".Cache("one", "two", "three", "four", "five", "six", "seven", "eight", OneHour);
     }
 
     [Benchmark]
@@ -33,7 +37,7 @@ public class CachedString
         return "default".Cache(OneHour);
     }
 
-    [Benchmark]
+    [Benchmark(Baseline = true)]
     public string TryGetSingle()
     {
         if (Cached<string>.TryGet("one", out var cached))
@@ -42,6 +46,18 @@ public class CachedString
         }
 
         return cached.Save("single", OneHour);
+    }
+
+    [Benchmark]
+    public string TryGetRandomSingle()
+    {
+        var key = (uint)Random.Shared.Next(0, 1000);
+        if (Cached<string>.TryGet(key, out var cached))
+        {
+            return cached.Value;
+        }
+
+        return cached.Save("replaced single random", OneHour);
     }
 
     [Benchmark]
@@ -90,7 +106,17 @@ public class CachedString
     }
 
     [Benchmark]
-    public string GetOrCompute() => Cached.GetOrCompute("new computed value", Delegate, OneHour);
+    public string GetOrCompute() => Cached.GetOrCompute("new computed value", param => Delegate(param), OneHour);
+
+    [Benchmark]
+    public async ValueTask<string> GetOrComputeValueTask() => await Cached.GetOrCompute("new computed value", param => DelegateValueTask(param), OneHour);
+
+    [Benchmark]
+    public async Task<string> GetOrComputeTask() => await Cached.GetOrCompute("new computed value", param => DelegateTask(param), OneHour);
 
     private static string Delegate(string input) => $"computed: {input}";
+
+    private static ValueTask<string> DelegateValueTask(string input) => ValueTask.FromResult($"computed: {input}");
+
+    private static Task<string> DelegateTask(string input) => Task.FromResult($"computed: {input}");
 }

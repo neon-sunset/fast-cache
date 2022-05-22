@@ -13,7 +13,7 @@ Task<string> FetchWeather(string query)
 
 Console.WriteLine(
     "'Cached.GetOrCompute': Get 'T' value from the cache or execute passed delegate.'\n" +
-    "If computed, the value will expire in 'expiration' time you have passed. In this case it's 5 seconds.");
+    "If computed, the value will expire in 'expiration' time you have passed. In this case it's 5 seconds.\n");
 
 var value = await Cached.GetOrCompute(query, FetchWeather, TimeSpan.FromSeconds(5));
 
@@ -30,15 +30,15 @@ Console.WriteLine($"Cached weather: {cachedValue}");
 
 Console.WriteLine(
     "In fact, the second call has returned the same cached string instance we initially received from 'FetchWeather'\n" +
-    $"Is weather reference same as cachedWeather: {ReferenceEquals(value, cachedValue)}\n");
+    $"Is 'value' reference same as 'cachedValue': {ReferenceEquals(value, cachedValue)}\n");
 
 Console.WriteLine("Let's wait for five seconds\n");
 await Task.Delay(TimeSpan.FromSeconds(5));
 
 Console.WriteLine(
     "Retrieve weather once again because the value we cached has expired.\n" +
-    "There is no need to worry that we run out of memory because 'FastCache.Cached' will occasionally evict expired values.\n" +
-    "By default, 'FastCache.Cached' will run fast eviction every 10s. Slow-ish deterministic eviction will run every 90-120s instead.\n");
+    "There is no need to worry that we run out of memory because 'FastCache.Cached' will automatically evict expired values.\n" +
+    "By default, quick and full eviction will run as often as 15 and .\n");
 
 value = await Cached.GetOrCompute(query, FetchWeather, TimeSpan.FromSeconds(5));
 

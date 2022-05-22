@@ -4,7 +4,7 @@ using FastCache.Services;
 
 namespace FastCache;
 
-internal sealed class EvictionQuickList<T> where T : notnull
+internal sealed class EvictionQuickList<T>
 {
     private static readonly SemaphoreSlim s_evictionLock = new(1, 1);
 
@@ -16,8 +16,8 @@ internal sealed class EvictionQuickList<T> where T : notnull
 
     public EvictionQuickList()
     {
-        _active = ArrayPool<(int,long)>.Shared.Rent(checked((int)Constants.QuickListMinLength));
-        _inactive = ArrayPool<(int,long)>.Shared.Rent(checked((int)Constants.QuickListMinLength));
+        _active = ArrayPool<(int, long)>.Shared.Rent(checked((int)Constants.QuickListMinLength));
+        _inactive = ArrayPool<(int, long)>.Shared.Rent(checked((int)Constants.QuickListMinLength));
         _count = 0;
     }
 
@@ -154,24 +154,25 @@ internal sealed class EvictionQuickList<T> where T : notnull
 
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
             CacheManager.ReportEvictions<T>(entriesRemovedCount);
-#if FASTCACHE_DEBUG
-            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.ElapsedTicks / 10} us");
-#endif
             s_evictionLock.Release();
+
+#if FASTCACHE_DEBUG
+            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
+#endif
             return entriesRemovedCount >= totalCount;
         }
 
         if (entriesRemovedCount == 0)
         {
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
-#if FASTCACHE_DEBUG
-            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.ElapsedTicks / 10} us");
-#endif
             s_evictionLock.Release();
+
+#if FASTCACHE_DEBUG
+            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
+#endif
             return entriesSurvivedCount >= totalCount;
         }
 
-        // Resize _inactive
         var postEvictionCount = entriesSurvivedCount;
         if (needsResizing)
         {
@@ -194,15 +195,15 @@ internal sealed class EvictionQuickList<T> where T : notnull
 
         // Set inactive backing array where we stored survived entries as active and update entries counter accordingly.
         // In-flight writes between active-inactive swap and counter update will be missed which is by design and
-        // will be handled by the next full eviction if expired.
+        // will be handled by the next full eviction (evicted or pushed to quick list if capacity allows it).
         AtomicSwapActive(postEvictionCount);
 
         CacheManager.ReportEvictions<T>(entriesRemovedCount);
+        s_evictionLock.Release();
 
 #if FASTCACHE_DEBUG
-        Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.ElapsedTicks / 10} us");
+        Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
 #endif
-        s_evictionLock.Release();
         return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
     }
 

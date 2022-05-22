@@ -12,9 +12,9 @@ public static class CacheManager
     /// <summary>
     /// Submit full eviction for specified Cached<T> value
     /// </summary>
-    public static void QueueFullEviction<T>() where T : notnull => QueueFullEviction<T>(triggeredByTimer: true);
+    public static void QueueFullEviction<T>() => QueueFullEviction<T>(triggeredByTimer: true);
 
-    public static void QueueFullClear<T>() where T : notnull
+    public static void QueueFullClear<T>()
     {
         ThreadPool.QueueUserWorkItem(async static _ =>
         {
@@ -36,54 +36,64 @@ public static class CacheManager
     /// <summary>
     /// Suspends automatic eviction. Does not affect already in-flight operations.
     /// </summary>
-    public static void SuspendEviction<T>() where T : notnull => Cached<T>.s_evictionJob.Stop();
+    public static void SuspendEviction<T>() => Cached<T>.s_evictionJob.Stop();
 
     /// <summary>
     /// Resumes eviction, next iteration will occur after a standard adaptive interval from now.
     /// Is a no-op if automatic eviction is disabled.
     /// </summary>
-    public static void ResumeEviction<T>() where T : notnull => Cached<T>.s_evictionJob.Resume();
+    public static void ResumeEviction<T>() => Cached<T>.s_evictionJob.Resume();
 
     internal static void ReportEvictions<T>(uint count)
     {
-        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>() && Constants.ConsiderFullGC)
         {
             Interlocked.Add(ref s_AggregatedEvictionsCount, count);
         }
     }
 
-    internal static bool QueueFullEviction<T>(bool triggeredByTimer) where T : notnull
+    internal static void QueueFullEviction<T>(bool triggeredByTimer)
     {
-        return triggeredByTimer
-            ? ThreadPool.QueueUserWorkItem(static _ =>
+        if (!Cached<T>.s_evictionJob.IsActive)
+        {
+            return;
+        }
+
+        if (triggeredByTimer)
+        {
+            ThreadPool.QueueUserWorkItem(static _ =>
+            {
+                try
                 {
-                    try
-                    {
-                        ImmediateFullEviction<T>();
-                    }
-                    catch
-                    {
-#if FASTCACHE_DEBUG
-                        throw;
-#endif
-                    }
-                })
-            : ThreadPool.QueueUserWorkItem(async static _ =>
+                    ImmediateFullEviction<T>();
+                }
+                catch
                 {
-                    try
-                    {
-                        await StaggeredFullEviction<T>();
-                    }
-                    catch
-                    {
-#if FASTCACHE_DEBUG
-                        throw;
+#if DEBUG
+                    throw;
 #endif
-                    }
-                });
+                }
+            });
+        }
+        else
+        {
+            ThreadPool.QueueUserWorkItem(async static _ =>
+            {
+                try
+                {
+                    await StaggeredFullEviction<T>();
+                }
+                catch
+                {
+#if DEBUG
+                    throw;
+#endif
+                }
+            });
+        }
     }
 
-    private static void ImmediateFullEviction<T>() where T : notnull
+    private static void ImmediateFullEviction<T>()
     {
         var evictionJob = Cached<T>.s_evictionJob;
 
@@ -120,7 +130,7 @@ public static class CacheManager
         evictionJob.FullEvictionLock.Release();
     }
 
-    private static async ValueTask StaggeredFullEviction<T>() where T : notnull
+    private static async ValueTask StaggeredFullEviction<T>()
     {
         var evictionJob = Cached<T>.s_evictionJob;
 
@@ -160,7 +170,7 @@ public static class CacheManager
         }
 
 #if FASTCACHE_DEBUG
-            PrintEvicted<T>("cache store", evictedFromCacheStore, stopwatch.Elapsed);
+        PrintEvicted<T>("cache store", evictedFromCacheStore, stopwatch.Elapsed);
 #endif
 
         await Task.Delay(Constants.EvictionCooldownDelayOnGC);
@@ -169,7 +179,7 @@ public static class CacheManager
         evictionJob.FullEvictionLock.Release();
     }
 
-    private static uint EvictFromCacheStore<T>(long now) where T : notnull
+    private static uint EvictFromCacheStore<T>(long now)
     {
         return Cached<T>.s_store.Count > Constants.ParallelEvictionThreshold
             ? EvictFromCacheStoreParallel<T>(now)
@@ -177,7 +187,7 @@ public static class CacheManager
     }
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    private static uint EvictFromCacheStoreSingleThreaded<T>(long now) where T : notnull
+    private static uint EvictFromCacheStoreSingleThreaded<T>(long now)
     {
         var store = Cached<T>.s_store;
         var quickList = Cached<T>.s_quickList;
@@ -201,7 +211,7 @@ public static class CacheManager
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     // TODO: Add backoff logic if not enough items expired compared to expected. Recalculate avg expiration?
-    private static uint EvictFromCacheStoreParallel<T>(long now) where T : notnull
+    private static uint EvictFromCacheStoreParallel<T>(long now)
     {
         var store = Cached<T>.s_store;
         uint totalRemoved = 0;
@@ -229,7 +239,7 @@ public static class CacheManager
         return totalRemoved;
     }
 
-    private static async ValueTask ConsiderFullGC<T>() where T : notnull
+    private static async ValueTask ConsiderFullGC<T>()
     {
         if (!Constants.ConsiderFullGC)
         {
@@ -263,7 +273,7 @@ public static class CacheManager
     }
 
 #if FASTCACHE_DEBUG
-    private static void PrintEvicted<T>(string type, uint count, TimeSpan elapsed) where T : notnull
+    private static void PrintEvicted<T>(string type, uint count, TimeSpan elapsed)
     {
         Console.WriteLine($"FastCache: Evicted {count} of {typeof(T).Name} from {type}. Took {elapsed.TotalMilliseconds} ms.");
     }

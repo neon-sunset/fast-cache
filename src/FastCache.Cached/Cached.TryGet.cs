@@ -2,7 +2,7 @@ using FastCache.Helpers;
 
 namespace FastCache;
 
-public readonly partial struct Cached<T> where T : notnull
+public readonly partial struct Cached<T>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGet(out T value)
@@ -60,11 +60,11 @@ public readonly partial struct Cached<T> where T : notnull
         var found = s_store.TryGetValue(identifier, out var inner);
         if (found && inner.IsNotExpired())
         {
-            cached = new(identifier, found, inner.Value);
+            cached = new(identifier, found: true, inner.Value);
             return true;
         }
 
-        cached = new(identifier, found, default!);
+        cached = new(identifier, found: false, default!);
         return false;
     }
 

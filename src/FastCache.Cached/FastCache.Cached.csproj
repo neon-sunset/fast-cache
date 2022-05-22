@@ -5,18 +5,22 @@
     <RepositoryUrl>https://github.com/neon-sunset/fast-cache</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>cache;lock-free;performance</PackageTags>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- <TargetFramework>net6.0</TargetFramework> -->
-    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>FastCache.Cached is a high-performance yet thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
 Features include automatic eviction, lock-free and wait-free access and storage, allocation-free access and low memory footprint.
 Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.</Description>
-    <!-- <DefineConstants>FASTCACHE_DEBUG</DefineConstants> -->
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <DefineConstants>$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -25,6 +29,10 @@ Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.Concur
 
   <ItemGroup>
     <PackageReference Include="NonBlocking" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)../../README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>

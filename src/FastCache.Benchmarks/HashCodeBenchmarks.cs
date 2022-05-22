@@ -30,22 +30,8 @@ public class HashCodeBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public int TypeHashCode() => Compute<User>();
+    public int GetHashCodeDefault() => typeof(User).GetHashCode();
 
     [Benchmark]
-    public int TypeMetadataToken() => StaticTypeHashCode<User>();
-
-    // [Benchmark]
-    // public int TypeOfClassXxHash() => ComputeXxHash<User>();
-
-    // [Benchmark]
-    // public int TypeOfClassName() => ComputeTypeName<User>();
-
-    private static int Compute<T>() => typeof(T).GetHashCode();
-
-    private static int ComputeXxHash<T>() => HashCode.Combine(typeof(T));
-
-    private static int ComputeTypeName<T>() => typeof(T).Name.GetHashCode();
-
-    private static int StaticTypeHashCode<T>() => TypeHash<T>.Value;
+    public int TypeHash() => TypeHash<User>.Value;
 }

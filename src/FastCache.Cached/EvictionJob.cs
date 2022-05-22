@@ -3,13 +3,15 @@ using FastCache.Helpers;
 
 namespace FastCache;
 
-internal sealed class EvictionJob<T> where T : notnull
+internal sealed class EvictionJob<T>
 {
     private readonly Timer _quickListEvictionTimer;
     private readonly Timer _fullEvictionTimer;
 
     private ulong _averageExpirationMilliseconds;
     private bool _active = true;
+
+    public bool IsActive => Volatile.Read(ref _active);
 
     public readonly SemaphoreSlim FullEvictionLock = new(1, 1);
 
@@ -21,6 +23,7 @@ internal sealed class EvictionJob<T> where T : notnull
         {
             _quickListEvictionTimer = new Timer(_ => { });
             _fullEvictionTimer = new Timer(_ => { });
+            _active = false;
             return;
         }
 
@@ -50,7 +53,7 @@ internal sealed class EvictionJob<T> where T : notnull
 
     public void RescheduleConsideringExpiration()
     {
-        if (!_active)
+        if (!IsActive)
         {
             return;
         }

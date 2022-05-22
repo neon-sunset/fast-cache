@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FastCache.Cached\FastCache.Cached.csproj" />
+    <TrimmerRootAssembly Include="FastCache.Cached" />
   </ItemGroup>
 
   <ItemGroup>
@@ -14,7 +15,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimmerDefaultAction>link</TrimmerDefaultAction>
 	  <ServerGarbageCollection>true</ServerGarbageCollection>
+    <DefineConstants>FASTCACHE_DEBUG</DefineConstants>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
     <IlcTrimMetadata>true</IlcTrimMetadata>
     <IlcOptimizationPreference>Speed</IlcOptimizationPreference>

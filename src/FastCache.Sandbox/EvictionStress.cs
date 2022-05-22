@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using FastCache.Extensions;
-using FastCache.Services;
 
 namespace FastCache.Sandbox;
 
@@ -32,20 +31,20 @@ public static class EvictionStress
 
     public static void Run()
     {
-        ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<User>());
+        // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<User>());
         // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(10));
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>(5));
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Uri2>(10));
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<decimal>(5));
+        ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Struct>());
+        ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Uri2>());
+        // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<decimal>());
         // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<nuint>(15));
 
         Console.ReadLine();
     }
 
-    private static void SeedRandomlyExpirable<T>(int millions) where T : notnull, new()
+    private static void SeedRandomlyExpirable<T>(int millions) where T : new()
     {
         const int secondsMin = 60;
-        const int secondsMax = 1800;
+        const int secondsMax = 3600;
         const uint count = 100_000;
 
         // CacheManager.SuspendEviction<T>();
@@ -70,11 +69,11 @@ public static class EvictionStress
         // CacheManager.QueueFullEviction<T>();
     }
 
-    private static void SeedSequentiallyExpirable<T>() where T : notnull, new()
+    private static void SeedSequentiallyExpirable<T>() where T : new()
     {
         const int countPerStep = 250_000;
 
-        const int steps = 20;
+        const int steps = 80;
         const int secondsMin = 30;
         const int secondsMax = 300;
 
@@ -98,7 +97,7 @@ public static class EvictionStress
         Console.WriteLine($"Added {count} of {typeof(T).Name} to cache. Took {elapsed}, {ticksPerItem} us per item");
     }
 
-    private static void SeedIndefinite<T>(int millions) where T : notnull, new()
+    private static void SeedIndefinite<T>(int millions) where T : new()
     {
         const uint count = 1_000_000;
 
