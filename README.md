@@ -11,7 +11,7 @@ public FinancialReport GetReport(int month, int year)
   }
 
   var report = // Expensive computation: retrieve data and calculate report
-  ...
+
   return cached.Save(report, TimeSpan.FromMinutes(60));
 }
 ```
