@@ -7,6 +7,7 @@ on:
     paths:
     - '**.toml'
     - '**.sln'
+    - '**.md'
     - '.github/**'
     - 'src/FastCache.Cached/**'
   pull_request:
@@ -22,7 +23,7 @@ jobs:
         submodules: true
         fetch-depth: 0
 
-    - name: Install .NET 6.0
+    - name: Install .NET 6.0 and 7.0
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: | 
