@@ -16,8 +16,8 @@ internal sealed class EvictionQuickList<T>
 
     public EvictionQuickList()
     {
-        _active = ArrayPool<(int, long)>.Shared.Rent(checked((int)Constants.QuickListMinLength));
-        _inactive = ArrayPool<(int, long)>.Shared.Rent(checked((int)Constants.QuickListMinLength));
+        _active = ArrayPool<(int, long)>.Shared.Rent(Constants.QuickListMinLength);
+        _inactive = ArrayPool<(int, long)>.Shared.Rent(Constants.QuickListMinLength);
         _count = 0;
     }
 
@@ -72,7 +72,7 @@ internal sealed class EvictionQuickList<T>
         {
             if (_inactive.Length != Constants.QuickListMinLength)
             {
-                ResizeInactive((int)Constants.QuickListMinLength);
+                ResizeInactive(Constants.QuickListMinLength);
                 AtomicSwapActive(0);
             }
 
@@ -95,7 +95,7 @@ internal sealed class EvictionQuickList<T>
         var resizedLength = 0;
         if (resize)
         {
-            resizedLength = (int)((double)Constants.QuickListAdjustableLengthRatio / 100 * totalCount);
+            resizedLength = CalculateResize(totalCount);
             needsResizing = resizedLength > Constants.QuickListMinLength;
         }
         else if (_active.Length != _inactive.Length)
@@ -209,7 +209,9 @@ internal sealed class EvictionQuickList<T>
 
     private static int CalculateResize(int totalCount)
     {
-        return (int)((double)Constants.QuickListAdjustableLengthRatio / 100 * totalCount);
+        return Math.Max(
+            (int)((double)Constants.QuickListAdjustableLengthRatio / 100 * totalCount),
+            Constants.QuickListMinLength);
     }
 
     private int ResizeInactive(int requestedLength)
