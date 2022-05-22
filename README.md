@@ -1,8 +1,6 @@
 ## FastCache.Cached
 ### Quick start
-*Recommended: Use `Cached<YourType>` instead of `Cached<string>` or other common types to get optimal results.*
-
-*One source - one `T`.*
+*Recommended: to get optimal results, use `Cached<YourType>` per source instead of common types such as `string` shared across multiple sources.*
 #### Cache computation result from inside a method for 60 minutes
 ```csharp
 public FinancialReport GetReport(int month, int year)
