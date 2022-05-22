@@ -85,4 +85,4 @@ AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 Throughput saturation means that all necessary data structures are fully available in the CPU cache and branch predictor has learned branch patters of the executed code.
 This is only possible in scenarios such as items being retrieved or added/updated in a tight loop or very frequently on the same cores.
 This means that real world performance will not saturate maximum throughput and will be bottlenecked by memory access latency and branch misprediction stalls.
-As a result, you can expect resulting performance variance of 2-10x min latency depending on hardware and outside factors.
+As a result, you can expect resulting performance variance of 1-10x min latency depending on hardware and outside factors.
