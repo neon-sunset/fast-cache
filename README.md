@@ -1,6 +1,7 @@
 ## FastCache.Cached
 ### Quick start
 *Recommended: Use `Cached<YourType>` instead of `Cached<string>` or other common types to get optimal results.*
+
 *One source - one `T`.*
 #### Cache computation result from inside a method for 60 minutes
 ```csharp
