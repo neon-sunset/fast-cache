@@ -1,7 +1,7 @@
 ## FastCache.Cached
 ### Quick start
 *Recommended: to get optimal results, use `Cached<YourType>` per source instead of common types such as `string` shared across multiple sources.*
-#### Cache computation result from inside a method for 60 minutes
+#### Get cached value or save a new one with expiration of 60 minutes
 ```csharp
 public FinancialReport GetReport(int month, int year)
 {
