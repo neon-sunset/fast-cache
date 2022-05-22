@@ -14,27 +14,15 @@ public class CachedString
     [GlobalSetup]
     public void Initialize()
     {
-        CacheManager.SuspendEviction<string>();
+        // CacheManager.SuspendEviction<string>();
 
         for (uint i = 0; i < 1000; i++)
         {
             $"seeded string number {i}".Cache(i, OneHour);
         }
 
-        "default".Cache(OneHour);
         "single".Cache("one", OneHour);
         "eight".Cache("one", "two", "three", "four", "five", "six", "seven", "eight", OneHour);
-    }
-
-    [Benchmark]
-    public string TryGetNone()
-    {
-        if (Cached<string>.TryGet(out var value))
-        {
-            return value;
-        }
-
-        return "default".Cache(OneHour);
     }
 
     [Benchmark(Baseline = true)]

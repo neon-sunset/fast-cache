@@ -62,7 +62,8 @@ internal sealed class EvictionQuickList<T>
 #endif
         var store = Cached<T>.s_store;
 
-        if (!s_evictionLock.Wait(0))
+        var timeout = resize ? 25 : 0;
+        if (!s_evictionLock.Wait(timeout))
         {
             return false;
         }

@@ -33,7 +33,7 @@ public static class EvictionStress
     {
         // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<User>());
         // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(10));
-        ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Struct>());
+        // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Struct>());
         ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Uri2>());
         // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<decimal>());
         // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<nuint>(15));
@@ -73,9 +73,9 @@ public static class EvictionStress
     {
         const int countPerStep = 250_000;
 
-        const int steps = 80;
+        const int steps = 280;
         const int secondsMin = 30;
-        const int secondsMax = 300;
+        const int secondsMax = 900;
 
         const int stepIncrement = (secondsMax - secondsMin) / steps;
 

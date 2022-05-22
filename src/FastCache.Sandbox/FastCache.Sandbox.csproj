@@ -18,7 +18,6 @@
     <PublishTrimmed>true</PublishTrimmed>
     <TrimmerDefaultAction>link</TrimmerDefaultAction>
 	  <ServerGarbageCollection>true</ServerGarbageCollection>
-    <DefineConstants>FASTCACHE_DEBUG</DefineConstants>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
     <IlcTrimMetadata>true</IlcTrimMetadata>
     <IlcOptimizationPreference>Speed</IlcOptimizationPreference>

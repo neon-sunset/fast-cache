@@ -1,4 +1,4 @@
 ﻿using BenchmarkDotNet.Running;
 using FastCache.Benchmarks;
 
-BenchmarkRunner.Run<CachedString>();
+BenchmarkRunner.Run<Comparison>();

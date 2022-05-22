@@ -4,9 +4,9 @@
     <Authors>neon-sunset</Authors>
     <RepositoryUrl>https://github.com/neon-sunset/fast-cache</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>cache;lock-free;performance</PackageTags>
+    <PackageTags>Cache;Caching;Lock-Free;Performance;MemoryCache;In-Memory;High-Load</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>FastCache.Cached is a high-performance yet thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
+    <Description>FastCache.Cached is a high-performance, thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
 Features include automatic eviction, lock-free and wait-free access and storage, allocation-free access and low memory footprint.
 Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.</Description>
   </PropertyGroup>

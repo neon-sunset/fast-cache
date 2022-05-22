@@ -5,19 +5,6 @@ namespace FastCache;
 public readonly partial struct Cached<T>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGet(out T value)
-    {
-        if (s_default.IsStored && s_default.Inner.IsNotExpired())
-        {
-            value = s_default.Inner.Value;
-            return true;
-        }
-
-        value = default!;
-        return false;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGet<T1>(T1 param1, out Cached<T> cached) =>
         TryGetInternal(HashCode.Combine(Dispersed(param1)), out cached);
 

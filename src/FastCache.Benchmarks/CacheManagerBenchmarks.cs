@@ -18,7 +18,7 @@ public class CacheManagerBenchmarks
     {
         const int limit = 32768;
 
-        CacheManager.SuspendEviction<string>();
+        // CacheManager.SuspendEviction<string>();
 
         // var ticksMax = TimeSpan.FromSeconds(90).Ticks;
 
