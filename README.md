@@ -1,6 +1,7 @@
 ## FastCache.Cached
 ### Quick start
-*Recommended: Use `Cached<YourType>` instead of `Cached<string>` or other common types to get optimal results. One source - one `T`.*
+*Recommended: Use `Cached<YourType>` instead of `Cached<string>` or other common types to get optimal results.*
+*One source - one `T`.*
 #### Cache computation result from inside a method for 60 minutes
 ```csharp
 public FinancialReport GetReport(int month, int year)
@@ -35,13 +36,15 @@ foreach (var ((month, year), report) in reportsResultBatch)
 ```
 #### Store common type (string) in a shared cache store (OK for small to mid sized collections)
 ```csharp
-var userNote = await Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5)); // where T is string
+// GetOrCompute<T...> where T is string
+var userNote = await Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
 ```
 #### Or in a separate one by using value object (Recommended)
 ```csharp
 readonly record struct UserNote(string Value);
 
-var reportNote = await Cached.GetOrCompute(userId, GetUserNote, TimeSpan.FromMinutes(5)); // where T is UserNote
+// GetOrCompute<T...> where T is UserNote
+var reportNote = await Cached.GetOrCompute(userId, GetUserNote, TimeSpan.FromMinutes(5));
 ```
 ```csharp
 // This is how it looks for TryGet
