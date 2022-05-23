@@ -14,7 +14,9 @@ public class Comparison
 
     private readonly MemoryCache _memoryCache = MemoryCache.Default;
 
-    private readonly ICacheManager<string> _cacheManager = CacheFactory.Build<string>(p => p.WithMicrosoftMemoryCacheHandle());
+    private readonly ICacheManager<string> _cacheManager = CacheFactory.Build<string>(p => p
+        .WithMicrosoftMemoryCacheHandle()
+        .WithExpiration(CacheManager.Core.ExpirationMode.Absolute, TimeSpan.FromMinutes(60)));
 
     private readonly IAppCache _lazyCache = new CachingService()
     {
