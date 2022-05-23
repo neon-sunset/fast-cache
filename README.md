@@ -5,7 +5,7 @@
 ## Quick start
 `dotnet add package FastCache.Cached` or `Install-Package FastCache.Cached`
 
-*Recommended: to get optimal results, use `Cached<YourType>` per source instead of common types such as `string` shared across multiple sources.*
+*Recommended: to get optimal results, use `Cached<YourType>` per source/producer instead of common types such as `string` shared across multiple sources.*
 
 Get cached value or save a new one with expiration of 60 minutes
 ```csharp
