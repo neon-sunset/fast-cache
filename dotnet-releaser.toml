@@ -4,4 +4,3 @@ project = "fast-cache.sln"
 [github]
 user = "neon-sunset"
 repo = "fast-cache"
-version_prefix = "v"
