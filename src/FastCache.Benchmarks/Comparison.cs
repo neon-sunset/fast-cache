@@ -1,3 +1,4 @@
+using System.Runtime.Caching;
 using BenchmarkDotNet.Attributes;
 using CacheManager.Core;
 using FastCache.Extensions;
@@ -11,15 +12,13 @@ public class Comparison
     private const string ItemKey = "singleKey";
     private const string ItemValue = "single value string";
 
-    private static readonly TimeSpan OneHour = TimeSpan.FromMinutes(60);
-
-    private static readonly DateTimeOffset InOneHour = DateTimeOffset.UtcNow + OneHour;
+    private readonly MemoryCache _memoryCache = MemoryCache.Default;
 
     private readonly ICacheManager<string> _cacheManager = CacheFactory.Build<string>(p => p.WithMicrosoftMemoryCacheHandle());
 
     private readonly IAppCache _lazyCache = new CachingService()
     {
-        DefaultCachePolicy = new CacheDefaults() { DefaultCacheDurationSeconds = (int)OneHour.TotalSeconds }
+        DefaultCachePolicy = new CacheDefaults() { DefaultCacheDurationSeconds = 3600 }
     };
 
     [GlobalSetup]
@@ -36,7 +35,22 @@ public class Comparison
             return cached.Value;
         }
 
-        return cached.Save(ItemValue, OneHour);
+        return cached.Save(ItemValue, TimeSpan.FromMinutes(60));
+    }
+
+    [Benchmark]
+    public string TryGetMemoryCache()
+    {
+        if (_memoryCache.Get(ItemKey) is string value and not null)
+        {
+            return value;
+        }
+
+        var newItem = ItemValue;
+
+        _memoryCache.Set(ItemKey, newItem, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
+
+        return newItem;
     }
 
     [Benchmark]
@@ -55,7 +69,7 @@ public class Comparison
 
         var saved = ItemValue;
 
-        _lazyCache.Add(ItemKey, saved, InOneHour);
+        _lazyCache.Add(ItemKey, saved, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
 
         return saved;
     }
@@ -63,7 +77,13 @@ public class Comparison
     [Benchmark]
     public void UpdateCached()
     {
-        ItemValue.Cache(ItemKey, OneHour);
+        ItemValue.Cache(ItemKey, TimeSpan.FromMinutes(60));
+    }
+
+    [Benchmark]
+    public void UpdateMemoryCache()
+    {
+        _memoryCache.Set(ItemKey, ItemValue, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
@@ -75,6 +95,6 @@ public class Comparison
     [Benchmark]
     public void UpdateLazyCache()
     {
-        _lazyCache.Add(ItemKey, ItemValue, InOneHour);
+        _lazyCache.Add(ItemKey, ItemValue, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
     }
 }
