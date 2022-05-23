@@ -73,14 +73,16 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 .NET 6.0.5 (6.0.522.21309), X64 RyuJIT
 ```
-|             Method           |      Mean |    Error |    StdDev |    Median | Ratio | RatioSD |  Gen 0 | Allocated |
-|----------------------------- |----------:|---------:|----------:|----------:|------:|--------:|-------:|----------:|
-| Get: FastCache.Cached        |  13.39 ns | 0.355 ns |  0.552 ns |  13.47 ns |  1.00 |    0.00 |      - |         - |
-| Get: LazyCache               |  54.87 ns | 1.059 ns |  2.015 ns |  54.56 ns |  4.09 |    0.20 |      - |         - |
-| Get: CacheManager(In-memory) | 147.85 ns | 3.028 ns |  6.047 ns | 147.36 ns | 11.06 |    0.71 | 0.0105 |     176 B |
-| Add/Update: FastCache.Cached |  33.74 ns | 1.203 ns |  3.548 ns |  32.65 ns |  2.58 |    0.23 | 0.0024 |      40 B |
-| Add/Update: LazyCache        | 198.92 ns | 5.406 ns | 15.940 ns | 193.24 ns | 15.05 |    1.22 | 0.0286 |     480 B |
-| Upd: CacheManager(In-memory) | 105.79 ns | 2.405 ns |  7.091 ns | 106.26 ns |  7.79 |    0.68 | 0.0176 |     296 B |
+|             Method           |      Mean |     Error |    StdDev |    Median | Ratio | RatioSD |  Gen 0 |  Gen 1 | Allocated |
+|----------------------------- |----------:|----------:|----------:|----------:|------:|--------:|-------:|-------:|----------:|
+| Get: FastCache.Cached        |  13.54 ns |  0.366 ns |  0.678 ns |  13.58 ns |  1.00 |    0.00 |      - |      - |         - |
+| Get: LazyCache               |  70.08 ns |  1.203 ns |  1.125 ns |  69.41 ns |  5.02 |    0.28 |      - |      - |         - |
+| Get: MemoryCache             |  80.07 ns |  2.164 ns |  6.380 ns |  78.60 ns |  6.00 |    0.58 | 0.0019 |      - |      32 B |
+| Get: CacheManager(In-memory) | 143.70 ns |  2.930 ns |  6.493 ns | 140.75 ns | 10.64 |    0.49 | 0.0105 |      - |     176 B |
+| Add/Update: FastCache.Cached |  33.57 ns |  1.238 ns |  3.651 ns |  31.05 ns |  2.48 |    0.34 | 0.0024 |      - |      40 B |
+| Upd: CacheManager(In-memory) |  99.74 ns |  2.051 ns |  6.048 ns | 100.84 ns |  7.40 |    0.55 | 0.0176 |      - |     296 B |
+| Add/Update: LazyCache        | 245.93 ns |  4.872 ns |  9.386 ns | 241.87 ns | 18.24 |    0.87 | 0.0286 |      - |     480 B |
+| Add/Update: MemoryCache      | 685.14 ns | 13.696 ns | 37.261 ns | 665.50 ns | 50.87 |    4.31 | 0.4082 | 0.0038 |   6,832 B |
 
 *FastCache.Cached add and update operations are represented by single `cached.Save(param1...param8, expiration)` which will either add or replace existing value updating its expiration*
 ### On benchmark data
