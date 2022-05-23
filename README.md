@@ -1,4 +1,5 @@
-## FastCache.Cached [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml)
+## FastCache.Cached [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml) [![nuget](https://badgen.net/nuget/v/FastCache.Cached)](https://www.nuget.org/packages/FastCache.Cached/)
+
 ### Quick start
 `dotnet add package FastCache.Cached` or `Install-Package FastCache.Cached`
 
