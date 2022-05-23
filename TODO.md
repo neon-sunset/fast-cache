@@ -4,7 +4,7 @@
 - [ ] Cache metrics (OpenTelemetry?)
 - [ ] README and documentation
 - [ ] Add unit tests coverage
-- [ ] Automate nuget publishing
+- [x] Automate nuget publishing
 - [ ] Implement generic `MemoryCache<T>` - ?
 - [ ] Implement configurable cache item eviction for `Cached<T>` - ?
 - [ ] Resolve and add test coverage for potential race condition when writing and reading `Cached<T>.s_default`
