@@ -78,13 +78,13 @@ AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 | Get: FastCache.Cached        |  13.54 ns |  0.366 ns |  0.678 ns |  13.58 ns |  1.00 |    0.00 |      - |      - |         - |
 | Get: LazyCache               |  70.08 ns |  1.203 ns |  1.125 ns |  69.41 ns |  5.02 |    0.28 |      - |      - |         - |
 | Get: MemoryCache             |  80.07 ns |  2.164 ns |  6.380 ns |  78.60 ns |  6.00 |    0.58 | 0.0019 |      - |      32 B |
-| Get: CacheManager(In-memory) | 143.70 ns |  2.930 ns |  6.493 ns | 140.75 ns | 10.64 |    0.49 | 0.0105 |      - |     176 B |
-| Add/Update: FastCache.Cached |  33.57 ns |  1.238 ns |  3.651 ns |  31.05 ns |  2.48 |    0.34 | 0.0024 |      - |      40 B |
-| Upd: CacheManager(In-memory) |  99.74 ns |  2.051 ns |  6.048 ns | 100.84 ns |  7.40 |    0.55 | 0.0176 |      - |     296 B |
+| Get: CacheManager            | 143.70 ns |  2.930 ns |  6.493 ns | 140.75 ns | 10.64 |    0.49 | 0.0105 |      - |     176 B |
+| Add/Update: FC.Cached        |  33.57 ns |  1.238 ns |  3.651 ns |  31.05 ns |  2.48 |    0.34 | 0.0024 |      - |      40 B |
+| Upd: CacheManager            |  99.74 ns |  2.051 ns |  6.048 ns | 100.84 ns |  7.40 |    0.55 | 0.0176 |      - |     296 B |
 | Add/Update: LazyCache        | 245.93 ns |  4.872 ns |  9.386 ns | 241.87 ns | 18.24 |    0.87 | 0.0286 |      - |     480 B |
 | Add/Update: MemoryCache      | 685.14 ns | 13.696 ns | 37.261 ns | 665.50 ns | 50.87 |    4.31 | 0.4082 | 0.0038 |   6,832 B |
 
-*FastCache.Cached add and update operations are represented by single `cached.Save(param1...param8, expiration)` which will either add or replace existing value updating its expiration*
+- *FastCache.Cached add and update operations are represented by single `cached.Save(param1...param8, expiration)` which will either add or replace existing value updating its expiration*
 ### On benchmark data
 Throughput saturation means that all necessary data structures are fully available in the CPU cache and branch predictor has learned branch patters of the executed code.
 This is only possible in scenarios such as items being retrieved or added/updated in a tight loop or very frequently on the same cores.
