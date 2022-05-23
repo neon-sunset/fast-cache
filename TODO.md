@@ -1,10 +1,8 @@
-- [x] Rethink counters and quick list - split into thread-local and atomic copies
-- [ ] Refactor code structure - works well but is a complete mess 
+- [x] Initial release ready for use
+- [x] Rethink counters and quick list - split into thread-local (?) and atomic copies
 - [x] Figure out how to efficiently solve duplicate entries in 'QuickList'
 - [ ] Cache metrics (OpenTelemetry?)
-- [ ] README and documentation
-- [ ] Add unit tests coverage
+- [x] README and documentation
 - [x] Automate nuget publishing
-- [ ] Implement generic `MemoryCache<T>` - ?
-- [ ] Implement configurable cache item eviction for `Cached<T>` - ?
-- [ ] Resolve and add test coverage for potential race condition when writing and reading `Cached<T>.s_default`
+- [ ] Implement `Memoized<T>`
+- [ ] Segmented eviction over dynamicaly sized range of segments (longer delta between min exp - max exp => lower eviction accuracy?)
