@@ -1,10 +1,12 @@
-## FastCache.Cached [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml) [![nuget](https://badgen.net/nuget/v/FastCache.Cached)](https://www.nuget.org/packages/FastCache.Cached/)
+# FastCache.Cached
+[![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml)
+[![nuget](https://badgen.net/nuget/v/FastCache.Cached)](https://www.nuget.org/packages/FastCache.Cached/)
 
-### Quick start
+## Quick start
 `dotnet add package FastCache.Cached` or `Install-Package FastCache.Cached`
-
 *Recommended: to get optimal results, use `Cached<YourType>` per source instead of common types such as `string` shared across multiple sources.*
-#### Get cached value or save a new one with expiration of 60 minutes
+
+Get cached value or save a new one with expiration of 60 minutes
 ```csharp
 public FinancialReport GetReport(int month, int year)
 {
@@ -18,16 +20,19 @@ public FinancialReport GetReport(int month, int year)
   return cached.Save(report, TimeSpan.FromMinutes(60));
 }
 ```
-#### Wrap a regular method call
+
+Wrap a regular method call
 ```csharp
 var report = Cached.GetOrCompute(month, year, GetReport, TimeSpan.FromMinutes(60));
 ```
-#### Or an async one
+
+Or an async one
 ```csharp
 // For methods that return Task<T> or ValueTask<T>
 var report = await Cached.GetOrCompute(month, year, GetReportAsync, TimeSpan.FromMinute(60));
 ```
-#### Add new data without accessing cache item first (e.g. loading a large batch of independent values to cache)
+
+Add new data without accessing cache item first (e.g. loading a large batch of independent values to cache)
 ```csharp
 using FastCache.Extensions;
 ...
@@ -36,17 +41,19 @@ foreach (var ((month, year), report) in reportsResultBatch)
   report.Cache(month, year, TimeSpan.FromMinutes(60));
 }
 ```
-#### Store common type (string) in a shared cache store (OK for small (<1M) to mid (<5M) sized collections)
+
+Store common type (string) in a shared cache store (OK for small (<1M) to mid (<5M) sized collections)
 ```csharp
 // GetOrCompute<T...> where T is string
-var userNote = await Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
+var userNote = Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
 ```
-#### Or in a separate one by using value object (Recommended)
+
+Or in a separate one by using value object (Recommended)
 ```csharp
 readonly record struct UserNote(string Value);
 
 // GetOrCompute<T...> where T is UserNote
-var userNote = await Cached.GetOrCompute(userId, GetUserNote, TimeSpan.FromMinutes(5));
+var userNote = Cached.GetOrCompute(userId, GetUserNote, TimeSpan.FromMinutes(5));
 ```
 ```csharp
 // This is how it looks for TryGet
@@ -58,7 +65,7 @@ if (Cached<UserNote>.TryGet(userId, out var cached))
 return cached.Save(userNote, TimeSpan.FromMinutes(5));
 ```
 
-### Features and design philosophy
+## Features and design philosophy
 - In-memory cache for items with expiration time and automatic eviction
 - Easy to use - no need to configure or initialize, just `dotnet add package FastCache.Cached` and you are ready to go. Behavior can be further customized via env variables / appcontext switches (tentative)
 - High performance: low access/store latency and high throughput
@@ -68,7 +75,7 @@ return cached.Save(userNote, TimeSpan.FromMinutes(5));
 - Multi-key and composite-key store access without collisions between key types. Collisions are avoided by dispering type hashcode with value hashcode to compose cache item key ('int')
 - Handles timezone/dst updates on most platforms by relying on system uptime timestamp for item expiration - `Environment.TickCount64` which is also significantly faster than `DateTime.UtcNow`
 
-### Access / Store latency and cost at throughput saturation
+## Access / Store latency and cost at throughput saturation
 ``` ini
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
