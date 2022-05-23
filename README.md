@@ -35,7 +35,7 @@ foreach (var ((month, year), report) in reportsResultBatch)
   report.Cache(month, year, TimeSpan.FromMinutes(60));
 }
 ```
-#### Store common type (string) in a shared cache store (OK for small to mid sized collections)
+#### Store common type (string) in a shared cache store (OK for small (<1M) to mid (<5M) sized collections)
 ```csharp
 // GetOrCompute<T...> where T is string
 var userNote = await Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
@@ -45,7 +45,7 @@ var userNote = await Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.Fro
 readonly record struct UserNote(string Value);
 
 // GetOrCompute<T...> where T is UserNote
-var reportNote = await Cached.GetOrCompute(userId, GetUserNote, TimeSpan.FromMinutes(5));
+var userNote = await Cached.GetOrCompute(userId, GetUserNote, TimeSpan.FromMinutes(5));
 ```
 ```csharp
 // This is how it looks for TryGet
