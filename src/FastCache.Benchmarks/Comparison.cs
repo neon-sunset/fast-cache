@@ -8,7 +8,7 @@ using LazyCache;
 namespace FastCache.Benchmarks
 {
     [MemoryDiagnoser]
-    [DisassemblyDiagnoser(maxDepth: 5, exportHtml: true)]
+    // [DisassemblyDiagnoser(maxDepth: 5, exportHtml: true)]
     [SimpleJob(RuntimeMoniker.HostProcess)]
     // [SimpleJob(RuntimeMoniker.Net60)]
     // [SimpleJob(RuntimeMoniker.NetCoreApp31)]
