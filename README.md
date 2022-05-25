@@ -2,6 +2,10 @@
 [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml)
 [![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/)
 
+FastCache.Cached is a high-performance, thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
+Features include automatic eviction, lock-free and wait-free access and storage, allocation-free access and low memory footprint.
+Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.
+
 ## Quick start
 `dotnet add package FastCache.Cached` or `Install-Package FastCache.Cached`
 
@@ -68,10 +72,9 @@ return cached.Save(userNote, TimeSpan.FromMinutes(5));
 
 ## Features and design philosophy
 - In-memory cache for items with expiration time and automatic eviction
-- Easy to use - no need to configure or initialize, just `dotnet add package FastCache.Cached` and you are ready to go. Behavior can be further customized via env variables / appcontext switches (tentative)
-- High performance: low access/store latency and high throughput
+- Little to no ceremony - no need to configure or initialize, just add the package and you are ready to go. Behavior can be further customized via env variables
 - Focused design allows to reduce memory footprint per item and minimize overhead via inlining and static dispatch
-- Performance and scaling covering both simplest applications and highly loaded services. Can handle 1-100M+ items with O(1) access/storage time and O(n~) memory cost/cpu time cost for full eviction
+- High performance and scaling covering both simplest applications and highly loaded services. Can handle 1-100M+ items with O(1) access/storage time and O(n~) memory cost/cpu time cost for full eviction
 - Lock-free and wait-free access and storage of cache items. Performance will scale with threads, data synchronization cost is minimal thanks to 'NonBlocking.ConcurrentDictionary' backing store by Vladimir Sadov
 - Multi-key and composite-key store access without collisions between key types. Collisions are avoided by dispering type hashcode with value hashcode to compose cache item key ('int')
 - Handles timezone/dst updates on most platforms by relying on system uptime timestamp for item expiration - `Environment.TickCount64` which is also significantly faster than `DateTime.UtcNow`
