@@ -1,4 +1,13 @@
 ﻿using BenchmarkDotNet.Running;
 using FastCache.Benchmarks;
 
-BenchmarkRunner.Run<Comparison>();
+namespace Namespace
+{
+    public static class Program
+    {
+        private static void Main(string[] args)
+        {
+            BenchmarkRunner.Run<Comparison>();
+        }
+    }
+}

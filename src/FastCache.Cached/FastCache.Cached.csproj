@@ -12,7 +12,8 @@ Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.Concur
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
+	  <LangVersion>10</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <DefineConstants>$(DefineConstants)</DefineConstants>

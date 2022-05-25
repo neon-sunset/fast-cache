@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using FastCache.Helpers;
 using FastCache.Services;
 
 namespace FastCache;
@@ -10,9 +11,9 @@ internal sealed class EvictionQuickList<T>
 
     private (int, long)[] _active;
     private (int, long)[] _inactive;
-    private ulong _count;
+    private long _count;
 
-    public uint Count => (uint)Interlocked.Read(ref _count);
+    private uint AtomicCount => (uint)Interlocked.Read(ref _count);
 
     public EvictionQuickList()
     {
@@ -27,7 +28,7 @@ internal sealed class EvictionQuickList<T>
     public void Add(int value, long expiresAt)
     {
         var entries = _active;
-        var count = Count;
+        var count = AtomicCount;
         if (count < entries.Length)
         {
             entries[count] = (value, expiresAt);
@@ -55,11 +56,13 @@ internal sealed class EvictionQuickList<T>
 
     // Performs cache eviction by iterating through quick list and removing expired entries from cache store.
     // Returns 'true' if resident cache size is contained within quick list, 'false' if full eviction is required
-    internal bool Evict(long now, bool resize = false)
+    internal bool Evict(bool resize = false)
     {
 #if FASTCACHE_DEBUG
         var sw = Stopwatch.StartNew();
 #endif
+
+        var now = TimeUtils.Now;
         var store = Cached<T>.s_store;
 
         var timeout = resize ? 25 : 0;
@@ -106,7 +109,7 @@ internal sealed class EvictionQuickList<T>
         }
 
         var entries = _active;
-        var entriesCount = Count;
+        var entriesCount = AtomicCount;
 
         var entriesSurvivedIndexes = ArrayPool<uint>.Shared.Rent((int)entriesCount);
 

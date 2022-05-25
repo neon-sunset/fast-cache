@@ -1,40 +1,39 @@
-using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using FastCache.Extensions;
-using FastCache.Services;
 
-namespace FastCache.Benchmarks;
-
-[MemoryDiagnoser]
-[DisassemblyDiagnoser(maxDepth: 3, printSource: true, exportHtml: true)]
-[SimpleJob(runtimeMoniker: RuntimeMoniker.HostProcess)]
-public class CacheManagerBenchmarks
+namespace FastCache.Benchmarks
 {
-    // readonly int tickCount = Environment.TickCount64;
-
-    [GlobalSetup]
-    public void Initialize()
+    [MemoryDiagnoser]
+    [DisassemblyDiagnoser(maxDepth: 3, printSource: true, exportHtml: true)]
+    [SimpleJob(runtimeMoniker: RuntimeMoniker.HostProcess)]
+    public class CacheManagerBenchmarks
     {
-        const int limit = 32768;
+        // readonly int tickCount = Environment.TickCount64;
 
-        // CacheManager.SuspendEviction<string>();
-
-        // var ticksMax = TimeSpan.FromSeconds(90).Ticks;
-
-        for (int i = 0; i < limit; i++)
+        [GlobalSetup]
+        public void Initialize()
         {
-            // var expiration = TimeSpan.FromTicks(Random.Shared.NextInt64(1, ticksMax));
-            _ = $"string value of {i}".Cache(i, TimeSpan.FromMilliseconds(0.1));
+            const int limit = 32768;
+
+            // CacheManager.SuspendEviction<string>();
+
+            // var ticksMax = TimeSpan.FromSeconds(90).Ticks;
+
+            for (int i = 0; i < limit; i++)
+            {
+                // var expiration = TimeSpan.FromTicks(Random.Shared.NextInt64(1, ticksMax));
+                _ = $"string value of {i}".Cache(i, TimeSpan.FromMilliseconds(0.1));
+            }
+
+            for (int i = 0; i < limit; i++)
+            {
+                // var expiration = TimeSpan.FromTicks(Random.Shared.NextInt64(1, ticksMax));
+                _ = $"string value of {i}".Cache(i, TimeSpan.FromHours(1));
+            }
         }
 
-        for (int i = 0; i < limit; i++)
-        {
-            // var expiration = TimeSpan.FromTicks(Random.Shared.NextInt64(1, ticksMax));
-            _ = $"string value of {i}".Cache(i, TimeSpan.FromHours(1));
-        }
+        [Benchmark]
+        public void Run() => Cached<string>.s_quickList.Evict();
     }
-
-    [Benchmark]
-    public void Run() => Cached<string>.s_quickList.Evict(Environment.TickCount64);
 }

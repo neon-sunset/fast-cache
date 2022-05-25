@@ -11,6 +11,12 @@ internal static class Constants
     private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan MaxQuickListInterval = TimeSpan.FromSeconds(60);
 
+#if NET6_0_OR_GREATER
+    private static readonly Random Random = Random.Shared;
+#else
+    private static readonly Random Random = new();
+#endif
+
     // OldestEntries list and eviction batch size length limits.
     // Higher limit works well with short-lived first-gen-contained cache items
     // but performs poorly if many items of the same type have inconsistent lifetimes.
@@ -31,7 +37,7 @@ internal static class Constants
     public static readonly uint EvictionIntervalMultiplyFactor = uint
         .TryParse(GetVar("FASTCACHE_INTERVAL_MUL_FACTOR"), out var parsed) ? parsed : DefaultIntervalMultiplyFactor;
 
-    public static readonly ulong AggregatedGCThreshold = ulong
+    public static readonly long AggregatedGCThreshold = long
         .TryParse(GetVar("FASTCACHE_GC_THRESHOLD"), out var parsed) ? parsed : DefaultAggregatedGCThreshold;
 
     public static readonly uint ParallelEvictionThreshold = uint
@@ -53,10 +59,10 @@ internal static class Constants
         {
             // Calculate full eviction interval with jitter.
             // This is necessary to avoid application stalling induced by all caches getting collected at the same time.
-            var quickListTicks = QuickListEvictionInterval.Ticks;
+            var quickListTicks = (int)QuickListEvictionInterval.TotalMilliseconds;
             var delay = quickListTicks * EvictionIntervalMultiplyFactor;
-            var jitter = Random.Shared.NextInt64(-quickListTicks, (quickListTicks * 2) + 1);
-            return TimeSpan.FromTicks(delay + jitter);
+            var jitter = Random.Next(-quickListTicks, (quickListTicks * 2) + 1);
+            return TimeSpan.FromMilliseconds(delay + jitter);
         }
     }
 
@@ -64,9 +70,9 @@ internal static class Constants
     {
         get
         {
-            var delay = QuickListEvictionInterval.Ticks;
-            var jitter = Random.Shared.NextInt64(0, delay * 2);
-            return TimeSpan.FromTicks(delay + jitter);
+            var delay = (int)QuickListEvictionInterval.TotalMilliseconds;
+            var jitter = Random.Next(0, delay * 2);
+            return TimeSpan.FromMilliseconds(delay + jitter);
         }
     }
 

@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using FastCache.Helpers;
 
 namespace FastCache.Services;
 
@@ -7,7 +8,7 @@ public static class CacheManager
 {
     private static readonly SemaphoreSlim FullGCLock = new(1, 1);
 
-    private static ulong s_AggregatedEvictionsCount;
+    private static long s_AggregatedEvictionsCount;
 
     /// <summary>
     /// Submit full eviction for specified Cached<T> value
@@ -104,8 +105,7 @@ public static class CacheManager
 
         evictionJob.RescheduleConsideringExpiration();
 
-        var now = Environment.TickCount64;
-        if (Cached<T>.s_quickList.Evict(now, resize: true))
+        if (Cached<T>.s_quickList.Evict(resize: true))
         {
             evictionJob.FullEvictionLock.Release();
             return;
@@ -114,7 +114,7 @@ public static class CacheManager
 #if FASTCACHE_DEBUG
         var stopwatch = Stopwatch.StartNew();
 #endif
-        var evictedFromCacheStore = EvictFromCacheStore<T>(now);
+        var evictedFromCacheStore = EvictFromCacheStore<T>();
 
         if (Constants.ConsiderFullGC && evictedFromCacheStore > 0)
         {
@@ -139,7 +139,7 @@ public static class CacheManager
             return;
         }
 
-        if (Cached<T>.s_quickList.Evict(Environment.TickCount64))
+        if (Cached<T>.s_quickList.Evict())
         {
             // When a lot of items are being added to cache, it triggers GC
             // which may decrease adding performance by constantly locking quick list.
@@ -162,7 +162,7 @@ public static class CacheManager
 #if FASTCACHE_DEBUG
         var stopwatch = Stopwatch.StartNew();
 #endif
-        var evictedFromCacheStore = EvictFromCacheStore<T>(Environment.TickCount64);
+        var evictedFromCacheStore = EvictFromCacheStore<T>();
 
         if (Constants.ConsiderFullGC && evictedFromCacheStore > 0)
         {
@@ -179,16 +179,17 @@ public static class CacheManager
         evictionJob.FullEvictionLock.Release();
     }
 
-    private static uint EvictFromCacheStore<T>(long now)
+    private static uint EvictFromCacheStore<T>()
     {
         return Cached<T>.s_store.Count > Constants.ParallelEvictionThreshold
-            ? EvictFromCacheStoreParallel<T>(now)
-            : EvictFromCacheStoreSingleThreaded<T>(now);
+            ? EvictFromCacheStoreParallel<T>()
+            : EvictFromCacheStoreSingleThreaded<T>();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    private static uint EvictFromCacheStoreSingleThreaded<T>(long now)
+    [MethodImpl(512)] // MethodImplOptions.AggressiveOptimization on supported platforms
+    private static uint EvictFromCacheStoreSingleThreaded<T>()
     {
+        var now = TimeUtils.Now;
         var store = Cached<T>.s_store;
         var quickList = Cached<T>.s_quickList;
         uint totalRemoved = 0;
@@ -209,10 +210,11 @@ public static class CacheManager
         return totalRemoved;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    [MethodImpl(512)] // MethodImplOptions.AggressiveOptimization on supported platforms
     // TODO: Add backoff logic if not enough items expired compared to expected. Recalculate avg expiration?
-    private static uint EvictFromCacheStoreParallel<T>(long now)
+    private static uint EvictFromCacheStoreParallel<T>()
     {
+        var now = TimeUtils.Now;
         var store = Cached<T>.s_store;
         uint totalRemoved = 0;
 

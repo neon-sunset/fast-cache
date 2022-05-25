@@ -8,7 +8,7 @@ internal sealed class EvictionJob<T>
     private readonly Timer _quickListEvictionTimer;
     private readonly Timer _fullEvictionTimer;
 
-    private ulong _averageExpirationMilliseconds;
+    private long _averageExpirationMilliseconds;
     private bool _active = true;
 
     public bool IsActive => Volatile.Read(ref _active);
@@ -28,7 +28,7 @@ internal sealed class EvictionJob<T>
         }
 
         _quickListEvictionTimer = new(
-            static _ => Cached<T>.s_quickList.Evict(Environment.TickCount64),
+            static _ => Cached<T>.s_quickList.Evict(),
             null,
             Constants.QuickListEvictionInterval,
             Constants.QuickListEvictionInterval);
@@ -44,7 +44,7 @@ internal sealed class EvictionJob<T>
         Gen2GcCallback.Register(static () => CacheManager.QueueFullEviction<T>(triggeredByTimer: false));
     }
 
-    public void ReportExpiration(ulong milliseconds)
+    public void ReportExpiration(long milliseconds)
     {
         var previous = _averageExpirationMilliseconds;
 

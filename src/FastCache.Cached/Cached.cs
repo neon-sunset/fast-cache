@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using FastCache.Helpers;
 
 namespace FastCache;
 
@@ -23,16 +24,17 @@ public readonly partial struct Cached<T>
 
     public T Save(T value, TimeSpan expiration)
     {
-        var now = Environment.TickCount64;
-        var milliseconds = (long)expiration.TotalMilliseconds;
-        var expiresAt = milliseconds + now;
-        if (expiresAt <= 0)
+        var now = TimeUtils.Now;
+        var milliseconds = expiration.Ticks / TimeSpan.TicksPerMillisecond;
+
+        var expiresAt = now + milliseconds;
+        if (expiresAt < now)
         {
             InvalidExpiration(expiration);
         }
 
         s_store[_identifier] = new(value, expiresAt);
-        s_evictionJob.ReportExpiration((ulong)milliseconds);
+        s_evictionJob.ReportExpiration(milliseconds);
 
         if (!_found)
         {
@@ -69,7 +71,7 @@ internal readonly struct CachedInner<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsNotExpired() => Environment.TickCount64 < _expiresAt;
+    public bool IsNotExpired() => TimeUtils.Now < _expiresAt;
 
     public void Deconstruct(out T value, out long expiresAt)
     {
