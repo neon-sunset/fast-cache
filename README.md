@@ -2,7 +2,7 @@
 [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml)
 [![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/)
 
-FastCache.Cached is a high-performance, thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
+High-performance, thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
 Features include automatic eviction, lock-free and wait-free access and storage, allocation-free access and low memory footprint.
 Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.
 
