@@ -5,33 +5,33 @@ using FastCache.Services;
 
 namespace FastCache;
 
-internal sealed class EvictionQuickList<T>
+internal sealed class EvictionQuickList<K, V> where K : notnull
 {
     private static readonly SemaphoreSlim s_evictionLock = new(1, 1);
 
-    private (int, long)[] _active;
-    private (int, long)[] _inactive;
+    private (K, long)[] _active;
+    private (K, long)[] _inactive;
     private long _count;
 
     private uint AtomicCount => (uint)Interlocked.Read(ref _count);
 
     public EvictionQuickList()
     {
-        _active = ArrayPool<(int, long)>.Shared.Rent(Constants.QuickListMinLength);
-        _inactive = ArrayPool<(int, long)>.Shared.Rent(Constants.QuickListMinLength);
+        _active = ArrayPool<(K, long)>.Shared.Rent(Constants.QuickListMinLength);
+        _inactive = ArrayPool<(K, long)>.Shared.Rent(Constants.QuickListMinLength);
         _count = 0;
     }
 
     /// <summary>
     /// Atomic, will never perform out of bounds access on AtomicSwapActive
     /// </summary>
-    public void Add(int value, long expiresAt)
+    public void Add(K key, long expiresAt)
     {
         var entries = _active;
         var count = AtomicCount;
         if (count < entries.Length)
         {
-            entries[count] = (value, expiresAt);
+            entries[count] = (key, expiresAt);
 
             Interlocked.CompareExchange(ref _count, count + 1, count);
         }
@@ -41,13 +41,13 @@ internal sealed class EvictionQuickList<T>
     /// Atomic-compatible with AtomicSwapActive, writes are not atomically visible however which is by design.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void OverwritingNonAtomicAdd(int value, long expiresAt)
+    internal void OverwritingNonAtomicAdd(K key, long expiresAt)
     {
         var entries = _active;
         var count = (uint)_count;
         if (count < entries.Length)
         {
-            entries[count] = (value, expiresAt);
+            entries[count] = (key, expiresAt);
             _count = count + 1;
         }
     }
@@ -63,7 +63,7 @@ internal sealed class EvictionQuickList<T>
 #endif
 
         var now = TimeUtils.Now;
-        var store = Cached<T>.s_store;
+        var store = CacheStaticHolder<K, V>.s_store;
 
         var timeout = resize ? 25 : 0;
         if (!s_evictionLock.Wait(timeout))
@@ -157,11 +157,11 @@ internal sealed class EvictionQuickList<T>
             Reset();
 
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
-            CacheManager.ReportEvictions<T>(entriesRemovedCount);
+            CacheManager.ReportEvictions<V>(entriesRemovedCount);
             s_evictionLock.Release();
 
 #if FASTCACHE_DEBUG
-            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
+            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(K).Name}:{typeof(V).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
 #endif
             return entriesRemovedCount >= totalCount;
         }
@@ -172,7 +172,7 @@ internal sealed class EvictionQuickList<T>
             s_evictionLock.Release();
 
 #if FASTCACHE_DEBUG
-            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
+            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(K).Name}:{typeof(V).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
 #endif
             return entriesSurvivedCount >= totalCount;
         }
@@ -202,11 +202,11 @@ internal sealed class EvictionQuickList<T>
         // will be handled by the next full eviction (evicted or pushed to quick list if capacity allows it).
         AtomicSwapActive(postEvictionCount);
 
-        CacheManager.ReportEvictions<T>(entriesRemovedCount);
+        // CacheManager.ReportEvictions<T>(entriesRemovedCount); - TODO
         s_evictionLock.Release();
 
 #if FASTCACHE_DEBUG
-        Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(T).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
+        Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(K).Name}:{typeof(V).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
 #endif
         return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
     }
@@ -225,8 +225,8 @@ internal sealed class EvictionQuickList<T>
             return _inactive.Length;
         }
 
-        ArrayPool<(int, long)>.Shared.Return(_inactive);
-        _inactive = ArrayPool<(int, long)>.Shared.Rent(requestedLength);
+        ArrayPool<(K, long)>.Shared.Return(_inactive);
+        _inactive = ArrayPool<(K, long)>.Shared.Rent(requestedLength);
 
 #if FASTCACHE_DEBUG
         Console.WriteLine($"FastCache: _inactive has been resized. New length: {_inactive.Length}");

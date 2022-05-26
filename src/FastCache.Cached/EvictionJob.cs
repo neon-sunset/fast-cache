@@ -3,7 +3,7 @@ using FastCache.Helpers;
 
 namespace FastCache;
 
-internal sealed class EvictionJob<T>
+internal sealed class EvictionJob<K, V> where K : notnull
 {
     private readonly Timer _quickListEvictionTimer;
     private readonly Timer _fullEvictionTimer;
@@ -28,7 +28,7 @@ internal sealed class EvictionJob<T>
         }
 
         _quickListEvictionTimer = new(
-            static _ => Cached<T>.s_quickList.Evict(),
+            static _ => CacheStaticHolder<K, V>.s_quickList.Evict(),
             null,
             Constants.QuickListEvictionInterval,
             Constants.QuickListEvictionInterval);
@@ -36,12 +36,12 @@ internal sealed class EvictionJob<T>
         // Full eviction interval is always computed with jitter. Store to local so that start and repeat intervals are equal.
         var fullEvictionInterval = Constants.FullEvictionInterval;
         _fullEvictionTimer = new(
-            static _ => CacheManager.QueueFullEviction<T>(triggeredByTimer: true),
+            static _ => CacheManager.QueueFullEviction<K, V>(triggeredByTimer: true),
             null,
             fullEvictionInterval,
             fullEvictionInterval);
 
-        Gen2GcCallback.Register(static () => CacheManager.QueueFullEviction<T>(triggeredByTimer: false));
+        Gen2GcCallback.Register(static () => CacheManager.QueueFullEviction<K, V>(triggeredByTimer: false));
     }
 
     public void ReportExpiration(long milliseconds)
@@ -68,7 +68,7 @@ internal sealed class EvictionJob<T>
         {
             _quickListEvictionTimer.Change(adjustedQuicklistInterval, adjustedQuicklistInterval);
 #if FASTCACHE_DEBUG
-            Console.WriteLine($"FastCache: {typeof(T).Name} eviction interval from quick list has been rescheduled to {adjustedQuicklistInterval}.");
+            Console.WriteLine($"FastCache: {typeof(K).Name}:{typeof(V).Name} eviction interval from quick list has been rescheduled to {adjustedQuicklistInterval}.");
 #endif
         }
 
@@ -78,7 +78,7 @@ internal sealed class EvictionJob<T>
         {
             _fullEvictionTimer.Change(adjustedFullEvictionInterval, adjustedFullEvictionInterval);
 #if FASTCACHE_DEBUG
-            Console.WriteLine($"FastCache: {typeof(T).Name} eviction interval from cache store has been rescheduled to {adjustedFullEvictionInterval}.");
+            Console.WriteLine($"FastCache: {typeof(K).Name}:{typeof(V).Name} eviction interval from cache store has been rescheduled to {adjustedFullEvictionInterval}.");
 #endif
         }
         else

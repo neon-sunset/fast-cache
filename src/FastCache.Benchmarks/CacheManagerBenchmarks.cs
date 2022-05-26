@@ -34,6 +34,6 @@ namespace FastCache.Benchmarks
         }
 
         [Benchmark]
-        public void Run() => Cached<string>.s_quickList.Evict();
+        public void Run() => CacheStaticHolder<int, string>.s_quickList.Evict();
     }
 }

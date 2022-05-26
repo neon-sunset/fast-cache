@@ -4,25 +4,25 @@ using FastCache.Helpers;
 namespace FastCache;
 
 [StructLayout(LayoutKind.Auto)]
-public readonly partial struct Cached<T>
+public readonly struct Cached<K, V> where K : notnull
 {
-    private readonly int _identifier;
+    private readonly K _key;
     private readonly bool _found;
 
-    public readonly T Value;
+    public readonly V Value;
 
-    public Cached() => throw new InvalidOperationException($"Cached<{typeof(T).Name}> must not be initialized with default constructor");
+    public Cached() => throw new InvalidOperationException($"Cached<{typeof(K).Name}, {typeof(V).Name}> must not be initialized with default constructor");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal Cached(int identifier, bool found, T value)
+    internal Cached(K key, V value, bool found)
     {
-        _identifier = identifier;
+        _key = key;
         _found = found;
 
         Value = value;
     }
 
-    public T Save(T value, TimeSpan expiration)
+    public V Save(V value, TimeSpan expiration)
     {
         var now = TimeUtils.Now;
         var milliseconds = expiration.Ticks / TimeSpan.TicksPerMillisecond;
@@ -33,12 +33,12 @@ public readonly partial struct Cached<T>
             InvalidExpiration(expiration);
         }
 
-        s_store[_identifier] = new(value, expiresAt);
-        s_evictionJob.ReportExpiration(milliseconds);
+        CacheStaticHolder<K, V>.s_store[_key] = new(value, expiresAt);
+        CacheStaticHolder<K, V>.s_evictionJob.ReportExpiration(milliseconds);
 
         if (!_found)
         {
-            s_quickList.Add(_identifier, expiresAt);
+            CacheStaticHolder<K, V>.s_quickList.Add(_key, expiresAt);
         }
 
         return value;
@@ -46,7 +46,7 @@ public readonly partial struct Cached<T>
 
     public void Remove()
     {
-        s_store.TryRemove(_identifier, out _);
+        CacheStaticHolder<K, V>.s_store.TryRemove(_key, out _);
     }
 
     [DoesNotReturn]

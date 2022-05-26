@@ -21,7 +21,12 @@ internal sealed class Gen2GcCallback : CriticalFinalizerObject
         {
             _callback();
         }
-        catch { }
+        catch
+        {
+#if DEBUG
+            throw;
+#endif
+        }
 
         GC.ReRegisterForFinalize(this);
     }

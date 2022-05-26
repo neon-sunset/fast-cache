@@ -38,7 +38,8 @@ await Task.Delay(TimeSpan.FromSeconds(5));
 Console.WriteLine(
     "Retrieve weather once again because the value we cached has expired.\n" +
     "There is no need to worry that we run out of memory because 'FastCache.Cached' will automatically evict expired values.\n" +
-    "By default, quick and full eviction will run as often as 15 and .\n");
+    "By default, quick and full eviction will run as often as 15 seconds and 2.5 minutes (approximately).\n" +
+    "However, as you add items to the cache, the intervals may increase to accomodate different expiration times.\n");
 
 value = await Cached.GetOrCompute(query, FetchWeather, TimeSpan.FromSeconds(5));
 

@@ -6,7 +6,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>Cache;Caching;Lock-Free;Performance;MemoryCache;In-Memory;High-Load</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>FastCache.Cached is a high-performance, thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
+    <Description>High-performance, thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
 Features include automatic eviction, lock-free and wait-free access and storage, allocation-free access and low memory footprint.
 Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.</Description>
   </PropertyGroup>

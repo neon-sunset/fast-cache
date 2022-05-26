@@ -1,59 +1,66 @@
-using FastCache.Helpers;
-
 namespace FastCache;
 
-public readonly partial struct Cached<T>
+public static class Cached<V>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGet<T1>(T1 param1, out Cached<T> cached) =>
-        TryGetInternal(HashCode.Combine(Dispersed(param1)), out cached);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGet<T1, T2>(T1 param1, T2 param2, out Cached<T> cached) =>
-        TryGetInternal(HashCode.Combine(Dispersed(param1), Dispersed(param2)), out cached);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGet<T1, T2, T3>(T1 param1, T2 param2, T3 param3, out Cached<T> cached) =>
-        TryGetInternal(HashCode.Combine(Dispersed(param1), Dispersed(param2), Dispersed(param3)), out cached);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGet<T1, T2, T3, T4>(
-        T1 param1, T2 param2, T3 param3, T4 param4, out Cached<T> cached) =>
-            TryGetInternal(HashCode.Combine(Dispersed(param1), Dispersed(param2), Dispersed(param3), Dispersed(param4)), out cached);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGet<T1, T2, T3, T4, T5>(
-        T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, out Cached<T> cached) =>
-            TryGetInternal(HashCode.Combine(Dispersed(param1), Dispersed(param2), Dispersed(param3), Dispersed(param4), Dispersed(param5)), out cached);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGet<T1, T2, T3, T4, T5, T6>(
-        T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, out Cached<T> cached) =>
-            TryGetInternal(HashCode.Combine(Dispersed(param1), Dispersed(param2), Dispersed(param3), Dispersed(param4), Dispersed(param5), Dispersed(param6)), out cached);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGet<T1, T2, T3, T4, T5, T6, T7>(
-        T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, out Cached<T> cached) =>
-            TryGetInternal(HashCode.Combine(Dispersed(param1), Dispersed(param2), Dispersed(param3), Dispersed(param4), Dispersed(param5), Dispersed(param6), Dispersed(param7)), out cached);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryGet<T1, T2, T3, T4, T5, T6, T7, T8>(
-        T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, T8 param8, out Cached<T> cached) =>
-            TryGetInternal(HashCode.Combine(Dispersed(param1), Dispersed(param2), Dispersed(param3), Dispersed(param4), Dispersed(param5), Dispersed(param6), Dispersed(param7), Dispersed(param8)), out cached);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryGetInternal(int identifier, out Cached<T> cached)
+    public static bool TryGet<K>(K key, out Cached<K, V> cached) where K : notnull
     {
-        var found = s_store.TryGetValue(identifier, out var inner);
+        return TryGetInternal(key, out cached);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGet<K1, K2>(K1 param1, K2 param2, out Cached<ValueTuple<K1, K2>, V> cached)
+    {
+        return TryGetInternal((param1, param2), out cached);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGet<K1, K2, K3>(K1 param1, K2 param2, K3 param3, out Cached<ValueTuple<K1, K2, K3>, V> cached)
+    {
+        return TryGetInternal((param1, param2, param3), out cached);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGet<K1, K2, K3, K4>(K1 param1, K2 param2, K3 param3, K4 param4, out Cached<ValueTuple<K1, K2, K3, K4>, V> cached)
+    {
+        return TryGetInternal((param1, param2, param3, param4), out cached);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGet<K1, K2, K3, K4, K5>(
+        K1 param1, K2 param2, K3 param3, K4 param4, K5 param5, out Cached<ValueTuple<K1, K2, K3, K4, K5>, V> cached)
+    {
+        return TryGetInternal((param1, param2, param3, param4, param5), out cached);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGet<K1, K2, K3, K4, K5, K6>(
+        K1 param1, K2 param2, K3 param3, K4 param4, K5 param5, K6 param6, out Cached<ValueTuple<K1, K2, K3, K4, K5, K6>, V> cached)
+    {
+        return TryGetInternal((param1, param2, param3, param4, param5, param6), out cached);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGet<K1, K2, K3, K4, K5, K6, K7>(
+        K1 param1, K2 param2, K3 param3, K4 param4, K5 param5, K6 param6, K7 param7, out Cached<ValueTuple<K1, K2, K3, K4, K5, K6, K7>, V> cached)
+    {
+        return TryGetInternal((param1, param2, param3, param4, param5, param6, param7), out cached);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryGetInternal<K>(K key, out Cached<K, V> cached) where K : notnull
+    {
+        var found = CacheStaticHolder<K, V>
+            .s_store
+            .TryGetValue(key, out var inner);
+
         if (found && inner.IsNotExpired())
         {
-            cached = new(identifier, found: true, inner.Value);
+            cached = new(key, inner.Value, found: true);
             return true;
         }
 
-        cached = new(identifier, found: false, default!);
+        cached = new(key, default!, found);
         return false;
     }
-
-    private static int Dispersed<TParam>(TParam value) => HashCode.Combine(value, TypeHash<TParam>.Value);
 }

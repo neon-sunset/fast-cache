@@ -4,38 +4,44 @@ namespace FastCache.Extensions;
 
 public static class CachedExtensions
 {
-    public static T Cache<T, T1>(this T value, T1 value1, TimeSpan expiration) =>
-        CacheInternal(value, HashCode.Combine(Dispersed(value1)), expiration);
-
-    public static T Cache<T, T1, T2>(this T value, T1 value1, T2 value2, TimeSpan expiration) =>
-        CacheInternal(value, HashCode.Combine(Dispersed(value1), Dispersed(value2)), expiration);
-
-    public static T Cache<T, T1, T2, T3>(this T value, T1 value1, T2 value2, T3 value3, TimeSpan expiration) =>
-        CacheInternal(value, HashCode.Combine(Dispersed(value1), Dispersed(value2), Dispersed(value3)), expiration);
-
-    public static T Cache<T, T1, T2, T3, T4>(this T value, T1 value1, T2 value2, T3 value3, T4 value4, TimeSpan expiration) =>
-        CacheInternal(value, HashCode.Combine(Dispersed(value1), Dispersed(value2), Dispersed(value3), Dispersed(value4)), expiration);
-
-    public static T Cache<T, T1, T2, T3, T4, T5>(
-        this T value, T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, TimeSpan expiration) =>
-            CacheInternal(value, HashCode.Combine(Dispersed(value1), Dispersed(value2), Dispersed(value3), Dispersed(value4), Dispersed(value5)), expiration);
-
-    public static T Cache<T, T1, T2, T3, T4, T5, T6>(
-        this T value, T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6, TimeSpan expiration) =>
-            CacheInternal(value, HashCode.Combine(Dispersed(value1), Dispersed(value2), Dispersed(value3), Dispersed(value4), Dispersed(value5), Dispersed(value6)), expiration);
-
-    public static T Cache<T, T1, T2, T3, T4, T5, T6, T7>(
-        this T value, T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6, T7 value7, TimeSpan expiration) =>
-            CacheInternal(value, HashCode.Combine(Dispersed(value1), Dispersed(value2), Dispersed(value3), Dispersed(value4), Dispersed(value5), Dispersed(value6), Dispersed(value7)), expiration);
-
-    public static T Cache<T, T1, T2, T3, T4, T5, T6, T7, T8>(
-        this T value, T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6, T7 value7, T8 value8, TimeSpan expiration) =>
-            CacheInternal(value, HashCode.Combine(Dispersed(value1), Dispersed(value2), Dispersed(value3), Dispersed(value4), Dispersed(value5), Dispersed(value6), Dispersed(value7), Dispersed(value8)), expiration);
-
-    private static T CacheInternal<T>(T value, int identifier, TimeSpan expiration)
+    public static V Cache<K, V>(this V value, K key, TimeSpan expiration) where K : notnull
     {
-        return new Cached<T>(identifier, found: false, default!).Save(value, expiration);
+        return CacheInternal(key, value, expiration);
     }
 
-    private static int Dispersed<T>(T value) => HashCode.Combine(value, TypeHash<T>.Value);
+    public static V Cache<T1, T2, V>(this V value, T1 param1, T2 param2, TimeSpan expiration)
+    {
+        return CacheInternal((param1, param2), value, expiration);
+    }
+
+    public static V Cache<T1, T2, T3, V>(this V value, T1 param1, T2 param2, T3 param3, TimeSpan expiration)
+    {
+        return CacheInternal((param1, param2, param3), value, expiration);
+    }
+
+    public static V Cache<T1, T2, T3, T4, V>(this V value, T1 param1, T2 param2, T3 param3, T4 param4, TimeSpan expiration)
+    {
+        return CacheInternal((param1, param2, param3, param4), value, expiration);
+    }
+
+    public static V Cache<T1, T2, T3, T4, T5, V>(this V value, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, TimeSpan expiration)
+    {
+        return CacheInternal((param1, param2, param3, param4, param5), value, expiration);
+    }
+
+    public static V Cache<T1, T2, T3, T4, T5, T6, V>(this V value, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, TimeSpan expiration)
+    {
+        return CacheInternal((param1, param2, param3, param4, param5, param6), value, expiration);
+    }
+
+    public static V Cache<T1, T2, T3, T4, T5, T6, T7, V>(this V value, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5, T6 param6, T7 param7, TimeSpan expiration)
+    {
+        return CacheInternal((param1, param2, param3, param4, param5, param6, param7), value, expiration);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static V CacheInternal<K, V>(K key, V value, TimeSpan expiration) where K : notnull
+    {
+        return new Cached<K, V>(key, default!, found: false).Save(value, expiration);
+    }
 }

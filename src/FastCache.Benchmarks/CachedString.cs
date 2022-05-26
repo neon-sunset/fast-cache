@@ -15,14 +15,6 @@ namespace FastCache.Benchmarks
         public void Initialize()
         {
             // CacheManager.SuspendEviction<string>();
-
-            for (uint i = 0; i < 1000; i++)
-            {
-                $"seeded string number {i}".Cache(i, OneHour);
-            }
-
-            "single".Cache("one", OneHour);
-            "eight".Cache("one", "two", "three", "four", "five", "six", "seven", "eight", OneHour);
         }
 
         [Benchmark(Baseline = true)]
@@ -37,21 +29,20 @@ namespace FastCache.Benchmarks
         }
 
         [Benchmark]
-        public string TryGetRandomSingle()
+        public string TryGetTwo()
         {
-            var key = (uint)Random.Next(0, 1000);
-            if (Cached<string>.TryGet(key, out var cached))
+            if (Cached<string>.TryGet("one", "two", out var cached))
             {
                 return cached.Value;
             }
 
-            return cached.Save("replaced single random", OneHour);
+            return cached.Save("two", OneHour);
         }
 
         [Benchmark]
-        public string TryGetEight()
+        public string TryGetFour()
         {
-            if (Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", "eight", out var cached))
+            if (Cached<string>.TryGet("one", "two", "three", "four", out var cached))
             {
                 return cached.Value;
             }
@@ -66,9 +57,15 @@ namespace FastCache.Benchmarks
         }
 
         [Benchmark]
-        public void SaveEight()
+        public void SaveTwo()
         {
-            _ = "eight".Cache("one", "two", "three", "four", "five", "six", "seven", "eight", OneHour);
+            _ = "two".Cache("one", "two", OneHour);
+        }
+
+        [Benchmark]
+        public void SaveFour()
+        {
+            _ = "eight".Cache("one", "two", "three", "four", OneHour);
         }
 
         [Benchmark]
@@ -82,15 +79,15 @@ namespace FastCache.Benchmarks
             return cached.Save("single", OneHour);
         }
 
-        [Benchmark]
-        public string GetAndSaveEight()
+        // [Benchmark]
+        public string GetAndSaveSeven()
         {
-            if (!Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", "eight", out var cached))
+            if (!Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", out var cached))
             {
                 return cached.Value;
             }
 
-            return cached.Save("eight", OneHour);
+            return cached.Save("seven", OneHour);
         }
 
         [Benchmark]
