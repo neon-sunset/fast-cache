@@ -3,7 +3,7 @@ namespace FastCache;
 internal static class Constants
 {
     private const int DefaultQuickListMinLengthFactor = 128;
-    private const uint DefaultQuickListAutoLengthPercent = 10;
+    private const uint DefaultQuickListAutoLengthPercent = 5;
     private const uint DefaultIntervalMultiplyFactor = 15;
     private const uint DefaultParallelEvictionThreshold = 1_048_576;
     private const uint DefaultAggregatedGCThreshold = 1_572_864;

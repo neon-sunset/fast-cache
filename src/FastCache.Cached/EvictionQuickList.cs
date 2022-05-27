@@ -52,8 +52,6 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         }
     }
 
-    public void Reset() => Interlocked.Exchange(ref _count, 0);
-
     // Performs cache eviction by iterating through quick list and removing expired entries from cache store.
     // Returns 'true' if resident cache size is contained within quick list, 'false' if full eviction is required
     internal bool Evict(bool resize = false)
@@ -78,6 +76,10 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             {
                 ResizeInactive(Constants.QuickListMinLength);
                 AtomicSwapActive(0);
+            }
+            else
+            {
+                Reset();
             }
 
             s_evictionLock.Release();
@@ -225,7 +227,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             return _inactive.Length;
         }
 
-        ArrayPool<(K, long)>.Shared.Return(_inactive);
+        ArrayPool<(K, long)>.Shared.Return(_inactive, RuntimeHelpers.IsReferenceOrContainsReferences<K>());
         _inactive = ArrayPool<(K, long)>.Shared.Rent(requestedLength);
 
 #if FASTCACHE_DEBUG
@@ -237,6 +239,17 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
     private void AtomicSwapActive(uint postEvictionCount)
     {
         _inactive = Interlocked.Exchange(ref _active, _inactive);
-        Volatile.Write(ref _count, postEvictionCount);
+        Interlocked.Exchange(ref _count, postEvictionCount);
+    }
+
+    private void Reset()
+    {
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<K>())
+        {
+            var count = AtomicCount;
+            Array.Clear(_active, 0, (int)count);
+        }
+
+         Interlocked.Exchange(ref _count, 0);
     }
 }

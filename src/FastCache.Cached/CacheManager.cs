@@ -19,16 +19,11 @@ public static class CacheManager
     {
         ThreadPool.QueueUserWorkItem(async static _ =>
         {
-            var quickList = CacheStaticHolder<K, V>.s_quickList;
-            lock (quickList)
-            {
-                quickList.Reset();
-            }
-
             var evictionJob = CacheStaticHolder<K, V>.s_evictionJob;
             await evictionJob.FullEvictionLock.WaitAsync();
 
             CacheStaticHolder<K, V>.s_store.Clear();
+            CacheStaticHolder<K, V>.s_quickList.Evict();
 
             evictionJob.FullEvictionLock.Release();
         });
@@ -215,16 +210,13 @@ public static class CacheManager
     private static uint EvictFromCacheStoreParallel<K, V>() where K : notnull
     {
         var now = TimeUtils.Now;
-        var store = CacheStaticHolder<K, V>.s_store;
         uint totalRemoved = 0;
 
-        void CheckAndRemove(K key, long expiresAt)
+        void CheckAndRemove(K key, long expiresAt, ref uint count)
         {
-            ref var count = ref totalRemoved;
-
             if (now > expiresAt)
             {
-                store!.TryRemove(key, out _);
+                CacheStaticHolder<K, V>.s_store.TryRemove(key, out _);
                 count++;
             }
             else
@@ -236,7 +228,7 @@ public static class CacheManager
         CacheStaticHolder<K, V>.s_store
             .AsParallel()
             .AsUnordered()
-            .ForAll(item => CheckAndRemove(item.Key, item.Value._expiresAt));
+            .ForAll(item => CheckAndRemove(item.Key, item.Value._expiresAt, ref totalRemoved));
 
         return totalRemoved;
     }

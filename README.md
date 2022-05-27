@@ -9,8 +9,6 @@ Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.Concur
 ## Quick start
 `dotnet add package FastCache.Cached` or `Install-Package FastCache.Cached`
 
-*Recommended: to get optimal results, use `Cached<YourType>` per source/producer instead of common types such as `string` shared across multiple sources.*
-
 Get cached value or save a new one with expiration of 60 minutes
 ```csharp
 public FinancialReport GetReport(int month, int year)
@@ -85,18 +83,22 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 .NET 6.0.5 (6.0.522.21309), X64 RyuJIT
 ```
-|             Method           |      Mean |     Error |    StdDev |    Median | Ratio | RatioSD |  Gen 0 |  Gen 1 | Allocated |
-|----------------------------- |----------:|----------:|----------:|----------:|------:|--------:|-------:|-------:|----------:|
-| Get: FastCache.Cached        |  13.54 ns |  0.366 ns |  0.678 ns |  13.58 ns |  1.00 |    0.00 |      - |      - |         - |
-| Get: LazyCache               |  70.08 ns |  1.203 ns |  1.125 ns |  69.41 ns |  5.02 |    0.28 |      - |      - |         - |
-| Get: MemoryCache             |  80.07 ns |  2.164 ns |  6.380 ns |  78.60 ns |  6.00 |    0.58 | 0.0019 |      - |      32 B |
-| Get: CacheManager            | 143.70 ns |  2.930 ns |  6.493 ns | 140.75 ns | 10.64 |    0.49 | 0.0105 |      - |     176 B |
-| Add/Update: FC.Cached        |  33.57 ns |  1.238 ns |  3.651 ns |  31.05 ns |  2.48 |    0.34 | 0.0024 |      - |      40 B |
-| Upd: CacheManager            |  99.74 ns |  2.051 ns |  6.048 ns | 100.84 ns |  7.40 |    0.55 | 0.0176 |      - |     296 B |
-| Add/Update: LazyCache        | 245.93 ns |  4.872 ns |  9.386 ns | 241.87 ns | 18.24 |    0.87 | 0.0286 |      - |     480 B |
-| Add/Update: MemoryCache      | 685.14 ns | 13.696 ns | 37.261 ns | 665.50 ns | 50.87 |    4.31 | 0.4082 | 0.0038 |   6,832 B |
-
-- *FastCache.Cached add and update operations are represented by single `cached.Save(param1...param8, expiration)` which will either add or replace existing value updating its expiration*
+|                Method |        Mean |     Error |    StdDev |      Median |  Gen 0 |  Gen 1 | Allocated |
+|---------------------- |------------:|----------:|----------:|------------:|-------:|-------:|----------:|
+| Get: FastCache.Cached |    15.92 ns |  0.367 ns |  0.941 ns |    15.31 ns |      - |      - |         - |
+| Get: MemoryCache      |    86.74 ns |  2.227 ns |  6.565 ns |    89.43 ns | 0.0019 |      - |      32 B |
+| Get: CacheManager     |   167.03 ns |  3.395 ns |  9.002 ns |   162.56 ns | 0.0105 |      - |     176 B |
+| Get: LazyCache        |    74.46 ns |  1.510 ns |  2.214 ns |    74.81 ns |      - |      - |         - |
+| Add/Upd: FC.Cached    |    34.57 ns |  0.920 ns |  2.711 ns |    33.73 ns | 0.0024 |      - |      40 B |
+| Add/Upd: MemoryCache  |   778.21 ns | 16.728 ns | 49.060 ns |   775.08 ns | 0.4082 | 0.0038 |   6,832 B |
+| Add/Upd: CacheManager | 1,052.22 ns | 20.926 ns | 27.209 ns | 1,053.61 ns | 0.0744 |      - |   1,248 B |
+| Add/Upd: LazyCache    |   281.60 ns |  3.984 ns |  3.532 ns |   281.79 ns | 0.0286 |      - |     480 B |
+### Notes
+- *FastCache.Cached add and update operations are represented by single `cached.Save(param1...param7, expiration)` which will either add or replace existing value updating its expiration*
+- *Comparison was made with a string-based key. Composite keys supported by FastCache.Cached have significant performance cost if they have reference types which incurs 30-40ns extra cpu cost per each reference typed param*
+- *CacheManager library provides methods with highly inconsistent performance and allocation characteristics. The method for it was chosen on the basis of closest functionality to 'non-throwing add or update'*
+- *Overall performance stays relatively comparable when downgrading to .NET 5 and decreases further by 15-30% when using .NET Core 3.1 with the difference ratio between libraries staying close to provided above*
+- *Non-standard platforms (the ones that aren't CLR based) use DateTime.UtcNow fallback instead of Environment.TickCount64, which will perform slower depending on the platform-specific implementation*
 ### On benchmark data
 Throughput saturation means that all necessary data structures are fully available in the CPU cache and branch predictor has learned branch patters of the executed code.
 This is only possible in scenarios such as items being retrieved or added/updated in a tight loop or very frequently on the same cores.

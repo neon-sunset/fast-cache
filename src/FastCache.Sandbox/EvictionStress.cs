@@ -34,9 +34,9 @@ public static class EvictionStress
         // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<User>());
         // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(10));
         // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Struct>());
-        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Uri2>(10));
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Uri2>(8));
         // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<decimal>());
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<nuint>(15));
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<nuint>(100));
 
         Console.ReadLine();
     }
@@ -44,7 +44,7 @@ public static class EvictionStress
     private static void SeedRandomlyExpirable<T>(int millions) where T : new()
     {
         const int secondsMin = 1;
-        const int secondsMax = 300;
+        const int secondsMax = 900;
         const uint count = 100_000;
 
         // CacheManager.SuspendEviction<T>();

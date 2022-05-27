@@ -4,7 +4,7 @@ using FastCache.Extensions;
 namespace FastCache.Benchmarks
 {
     // [SimpleJob(RuntimeMoniker.HostProcess)]
-    // [DisassemblyDiagnoser(maxDepth: 3, printSource: true, exportHtml: true)]
+    [DisassemblyDiagnoser(maxDepth: 5, printSource: true, exportHtml: true)]
     [MemoryDiagnoser]
     public class CachedString
     {
@@ -14,10 +14,13 @@ namespace FastCache.Benchmarks
         [GlobalSetup]
         public void Initialize()
         {
-            // CacheManager.SuspendEviction<string>();
+            Services.CacheManager.SuspendEviction<string, string>();
+            Services.CacheManager.SuspendEviction<(string, string), string>();
+            Services.CacheManager.SuspendEviction<(string, string, string, string), string>();
+            Services.CacheManager.SuspendEviction<(string, string, string, string, string, string, string), string>();
         }
 
-        [Benchmark(Baseline = true)]
+        // [Benchmark(Baseline = true)]
         public string TryGetSingle()
         {
             if (Cached<string>.TryGet("one", out var cached))
@@ -28,7 +31,7 @@ namespace FastCache.Benchmarks
             return cached.Save("single", OneHour);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public string TryGetTwo()
         {
             if (Cached<string>.TryGet("one", "two", out var cached))
@@ -39,7 +42,7 @@ namespace FastCache.Benchmarks
             return cached.Save("two", OneHour);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public string TryGetFour()
         {
             if (Cached<string>.TryGet("one", "two", "three", "four", out var cached))
@@ -50,19 +53,19 @@ namespace FastCache.Benchmarks
             return cached.Save("eight", OneHour);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public void SaveSingle()
         {
             _ = "single".Cache("one", OneHour);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public void SaveTwo()
         {
             _ = "two".Cache("one", "two", OneHour);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public void SaveFour()
         {
             _ = "eight".Cache("one", "two", "three", "four", OneHour);
@@ -71,32 +74,24 @@ namespace FastCache.Benchmarks
         [Benchmark]
         public string GetAndSaveSingle()
         {
-            if (!Cached<string>.TryGet("one", out var cached))
-            {
-                return cached.Value;
-            }
-
+            Cached<string>.TryGet("one", out var cached);
             return cached.Save("single", OneHour);
         }
 
-        // [Benchmark]
+        [Benchmark]
         public string GetAndSaveSeven()
         {
-            if (!Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", out var cached))
-            {
-                return cached.Value;
-            }
-
+            Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", out var cached);
             return cached.Save("seven", OneHour);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public string GetOrCompute() => Cached.GetOrCompute("new computed value", param => Delegate(param), OneHour);
 
         // [Benchmark]
         // public async ValueTask<string> GetOrComputeValueTask() => await Cached.GetOrCompute("new computed value", param => DelegateValueTask(param), OneHour);
 
-        [Benchmark]
+        // [Benchmark]
         public async Task<string> GetOrComputeTask() => await Cached.GetOrCompute("new computed value", param => DelegateTask(param), OneHour);
 
         private static string Delegate(string input) => $"computed: {input}";
