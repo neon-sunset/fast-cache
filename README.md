@@ -73,8 +73,8 @@ return cached.Save(userNote, TimeSpan.FromMinutes(5));
 - Little to no ceremony - no need to configure or initialize, just add the package and you are ready to go. Behavior can be further customized via env variables
 - Focused design allows to reduce memory footprint per item and minimize overhead via inlining and static dispatch
 - High performance and scaling covering both simplest applications and highly loaded services. Can handle 1-100M+ items with O(1) access/storage time and O(n~) memory cost/cpu time cost for full eviction
-- Lock-free and wait-free access and storage of cache items. Performance will scale with threads, data synchronization cost is minimal thanks to 'NonBlocking.ConcurrentDictionary' backing store by Vladimir Sadov
-- Multi-key and composite-key store access without collisions between key types. Collisions are avoided by dispering type hashcode with value hashcode to compose cache item key ('int')
+- Lock-free and wait-free get and add/update of cached items. Performance will improve with threads, data synchronization cost is minimal thanks to 'NonBlocking.ConcurrentDictionary' backing store by Vladimir Sadov
+- Multi-key store access without collisions between key types. Collisions are avoided by statically dispatching on the composite key type signature e.g. `string, CustomEnum, int` together with the type of cached value 
 - Handles timezone/dst updates on most platforms by relying on system uptime timestamp for item expiration - `Environment.TickCount64` which is also significantly faster than `DateTime.UtcNow`
 
 ## Access / Store latency and cost at throughput saturation
