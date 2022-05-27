@@ -204,7 +204,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         // will be handled by the next full eviction (evicted or pushed to quick list if capacity allows it).
         AtomicSwapActive(postEvictionCount);
 
-        // CacheManager.ReportEvictions<T>(entriesRemovedCount); - TODO
+        CacheManager.ReportEvictions<V>(entriesRemovedCount);
         s_evictionLock.Release();
 
 #if FASTCACHE_DEBUG
