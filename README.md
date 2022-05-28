@@ -3,8 +3,8 @@
 [![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/)
 
 High-performance, thread-safe and easy to use cache for items with set expiration time.
-Optimized for both dozens and millions of items. Features: lock-free reads and writes, allocation-free reads and low memory footprint per item.
-Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.
+Optimized for both dozens and millions of items. Features lock-free reads and writes, allocation-free reads, low memory footprint per item and automatic eviction.
+Credit to Vladimir Sadov for his implementation of `NonBlocking.ConcurrentDictionary` which is used as an underlying store.
 
 ## Quick start
 `dotnet add package FastCache.Cached` or `Install-Package FastCache.Cached`
@@ -24,7 +24,7 @@ public FinancialReport GetReport(int month, int year)
 }
 ```
 
-Wrap a regular method call
+Wrap and cache the result of a regular method call
 ```csharp
 var report = Cached.GetOrCompute(month, year, GetReport, TimeSpan.FromMinutes(60));
 ```
@@ -44,8 +44,12 @@ public FinancialReport GetReport(int month, int year)
     return cached.Value;
   }
 
-  return cached.Save(report, TimeSpan.FromMinutes(60), limit: 750_000);
+  return cached.Save(report, TimeSpan.FromMinutes(60), limit: 2_500_000);
 }
+```
+```csharp
+// GetOrCompute with maximum cache size limit. RAM is usually plenty but what if your user runs Chrome?
+var report = Cached.GetOrCompute(month, year, GetReport, TimeSpan.FromMinutes(60), limit: 2_500_000);
 ```
 
 Add new data without accessing cache item first (e.g. loading a large batch of independent values to cache)
@@ -60,7 +64,7 @@ foreach (var ((month, year), report) in reportsResultBatch)
 
 Store common type (string) in a shared cache store (other users may share the cache for the same parameter type, this time it's `int`)
 ```csharp
-// GetOrCompute<...V> where V is string
+// GetOrCompute<...V> where V is string but what if you want to save some other string for the same 'int' number?
 var userNote = Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
 ```
 
@@ -85,10 +89,10 @@ return cached.Save(userNote, TimeSpan.FromMinutes(5));
 - In-memory cache for items with expiration time and automatic eviction
 - Little to no ceremony - no need to configure or initialize, just add the package and you are ready to go. Behavior can be further customized via env variables
 - Focused design allows to reduce memory footprint per item and minimize overhead via inlining and static dispatch
-- High performance and scaling covering both simplest applications and highly loaded services. Can handle 1-100M+ items with O(1) access/storage time and O(n~) memory cost/cpu time cost for full eviction
-- Lock-free and wait-free get and add/update of cached items. Performance will improve with threads, data synchronization cost is minimal thanks to 'NonBlocking.ConcurrentDictionary' backing store by Vladimir Sadov
-- Multi-key store access without collisions between key types. Collisions are avoided by statically dispatching on the composite key type signature e.g. `string, CustomEnum, int` together with the type of cached value 
-- Handles timezone/dst updates on most platforms by relying on system uptime timestamp for item expiration - `Environment.TickCount64` which is also significantly faster than `DateTime.UtcNow`
+- High performance and scaling covering both simplest applications and highly loaded services. Can handle 1-100M+ items with O(1) read/write time and up to O(n~) memory cost/cpu time cost for full eviction
+- Lock-free and wait-free reads/writes of cached items. Performance will improve with threads, data synchronization cost is minimal thanks to [NonBlocking.ConcurrentDictionary](https://github.com/VSadov/NonBlocking)
+- Multi-key store access without collisions between key types. Collisions are avoided by statically dispatching on the composite key type signature e.g. `(string, CustomEnum, int)` together with the type of cached value - composite keys are structurally evaluated for equality, different combinations will correspond to different cache items
+- Handles timezone/DST updates on most platforms by relying on system uptime timestamp for item expiration - `Environment.TickCount64` which is also significantly faster than `DateTime.UtcNow`
 
 ## Access / Store latency and cost at throughput saturation
 ``` ini

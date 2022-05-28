@@ -7,8 +7,8 @@
     <PackageTags>Cache;Caching;Lock-Free;Performance;MemoryCache;In-Memory;High-Load</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>High-performance, thread-safe and easy to use cache for items with set expiration time.
-Optimized for both dozens and millions of items. Features: lock-free reads and writes, allocation-free reads and low memory footprint per item.
-Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.</Description>
+Optimized for both dozens and millions of items. Features lock-free reads and writes, allocation-free reads, low memory footprint per item and automatic eviction.
+Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as an underlying store.</Description>
   </PropertyGroup>
 
   <PropertyGroup>
