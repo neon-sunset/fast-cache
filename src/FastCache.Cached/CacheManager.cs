@@ -117,7 +117,7 @@ public static class CacheManager
         }
 
 #if FASTCACHE_DEBUG
-        PrintEvicted<K, V>("cache store", evictedFromCacheStore, stopwatch.Elapsed);
+        PrintEvicted<K, V>(evictedFromCacheStore, stopwatch.Elapsed);
 #endif
 
         ThreadPool.QueueUserWorkItem(async static _ => await ConsiderFullGC<V>());
@@ -165,7 +165,7 @@ public static class CacheManager
         }
 
 #if FASTCACHE_DEBUG
-        PrintEvicted<K, V>("cache store", evictedFromCacheStore, stopwatch.Elapsed);
+        PrintEvicted<K, V>(evictedFromCacheStore, stopwatch.Elapsed);
 #endif
 
         await Task.Delay(Constants.EvictionCooldownDelayOnGC);
@@ -267,9 +267,11 @@ public static class CacheManager
     }
 
 #if FASTCACHE_DEBUG
-    private static void PrintEvicted<K, V>(string type, uint count, TimeSpan elapsed)
+    private static void PrintEvicted<K, V>(uint count, TimeSpan elapsed)
     {
-        Console.WriteLine($"FastCache: Evicted {count} of {typeof(K).Name}:{typeof(V).Name} from {type}. Took {elapsed.TotalMilliseconds} ms.");
+        var size = CacheStaticHolder<K, V>.s_store.Count;
+        Console.WriteLine(
+            $"FastCache: Evicted {count} of {typeof(K).Name}:{typeof(V).Name} from cache store. Size after: {size}, took {elapsed.TotalMilliseconds} ms.");
     }
 #endif
 }

@@ -19,7 +19,8 @@ namespace FastCache.Benchmarks
 
         private readonly MemoryCache _memoryCache = MemoryCache.Default;
 
-        private readonly ICacheManager<string> _cacheManager = CacheFactory.Build<string>(p => p
+        private readonly ICacheManager<string> _cacheManager = CacheFactory
+            .Build<string>(p => p
             .WithMicrosoftMemoryCacheHandle()
             .WithExpiration(CacheManager.Core.ExpirationMode.Absolute, TimeSpan.FromMinutes(60)));
 

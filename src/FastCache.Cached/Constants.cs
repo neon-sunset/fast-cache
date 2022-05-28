@@ -2,7 +2,10 @@ namespace FastCache;
 
 internal static class Constants
 {
-    private const int DefaultQuickListMinLengthFactor = 128;
+    /// <summary>
+    /// Min length: 64 * 128 default multiplier = 8192 elements. If changed, the value must be a power of 2.
+    /// </summary>
+    private const int DefaultQuickListMinLengthFactor = 64;
     private const uint DefaultQuickListAutoLengthPercent = 5;
     private const uint DefaultIntervalMultiplyFactor = 15;
     private const uint DefaultParallelEvictionThreshold = 1_048_576;
@@ -17,9 +20,6 @@ internal static class Constants
     private static readonly Random Random = new();
 #endif
 
-    // OldestEntries list and eviction batch size length limits.
-    // Higher limit works well with short-lived first-gen-contained cache items
-    // but performs poorly if many items of the same type have inconsistent lifetimes.
     public static readonly int QuickListMinLength = (int
         .TryParse(GetVar("FASTCACHE_QUICKLIST_MIN_LENGTH_FACTOR"), out var parsed) ? parsed : DefaultQuickListMinLengthFactor) * 128;
 

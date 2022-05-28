@@ -44,6 +44,11 @@ public readonly struct Cached<K, V> where K : notnull
         return value;
     }
 
+    public V Save(V value, TimeSpan expiration, int limit)
+    {
+        return CacheStaticHolder<K, V>.s_store.Count < limit ? Save(value, expiration) : value;
+    }
+
     public void Remove()
     {
         CacheStaticHolder<K, V>.s_store.TryRemove(_key, out _);

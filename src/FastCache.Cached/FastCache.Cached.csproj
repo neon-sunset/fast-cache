@@ -6,8 +6,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>Cache;Caching;Lock-Free;Performance;MemoryCache;In-Memory;High-Load</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>High-performance, thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
-Features include automatic eviction, lock-free and wait-free access and storage, allocation-free access and low memory footprint.
+    <Description>High-performance, thread-safe and easy to use cache for items with set expiration time.
+Optimized for both dozens and millions of items. Features: lock-free reads and writes, allocation-free reads and low memory footprint per item.
 Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.</Description>
   </PropertyGroup>
 

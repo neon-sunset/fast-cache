@@ -63,7 +63,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         var now = TimeUtils.Now;
         var store = CacheStaticHolder<K, V>.s_store;
 
-        var timeout = resize ? 25 : 0;
+        var timeout = resize ? 100 : 0;
         if (!s_evictionLock.Wait(timeout))
         {
             return false;
@@ -85,7 +85,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             s_evictionLock.Release();
             return true;
         }
-        else if (_count is 0)
+        else if (AtomicCount is 0)
         {
             if (resize)
             {
@@ -120,21 +120,21 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 
         for (uint i = 0; i < entriesCount; i++)
         {
-            var (identifier, expiresAt) = entries[i];
+            var (key, expiresAt) = entries[i];
 
             if (now > expiresAt)
             {
-                if (store.TryGetValue(identifier, out var inner))
+                if (store.TryGetValue(key, out var inner))
                 {
                     var itemExpiresAt = inner._expiresAt;
                     if (now > itemExpiresAt)
                     {
-                        store.TryRemove(identifier, out _);
+                        store.TryRemove(key, out _);
                         entriesRemovedCount++;
                     }
                     else
                     {
-                        entries[i] = (identifier, itemExpiresAt);
+                        entries[i] = (key, itemExpiresAt);
                         entriesSurvivedIndexes[entriesSurvivedCount] = i;
                         entriesSurvivedCount++;
                     }
@@ -163,7 +163,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             s_evictionLock.Release();
 
 #if FASTCACHE_DEBUG
-            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(K).Name}:{typeof(V).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
+            PrintEvicted(sw.Elapsed, entriesRemovedCount);
 #endif
             return entriesRemovedCount >= totalCount;
         }
@@ -174,7 +174,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             s_evictionLock.Release();
 
 #if FASTCACHE_DEBUG
-            Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(K).Name}:{typeof(V).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
+            PrintEvicted(sw.Elapsed, entriesRemovedCount);
 #endif
             return entriesSurvivedCount >= totalCount;
         }
@@ -208,7 +208,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         s_evictionLock.Release();
 
 #if FASTCACHE_DEBUG
-        Console.WriteLine($"FastCache: Evicted {entriesRemovedCount} {typeof(K).Name}:{typeof(V).Name} from quick list. Took {sw.Elapsed.Ticks / 10} us");
+        PrintEvicted(sw.Elapsed, entriesRemovedCount);
 #endif
         return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
     }
@@ -252,4 +252,12 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 
          Interlocked.Exchange(ref _count, 0);
     }
+
+#if FASTCACHE_DEBUG
+    private void PrintEvicted(TimeSpan elapsed, uint evictedCount)
+    {
+        Console.WriteLine(
+            $"FastCache: Evicted {evictedCount} {typeof(K).Name}:{typeof(V).Name} from quick list. Size after: {AtomicCount}, took {elapsed.Ticks / 10} us");
+    }
+#endif
 }

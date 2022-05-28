@@ -2,8 +2,8 @@
 [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml)
 [![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/)
 
-High-performance, thread-safe and simple to use caching library that scales with ease from tens to tens of millions of items.
-Features include automatic eviction, lock-free and wait-free access and storage, allocation-free access and low memory footprint.
+High-performance, thread-safe and easy to use cache for items with set expiration time.
+Optimized for both dozens and millions of items. Features: lock-free reads and writes, allocation-free reads and low memory footprint per item.
 Credit and thanks to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDictionary which is used as a backing store.
 
 ## Quick start
@@ -35,6 +35,19 @@ Or an async one
 var report = await Cached.GetOrCompute(month, year, GetReportAsync, TimeSpan.FromMinute(60));
 ```
 
+Save the value to cache only if the cache size is below limit
+```csharp
+public FinancialReport GetReport(int month, int year)
+{
+  if (Cached<FinancialReport>.TryGet(month, year, out var cached))
+  {
+    return cached.Value;
+  }
+
+  return cached.Save(report, TimeSpan.FromMinutes(60), limit: 750_000);
+}
+```
+
 Add new data without accessing cache item first (e.g. loading a large batch of independent values to cache)
 ```csharp
 using FastCache.Extensions;
@@ -45,9 +58,9 @@ foreach (var ((month, year), report) in reportsResultBatch)
 }
 ```
 
-Store common type (string) in a shared cache store (OK for small (<1M) to mid (<5M) sized collections)
+Store common type (string) in a shared cache store (other users may share the cache for the same parameter type, this time it's `int`)
 ```csharp
-// GetOrCompute<T...> where T is string
+// GetOrCompute<...V> where V is string
 var userNote = Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
 ```
 
@@ -55,7 +68,7 @@ Or in a separate one by using value object (Recommended)
 ```csharp
 readonly record struct UserNote(string Value);
 
-// GetOrCompute<T...> where T is UserNote
+// GetOrCompute<...V> where V is UserNote
 var userNote = Cached.GetOrCompute(userId, GetUserNote, TimeSpan.FromMinutes(5));
 ```
 ```csharp
