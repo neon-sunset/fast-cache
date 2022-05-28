@@ -34,7 +34,7 @@ var report = Cached.GetOrCompute(month, year, GetReport, TimeSpan.FromMinutes(60
 Or an async one
 ```csharp
 // For methods that return Task<T> or ValueTask<T>
-var report = await Cached.GetOrCompute(month, year, GetReportAsync, TimeSpan.FromMinute(60));
+var report = await Cached.GetOrCompute(month, year, GetReportAsync, TimeSpan.FromMinutes(60));
 ```
 
 Save the value to cache only if the cache size is below limit
