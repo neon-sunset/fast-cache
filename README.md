@@ -4,6 +4,7 @@
 
 High-performance, thread-safe and easy to use cache for items with set expiration time.
 Optimized for both dozens and millions of items. Features lock-free reads and writes, allocation-free reads, low memory footprint per item and automatic eviction.
+
 Credit to Vladimir Sadov for his implementation of `NonBlocking.ConcurrentDictionary` which is used as an underlying store.
 
 ## Quick start
