@@ -37,7 +37,7 @@ Or an async one
 var report = await Cached.GetOrCompute(month, year, GetReportAsync, TimeSpan.FromMinutes(60));
 ```
 
-Save the value to cache only if the cache size is below limit
+Save the value to cache but only if the cache size is below limit
 ```csharp
 public FinancialReport GetReport(int month, int year)
 {
