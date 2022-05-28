@@ -50,7 +50,8 @@ public FinancialReport GetReport(int month, int year)
 }
 ```
 ```csharp
-// GetOrCompute with maximum cache size limit. RAM is usually plenty but what if your user runs Chrome?
+// GetOrCompute with maximum cache size limit.
+// RAM is usually plenty but what if your user runs Chrome?
 var report = Cached.GetOrCompute(month, year, GetReport, TimeSpan.FromMinutes(60), limit: 2_500_000);
 ```
 
@@ -66,7 +67,8 @@ foreach (var ((month, year), report) in reportsResultBatch)
 
 Store common type (string) in a shared cache store (other users may share the cache for the same parameter type, this time it's `int`)
 ```csharp
-// GetOrCompute<...V> where V is string but what if you want to save some other string for the same 'int' number?
+// GetOrCompute<...V> where V is string.
+// To save some other string for the same 'int' number simultaneously, look at the option below :)
 var userNote = Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
 ```
 
