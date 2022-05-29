@@ -51,7 +51,7 @@ public FinancialReport GetReport(int month, int year)
 ```
 ```csharp
 // GetOrCompute with maximum cache size limit.
-// RAM is usually plenty but what if your user runs Chrome?
+// RAM is usually plenty but what if the user runs Chrome?
 var report = Cached.GetOrCompute(month, year, GetReport, TimeSpan.FromMinutes(60), limit: 2_500_000);
 ```
 
