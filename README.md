@@ -120,7 +120,7 @@ Further reading "Keys and composite keys performance estimation": **[Code](src/F
 ### Notes
 - FastCache.Cached defaults provide highest performance and don't require from a developer to spend time on finding a way to use API optimally.
 - Comparison was made with a string-based key. Composite keys supported by FastCache.Cached have additional performance cost.
-- `CacheManger` documentation suggests using `WithMicrosoftMemoryCacheHandle()` by default which has terrible performance. We give it a better fighting chance by using WithDictionaryHandle() instead.
+- `CacheManger` documentation suggests using `WithMicrosoftMemoryCacheHandle()` by default which has terrible performance. We give it a better fighting chance by using `WithDictionaryHandle()` instead.
 - Overall performance stays relatively comparable when downgrading to .NET 5 and decreases further by 15-30% when using .NET Core 3.1 with the difference ratio between libraries staying close to provided above.
 - Non-standard platforms (the ones that aren't CLR based) use DateTime.UtcNow fallback instead of Environment.TickCount64, which will perform slower depending on the platform-specific implementation.
 ### On benchmark data
