@@ -2,7 +2,7 @@
 This data was gathered with `ShortRunJob` and is subject to high variance.
 The benchmark was run to estimate approximate cost for the most probable params combinations.
 It is planned to further research and, if possible, provide much more optimized composite keys code paths.
-As of now, composite keys are based around ``ValutTuple`2`` and its implementations of `Equals` and `GetHashCode`.
+As of now, composite keys use ``ValueTuple`2`` and its implementations of `Equals` and `GetHashCode`.
 It appears those perform better than just `readonly record struct`s.
 As mentioned above, it is necessary to investigate if hand-rolled specialized implementations per each key combination perform better than `ValueTuple`s to produce better results.
 
