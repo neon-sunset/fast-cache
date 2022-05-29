@@ -31,12 +31,12 @@ public static class EvictionStress
 
     public static void Run()
     {
-        // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<User>());
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(16));
-        ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Struct>());
-        ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Uri2>());
-        ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<decimal>());
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<nuint>(75));
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(10));
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>(10));
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>());
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Uri2>());
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<decimal>());
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<nuint>(60));
 
         Console.ReadLine();
     }
@@ -44,7 +44,7 @@ public static class EvictionStress
     private static void SeedRandomlyExpirable<T>(int millions) where T : new()
     {
         const int secondsMin = 1;
-        const int secondsMax = 300;
+        const int secondsMax = 900;
         const uint count = 100_000;
 
         // CacheManager.SuspendEviction<T>();
@@ -73,9 +73,9 @@ public static class EvictionStress
     {
         const int countPerStep = 250_000;
 
-        const int steps = 40;
+        const int steps = 120;
         const int secondsMin = 1;
-        const int secondsMax = 300;
+        const int secondsMax = 900;
 
         const int stepIncrement = (secondsMax - secondsMin) / steps;
 

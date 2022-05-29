@@ -213,7 +213,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
     }
 
-    private static int CalculateResize(int totalCount)
+    private static int CalculateResize(long totalCount)
     {
         return Math.Max(
             (int)((double)Constants.QuickListAdjustableLengthRatio / 100 * totalCount),

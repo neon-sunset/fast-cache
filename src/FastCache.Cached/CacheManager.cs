@@ -267,7 +267,7 @@ public static class CacheManager
     }
 
 #if FASTCACHE_DEBUG
-    private static void PrintEvicted<K, V>(uint count, TimeSpan elapsed)
+    private static void PrintEvicted<K, V>(uint count, TimeSpan elapsed) where K : notnull
     {
         var size = CacheStaticHolder<K, V>.s_store.Count;
         Console.WriteLine(
