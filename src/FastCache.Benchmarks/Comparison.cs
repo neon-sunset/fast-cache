@@ -1,9 +1,9 @@
-using System.Runtime.Caching;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using CacheManager.Core;
 using FastCache.Extensions;
 using LazyCache;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace FastCache.Benchmarks
 {
@@ -17,7 +17,7 @@ namespace FastCache.Benchmarks
         private const string ItemKey = "item key value";
         private const string ItemValue = "single value string";
 
-        private readonly MemoryCache _memoryCache = MemoryCache.Default;
+        private readonly MemoryCache _memoryCache = new(new MemoryCacheOptions());
 
         private readonly ICacheManager<string> _cacheManager = CacheFactory
             .Build<string>(p => p
