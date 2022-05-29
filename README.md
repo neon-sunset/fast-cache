@@ -104,22 +104,25 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 .NET 6.0.5 (6.0.522.21309), X64 RyuJIT
 ```
-|                Method |        Mean |     Error |    StdDev |  Gen 0 |  Gen 1 | Allocated |
-|---------------------- |------------:|----------:|----------:|-------:|-------:|----------:|
-| Get: FastCache.Cached |    15.92 ns |  0.367 ns |  0.941 ns |      - |      - |         - |
-| Get: MemoryCache      |    58.93 ns |  1.207 ns |  1.239 ns |      - |      - |         - |
-| Get: CacheManager     |   167.03 ns |  3.395 ns |  9.002 ns | 0.0105 |      - |     176 B |
-| Get: LazyCache        |    74.46 ns |  1.510 ns |  2.214 ns |      - |      - |         - |
-| Add/Upd: FC.Cached    |    34.57 ns |  0.920 ns |  2.711 ns | 0.0024 |      - |      40 B |
-| Add/Upd: MemoryCache  |   206.15 ns |  4.127 ns |  8.049 ns | 0.0134 |      - |     224 B |
-| Add/Upd: CacheManager | 1,052.22 ns | 20.926 ns | 27.209 ns | 0.0744 |      - |   1,248 B |
-| Add/Upd: LazyCache    |   281.60 ns |  3.984 ns |  3.532 ns | 0.0286 |      - |     480 B |
+|                Method |      Mean |    Error |    StdDev |    Median | Ratio |  Gen 0 | Allocated |
+|---------------------- |----------:|---------:|----------:|----------:|------:|-------:|----------:|
+| Get: FastCache.Cached |  15.63 ns | 0.452 ns |  1.334 ns |  14.61 ns |  1.00 |      - |         - |
+| Get: MemoryCache      |  56.93 ns | 1.179 ns |  1.904 ns |  55.73 ns |  3.68 |      - |         - |
+| Get: CacheManager     |  87.54 ns | 1.751 ns |  2.454 ns |  89.32 ns |  5.68 |      - |         - |
+| Get: LazyCache        |  73.43 ns | 1.216 ns |  1.138 ns |  73.25 ns |  4.71 |      - |         - |
+| Add/Upd: FC.Cached    |  33.75 ns | 0.861 ns |  2.539 ns |  31.92 ns |  2.18 | 0.0024 |      40 B |
+| Add/Upd: MemoryCache  | 203.32 ns | 4.033 ns |  6.956 ns | 199.77 ns | 13.23 | 0.0134 |     224 B |
+| Add/Upd: CacheManager | 436.85 ns | 8.729 ns | 19.160 ns | 433.97 ns | 28.10 | 0.0215 |     360 B |
+| Add/Upd: LazyCache    | 271.56 ns | 5.428 ns |  7.785 ns | 274.19 ns | 17.58 | 0.0286 |     480 B |
+
+Further reading "Keys and composite keys performance estimation": **[Code](src/FastCache.Benchmarks/Defaults.cs)** / **[Results](docs/full-api-approx-perf-estimation-net7.md)**
+
 ### Notes
-- *FastCache.Cached add and update operations are represented by single `cached.Save(param1...param7, expiration)` which will either add or replace existing value updating its expiration*
-- *Comparison was made with a string-based key. Composite keys supported by FastCache.Cached have significant performance cost if they have reference types which incurs 30-40ns extra cpu cost per each reference typed param*
-- *CacheManager library provides methods with highly inconsistent performance and allocation characteristics. The method for it was chosen on the basis of closest functionality to 'non-throwing add or update'*
-- *Overall performance stays relatively comparable when downgrading to .NET 5 and decreases further by 15-30% when using .NET Core 3.1 with the difference ratio between libraries staying close to provided above*
-- *Non-standard platforms (the ones that aren't CLR based) use DateTime.UtcNow fallback instead of Environment.TickCount64, which will perform slower depending on the platform-specific implementation*
+- FastCache.Cached defaults provide highest performance and don't require from a developer to spend time on finding a way to use API optimally.
+- Comparison was made with a string-based key. Composite keys supported by FastCache.Cached have additional performance cost.
+- `CacheManger` documentation suggests using `WithMicrosoftMemoryCacheHandle()` by default which has terrible performance. We give it a better fighting chance by using WithDictionaryHandle() instead.
+- Overall performance stays relatively comparable when downgrading to .NET 5 and decreases further by 15-30% when using .NET Core 3.1 with the difference ratio between libraries staying close to provided above.
+- Non-standard platforms (the ones that aren't CLR based) use DateTime.UtcNow fallback instead of Environment.TickCount64, which will perform slower depending on the platform-specific implementation.
 ### On benchmark data
 Throughput saturation means that all necessary data structures are fully available in the CPU cache and branch predictor has learned branch patters of the executed code.
 This is only possible in scenarios such as items being retrieved or added/updated in a tight loop or very frequently on the same cores.

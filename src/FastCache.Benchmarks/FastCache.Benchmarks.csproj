@@ -3,8 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <LangVersion>10</LangVersion>
-    <!-- <TargetFramework>net5.0</TargetFramework> -->
-    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0;net7.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -19,7 +18,6 @@
     <PackageReference Include="LazyCache" Version="2.4.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
     <PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
-    <!-- <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.1" /> -->
   </ItemGroup>
 
   <ItemGroup>
