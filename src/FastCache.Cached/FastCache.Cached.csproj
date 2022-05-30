@@ -40,7 +40,7 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)../../README.md" Pack="true" PackagePath="/" />
-    <None Include="assets/cached-transparent.png" Pack="true" PackagePath="/" />
+    <None Include="Assets/cached-transparent.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
