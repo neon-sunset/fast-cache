@@ -9,14 +9,12 @@ using Microsoft.Extensions.Caching.Memory;
 namespace FastCache.Benchmarks;
 
 [MemoryDiagnoser]
-[DisassemblyDiagnoser(maxDepth: 10, exportCombinedDisassemblyReport: true, printSource: true)]
-[SimpleJob(RuntimeMoniker.Net60)]
 public class Comparison
 {
     enum EnumKey { Default, Custom }
 
-    private const string ItemKey = "item key value";
-    private const string ItemValue = "single value string";
+    private const string ItemKey = "item key";
+    private const string ItemValue = "item value";
 
     private readonly IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
