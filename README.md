@@ -1,5 +1,5 @@
 # FastCache.Cached
-<img src="src/FastCache.Cached/Assets/cached-transparent.png" width="120" height="120" align="right" />
+<img src="src/FastCache.Cached/Assets/cached-transparent.png" width="180" height="180" align="right" />
 
 [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml)
 [![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/)
