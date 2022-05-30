@@ -19,6 +19,7 @@ In addition, other alternatives would force users to explicitly specify type sig
 Current approach is deemed appropriate to provide best balance between performance, usability and being foolproof while allowing for improvements in the future without breaking existing code.
 
 ## Data
+See code here: [src/FastCache.Benchmarks/Defaults.cs](https://github.com/neon-sunset/fast-cache/blob/main/src/FastCache.Benchmarks/Defaults.cs)
 ``` ini
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
