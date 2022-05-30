@@ -5,6 +5,7 @@
     <RepositoryUrl>https://github.com/neon-sunset/fast-cache</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>Cache;Caching;Lock-Free;Performance;MemoryCache;In-Memory;High-Load</PackageTags>
+    <PackageIcon>cached-transparent.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>High-performance, thread-safe and easy to use cache for items with set expiration time.
 Optimized for both dozens and millions of items. Features lock-free reads and writes, allocation-free reads, low memory footprint per item and automatic eviction.
@@ -39,6 +40,7 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)../../README.md" Pack="true" PackagePath="/" />
+    <None Include="assets/cached-transparent.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
