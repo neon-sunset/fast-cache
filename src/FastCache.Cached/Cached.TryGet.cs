@@ -54,13 +54,7 @@ public static class Cached<V>
             .s_store
             .TryGetValue(key, out var inner);
 
-        if (found && inner.IsNotExpired())
-        {
-            cached = new(key, inner.Value, found: true);
-            return true;
-        }
-
-        cached = new(key, default!, found);
-        return false;
+        cached = new(key, inner.Value, found);
+        return found && inner.IsNotExpired();
     }
 }

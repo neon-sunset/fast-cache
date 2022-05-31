@@ -181,7 +181,6 @@ public static class CacheManager
             : EvictFromCacheStoreSingleThreaded<K, V>();
     }
 
-    [MethodImpl(512)] // MethodImplOptions.AggressiveOptimization on supported platforms
     private static uint EvictFromCacheStoreSingleThreaded<K, V>() where K : notnull
     {
         var now = TimeUtils.Now;
@@ -206,15 +205,15 @@ public static class CacheManager
         return totalRemoved;
     }
 
-    [MethodImpl(512)] // MethodImplOptions.AggressiveOptimization on supported platforms
-    // TODO: Add backoff logic if not enough items expired compared to expected. Recalculate avg expiration?
     private static uint EvictFromCacheStoreParallel<K, V>() where K : notnull
     {
         var now = TimeUtils.Now;
         uint totalRemoved = 0;
 
-        void CheckAndRemove(K key, long expiresAt, ref uint count)
+        void CheckAndRemove(K key, long expiresAt)
         {
+            ref var count = ref totalRemoved;
+
             if (now > expiresAt)
             {
                 CacheStaticHolder<K, V>.s_store.TryRemove(key, out _);
@@ -229,7 +228,7 @@ public static class CacheManager
         CacheStaticHolder<K, V>.s_store
             .AsParallel()
             .AsUnordered()
-            .ForAll(item => CheckAndRemove(item.Key, item.Value._expiresAt, ref totalRemoved));
+            .ForAll(item => CheckAndRemove(item.Key, item.Value._expiresAt));
 
         return totalRemoved;
     }

@@ -17,7 +17,6 @@
     <IsPackable>false</IsPackable>
     <DebuggerSupport>false</DebuggerSupport>
     <PublishTrimmed>true</PublishTrimmed>
-    <PublishSingleFile>true</PublishSingleFile>
     <TrimmerDefaultAction>link</TrimmerDefaultAction>
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
