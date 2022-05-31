@@ -189,8 +189,9 @@ public static class CacheManager
         var quickList = CacheStaticHolder<K, V>.s_quickList;
         uint totalRemoved = 0;
 
-        foreach (var (identifier, (_, expiresAt)) in store)
+        foreach (var (identifier, value) in store)
         {
+            var expiresAt = value._expiresAt;
             if (now > expiresAt)
             {
                 store.TryRemove(identifier, out _);

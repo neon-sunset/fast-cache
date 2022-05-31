@@ -55,7 +55,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -66,7 +66,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -77,7 +77,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -88,7 +88,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -99,7 +99,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -110,7 +110,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -121,7 +121,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -132,7 +132,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -143,7 +143,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -154,7 +154,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -165,7 +165,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -176,7 +176,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -187,7 +187,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]
@@ -198,7 +198,7 @@ public class Defaults
             return cached.Value;
         }
 
-        return BenchmarkHelpers.Unreachable<string>();
+        return Unreachable<string>();
     }
 
     [Benchmark]

@@ -11,8 +11,6 @@ namespace FastCache.Benchmarks;
 [MemoryDiagnoser]
 public class Comparison
 {
-    enum EnumKey { Default, Custom }
-
     private const string ItemKey = "item key";
     private const string ItemValue = "item value";
 
@@ -110,7 +108,4 @@ public class Comparison
     {
         _lazyCache.Add(ItemKey, ItemValue, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
     }
-
-    [DoesNotReturn]
-    private static string Unreachable<T>() => throw new InvalidOperationException();
 }

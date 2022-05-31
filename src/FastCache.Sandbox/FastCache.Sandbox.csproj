@@ -15,9 +15,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <DebuggerSupport>false</DebuggerSupport>
     <PublishTrimmed>true</PublishTrimmed>
+    <PublishSingleFile>true</PublishSingleFile>
     <TrimmerDefaultAction>link</TrimmerDefaultAction>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
 	  <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ILLinkWarningLevel>999</ILLinkWarningLevel>
+    <ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
     <IlcTrimMetadata>true</IlcTrimMetadata>
     <IlcOptimizationPreference>Speed</IlcOptimizationPreference>

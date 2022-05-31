@@ -77,10 +77,4 @@ internal readonly struct CachedInner<T>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsNotExpired() => TimeUtils.Now < _expiresAt;
-
-    public void Deconstruct(out T value, out long expiresAt)
-    {
-        value = Value;
-        expiresAt = _expiresAt;
-    }
 }
