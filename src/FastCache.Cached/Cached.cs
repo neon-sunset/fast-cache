@@ -28,7 +28,7 @@ public readonly struct Cached<K, V> where K : notnull
         var milliseconds = expiration.Ticks / TimeSpan.TicksPerMillisecond;
 
         var expiresAt = now + milliseconds;
-        if (expiresAt < now)
+        if (expiresAt <= now)
         {
             InvalidExpiration(expiration);
         }
