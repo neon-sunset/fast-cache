@@ -63,8 +63,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         var now = TimeUtils.Now;
         var store = CacheStaticHolder<K, V>.s_store;
 
-        var timeout = resize ? 100 : 0;
-        if (!s_evictionLock.Wait(timeout))
+        if (!s_evictionLock.Wait(0))
         {
             return false;
         }
