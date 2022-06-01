@@ -44,7 +44,7 @@ public static class EvictionStress
     private static void SeedRandomlyExpirable<T>(int millions) where T : new()
     {
         const int secondsMin = 1;
-        const int secondsMax = 600;
+        const int secondsMax = 900;
         const uint count = 100_000;
 
         // CacheManager.SuspendEviction<T>();
@@ -56,7 +56,7 @@ public static class EvictionStress
             {
                 var rand = TimeSpan.FromSeconds(Random.Shared.Next(secondsMin, secondsMax));
 
-                new T().Cache(i, num, rand);
+                new T().Cache(i, "val2", num, "val4", '!', true, 0.1337f, rand);
             }
 
             var elapsed = sw.Elapsed;
@@ -87,7 +87,7 @@ public static class EvictionStress
 
             for (int j = 0; j < countPerStep; j++)
             {
-                new T().Cache(i, j, expiration);
+                new T().Cache(i, "val2", j, "val4", '!', true, 0.1337f, expiration);
             }
         }
 
@@ -109,7 +109,7 @@ public static class EvictionStress
             var sw = Stopwatch.StartNew();
             for (uint i = 0; i < count; i++)
             {
-                new T().Cache(i, num, expiration);
+                new T().Cache(i, "val2", num, "val4", '!', true, 0.1337f, expiration);
             }
 
             var elapsed = sw.Elapsed;

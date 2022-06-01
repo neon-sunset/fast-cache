@@ -231,7 +231,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         _inactive = ArrayPool<(K, long)>.Shared.Rent(requestedLength);
 
 #if FASTCACHE_DEBUG
-        Console.WriteLine($"FastCache: _inactive has been resized. New length: {_inactive.Length}");
+        Console.WriteLine($"FastCache: _inactive for {_inactive.GetType()} has been resized. New length: {_inactive.Length}");
 #endif
         return _inactive.Length;
     }
