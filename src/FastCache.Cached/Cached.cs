@@ -24,21 +24,14 @@ public readonly struct Cached<K, V> where K : notnull
 
     public V Save(V value, TimeSpan expiration)
     {
-        var now = TimeUtils.Now;
-        var milliseconds = expiration.Ticks / TimeSpan.TicksPerMillisecond;
+        var (timestamp, milliseconds) = TimeUtils.GetTimestamp(expiration);
 
-        var expiresAt = now + milliseconds;
-        if (expiresAt <= now)
-        {
-            InvalidExpiration(expiration);
-        }
-
-        CacheStaticHolder<K, V>.s_store[_key] = new(value, expiresAt);
+        CacheStaticHolder<K, V>.s_store[_key] = new(value, timestamp);
         CacheStaticHolder<K, V>.s_evictionJob.ReportExpiration(milliseconds);
 
         if (!_found)
         {
-            CacheStaticHolder<K, V>.s_quickList.Add(_key, expiresAt);
+            CacheStaticHolder<K, V>.s_quickList.Add(_key, timestamp);
         }
 
         return value;
@@ -64,17 +57,17 @@ public readonly struct Cached<K, V> where K : notnull
 [StructLayout(LayoutKind.Auto)]
 internal readonly struct CachedInner<T>
 {
-    internal readonly long _expiresAt;
+    internal readonly long _timestamp;
 
     public readonly T Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CachedInner(T value, long expiresAt)
+    public CachedInner(T value, long timestamp)
     {
         Value = value;
-        _expiresAt = expiresAt;
+        _timestamp = timestamp;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsNotExpired() => TimeUtils.Now < _expiresAt;
+    public bool IsNotExpired() => TimeUtils.Now < _timestamp;
 }

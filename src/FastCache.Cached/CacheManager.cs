@@ -190,15 +190,15 @@ public static class CacheManager
 
         foreach (var (identifier, value) in store)
         {
-            var expiresAt = value._expiresAt;
-            if (now > expiresAt)
+            var timestamp = value._timestamp;
+            if (now > timestamp)
             {
                 store.TryRemove(identifier, out _);
                 totalRemoved++;
             }
             else
             {
-                quickList.OverwritingNonAtomicAdd(identifier, expiresAt);
+                quickList.OverwritingNonAtomicAdd(identifier, timestamp);
             }
         }
 
@@ -210,25 +210,25 @@ public static class CacheManager
         var now = TimeUtils.Now;
         uint totalRemoved = 0;
 
-        void CheckAndRemove(K key, long expiresAt)
+        void CheckAndRemove(K key, long timestamp)
         {
             ref var count = ref totalRemoved;
 
-            if (now > expiresAt)
+            if (now > timestamp)
             {
                 CacheStaticHolder<K, V>.s_store.TryRemove(key, out _);
                 count++;
             }
             else
             {
-                CacheStaticHolder<K, V>.s_quickList.OverwritingNonAtomicAdd(key, expiresAt);
+                CacheStaticHolder<K, V>.s_quickList.OverwritingNonAtomicAdd(key, timestamp);
             }
         }
 
         CacheStaticHolder<K, V>.s_store
             .AsParallel()
             .AsUnordered()
-            .ForAll(item => CheckAndRemove(item.Key, item.Value._expiresAt));
+            .ForAll(item => CheckAndRemove(item.Key, item.Value._timestamp));
 
         return totalRemoved;
     }

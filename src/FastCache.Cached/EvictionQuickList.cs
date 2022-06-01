@@ -125,15 +125,15 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             {
                 if (store.TryGetValue(key, out var inner))
                 {
-                    var itemExpiresAt = inner._expiresAt;
-                    if (now > itemExpiresAt)
+                    var itemTimestamp = inner._timestamp;
+                    if (now > itemTimestamp)
                     {
                         store.TryRemove(key, out _);
                         entriesRemovedCount++;
                     }
                     else
                     {
-                        entries[i] = (key, itemExpiresAt);
+                        entries[i] = (key, itemTimestamp);
                         entriesSurvivedIndexes[entriesSurvivedCount] = i;
                         entriesSurvivedCount++;
                     }
