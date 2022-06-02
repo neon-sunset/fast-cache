@@ -19,7 +19,7 @@ public class Ranges
     }
 
     [ParamsSource(nameof(Inputs))]
-    public (string, string)[] Value = default!;
+    public (int, string)[] Value = default!;
 
     [GlobalSetup]
     public void GlobalSetup()
