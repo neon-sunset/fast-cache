@@ -130,3 +130,6 @@ Throughput saturation means that all necessary data structures are fully availab
 This is only possible in scenarios such as items being retrieved or added/updated in a tight loop or very frequently on the same cores.
 This means that real world performance will not saturate maximum throughput and will be bottlenecked by memory access latency and branch misprediction stalls.
 As a result, you can expect resulting performance variance of 1-10x min latency depending on hardware and outside factors.
+
+---
+### From 🇺🇦 Ukraine with ♥️

@@ -1,11 +1,10 @@
-using System.Collections.Concurrent;
 using FastCache.Helpers;
 
 namespace FastCache.Collections;
 
-public static class CachedRange<V>
+public static class CachedRange
 {
-    public static void Save<K>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
+    public static void Save<K, V>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
     {
         var (timestamp, milliseconds) = TimeUtils.GetTimestamp(expiration);
 
@@ -18,9 +17,9 @@ public static class CachedRange<V>
         CacheStaticHolder<K, V>.EvictionJob.ReportExpiration(milliseconds);
     }
 
-    public static void Save<K>(Span<(K, V)> range, TimeSpan expiration) where K : notnull => Save((ReadOnlySpan<(K, V)>)range, expiration);
+    public static void Save<K, V>(Span<(K, V)> range, TimeSpan expiration) where K : notnull => Save((ReadOnlySpan<(K, V)>)range, expiration);
 
-    public static void Save<K>(ReadOnlySpan<(K, V)> range, TimeSpan expiration) where K : notnull
+    public static void Save<K, V>(ReadOnlySpan<(K, V)> range, TimeSpan expiration) where K : notnull
     {
         if (range.Length <= 0)
         {
@@ -38,12 +37,12 @@ public static class CachedRange<V>
         CacheStaticHolder<K, V>.EvictionJob.ReportExpiration(milliseconds);
     }
 
-    public static void SaveMultithreaded<K>(Memory<(K, V)> range, TimeSpan expiration, int parallelism = -1) where K : notnull =>
+    public static void SaveMultithreaded<K, V>(Memory<(K, V)> range, TimeSpan expiration, int parallelism = -1) where K : notnull =>
         SaveMultithreaded((ReadOnlyMemory<(K, V)>)range, expiration, parallelism);
 
-    public static void SaveMultithreaded<K>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration, int parallelism = -1) where K : notnull
+    public static void SaveMultithreaded<K, V>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration, int parallelism = -1) where K : notnull
     {
-        if (parallelism is -1)
+        if (parallelism <= -1)
         {
             parallelism = Environment.ProcessorCount;
         }
@@ -52,13 +51,10 @@ public static class CachedRange<V>
 
         CacheStaticHolder<K, V>.EvictionJob.ReportExpiration(milliseconds);
 
-        var store = CacheStaticHolder<K, V>.Store;
-        var quickList = CacheStaticHolder<K, V>.QuickList;
-
         var sliceLength = range.Length / parallelism;
         var remainderLength = range.Length % parallelism;
 
-        var memorySlices = new (ReadOnlyMemory<(K, V)>, long)[parallelism];
+        var memorySlices = new (ReadOnlyMemory<(K, V)> Value, long Timestamp)[parallelism];
 
         for (int i = 0; i < parallelism; i++)
         {
@@ -68,7 +64,7 @@ public static class CachedRange<V>
             memorySlices[i] = (range[start..end], timestamp);
         }
 
-        Parallel.ForEach(memorySlices, static sliceState => ProcessSlice(sliceState.Item1.Span, sliceState.Item2));
+        Parallel.ForEach(memorySlices, static slice => ProcessSlice(slice.Value.Span, slice.Timestamp));
 
         foreach (var (key, value) in range.Span[^remainderLength..^0])
         {
@@ -77,7 +73,7 @@ public static class CachedRange<V>
         }
     }
 
-    private static void ProcessSlice<K>(ReadOnlySpan<(K, V)> slice, long timestamp) where K : notnull
+    private static void ProcessSlice<K, V>(ReadOnlySpan<(K, V)> slice, long timestamp) where K : notnull
     {
         foreach (var (key, value) in slice)
         {
@@ -86,7 +82,7 @@ public static class CachedRange<V>
         }
     }
 
-    public static void Remove<K>(IEnumerable<K> keys) where K : notnull
+    public static void Remove<K, V>(IEnumerable<K> keys) where K : notnull
     {
         foreach (var key in keys)
         {
@@ -94,7 +90,7 @@ public static class CachedRange<V>
         }
     }
 
-    public static void Remove<K>(ReadOnlySpan<K> keys) where K : notnull
+    public static void Remove<K, V>(ReadOnlySpan<K> keys) where K : notnull
     {
         foreach (var key in keys)
         {

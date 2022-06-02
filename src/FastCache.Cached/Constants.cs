@@ -43,6 +43,8 @@ internal static class Constants
     public static readonly uint ParallelEvictionThreshold = uint
         .TryParse(GetVar("FASTCACHE_PARALLEL_EVICTION_THRESHOLD"), out var parsed) ? parsed : DefaultParallelEvictionThreshold;
 
+    public static int ParallelSaveThreshold = Environment.ProcessorCount * 512;
+
     public static readonly bool ConsiderFullGC = bool.TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) && parsed;
 
     public static readonly bool DisableEvictionJob = bool.TryParse(GetVar("FASTCACHE_DISABLE_AUTO_EVICTION"), out var parsed) && parsed;
