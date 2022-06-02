@@ -26,12 +26,12 @@ public readonly struct Cached<K, V> where K : notnull
     {
         var (timestamp, milliseconds) = TimeUtils.GetTimestamp(expiration);
 
-        CacheStaticHolder<K, V>.s_store[_key] = new(value, timestamp);
-        CacheStaticHolder<K, V>.s_evictionJob.ReportExpiration(milliseconds);
+        CacheStaticHolder<K, V>.Store[_key] = new(value, timestamp);
+        CacheStaticHolder<K, V>.EvictionJob.ReportExpiration(milliseconds);
 
         if (!_found)
         {
-            CacheStaticHolder<K, V>.s_quickList.Add(_key, timestamp);
+            CacheStaticHolder<K, V>.QuickList.Add(_key, timestamp);
         }
 
         return value;
@@ -39,12 +39,12 @@ public readonly struct Cached<K, V> where K : notnull
 
     public V Save(V value, TimeSpan expiration, int limit)
     {
-        return CacheStaticHolder<K, V>.s_store.Count < limit ? Save(value, expiration) : value;
+        return CacheStaticHolder<K, V>.Store.Count < limit ? Save(value, expiration) : value;
     }
 
     public void Remove()
     {
-        CacheStaticHolder<K, V>.s_store.TryRemove(_key, out _);
+        CacheStaticHolder<K, V>.Store.TryRemove(_key, out _);
     }
 
     [DoesNotReturn]

@@ -13,7 +13,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
     private (K, long)[] _inactive;
     private long _count;
 
-    private uint AtomicCount => (uint)Interlocked.Read(ref _count);
+    public uint AtomicCount => (uint)Interlocked.Read(ref _count);
 
     public EvictionQuickList()
     {
@@ -36,6 +36,8 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             Interlocked.CompareExchange(ref _count, count + 1, count);
         }
     }
+
+    public void Reset() => Reset(lockRequired: true);
 
     /// <summary>
     /// Atomic-compatible with AtomicSwapActive, writes are not atomically visible however which is by design.
@@ -61,7 +63,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 #endif
 
         var now = TimeUtils.Now;
-        var store = CacheStaticHolder<K, V>.s_store;
+        var store = CacheStaticHolder<K, V>.Store;
 
         if (!s_evictionLock.Wait(0))
         {
@@ -78,7 +80,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             }
             else
             {
-                Reset();
+                Reset(lockRequired: false);
             }
 
             s_evictionLock.Release();
@@ -155,7 +157,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 
         if (entriesSurvivedCount == 0)
         {
-            Reset();
+            Reset(lockRequired: false);
 
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
             CacheManager.ReportEvictions<V>(entriesRemovedCount);
@@ -241,15 +243,26 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         Interlocked.Exchange(ref _count, postEvictionCount);
     }
 
-    private void Reset()
+    private void Reset(bool lockRequired)
     {
+        if (lockRequired)
+        {
+            s_evictionLock.Wait();
+        }
+
         if (RuntimeHelpers.IsReferenceOrContainsReferences<K>())
         {
-            var count = AtomicCount;
-            Array.Clear(_active, 0, (int)count);
+            var entries = _active;
+            var length = Math.Max((int)AtomicCount, entries.Length);
+            Array.Clear(_active, 0, length);
         }
 
          Interlocked.Exchange(ref _count, 0);
+
+         if (lockRequired)
+        {
+            s_evictionLock.Release();
+        }
     }
 
 #if FASTCACHE_DEBUG

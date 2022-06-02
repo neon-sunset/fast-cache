@@ -51,7 +51,7 @@ public static class Cached<V>
     private static bool TryGetInternal<K>(K key, out Cached<K, V> cached) where K : notnull
     {
         var found = CacheStaticHolder<K, V>
-            .s_store
+            .Store
             .TryGetValue(key, out var inner);
 
         cached = new(key, inner.Value, found);

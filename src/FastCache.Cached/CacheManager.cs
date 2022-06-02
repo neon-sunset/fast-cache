@@ -19,26 +19,35 @@ public static class CacheManager
     {
         ThreadPool.QueueUserWorkItem(async static _ =>
         {
-            var evictionJob = CacheStaticHolder<K, V>.s_evictionJob;
+            var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
             await evictionJob.FullEvictionLock.WaitAsync();
 
-            CacheStaticHolder<K, V>.s_store.Clear();
-            CacheStaticHolder<K, V>.s_quickList.Evict();
+#if FASTCACHE_DEBUG
+            var countBefore = CacheStaticHolder<K, V>.Store.Count;
+#endif
+
+            CacheStaticHolder<K, V>.Store.Clear();
+            CacheStaticHolder<K, V>.QuickList.Reset();
 
             evictionJob.FullEvictionLock.Release();
+
+#if FASTCACHE_DEBUG
+            Console.WriteLine(
+                $"FastCache: Cache has been fully cleared for {typeof(K).Name}:{typeof(V).Name}. Was {countBefore}, now {CacheStaticHolder<K, V>.QuickList.AtomicCount}/{CacheStaticHolder<K, V>.Store.Count}");
+#endif
         });
     }
 
     /// <summary>
     /// Suspends automatic eviction. Does not affect already in-flight operations.
     /// </summary>
-    public static void SuspendEviction<K, V>() where K : notnull => CacheStaticHolder<K, V>.s_evictionJob.Stop();
+    public static void SuspendEviction<K, V>() where K : notnull => CacheStaticHolder<K, V>.EvictionJob.Stop();
 
     /// <summary>
     /// Resumes eviction, next iteration will occur after a standard adaptive interval from now.
     /// Is a no-op if automatic eviction is disabled.
     /// </summary>
-    public static void ResumeEviction<K, V>() where K : notnull => CacheStaticHolder<K, V>.s_evictionJob.Resume();
+    public static void ResumeEviction<K, V>() where K : notnull => CacheStaticHolder<K, V>.EvictionJob.Resume();
 
     internal static void ReportEvictions<T>(uint count)
     {
@@ -50,7 +59,7 @@ public static class CacheManager
 
     internal static void QueueFullEviction<K, V>(bool triggeredByTimer) where K : notnull
     {
-        if (!CacheStaticHolder<K, V>.s_evictionJob.IsActive)
+        if (!CacheStaticHolder<K, V>.EvictionJob.IsActive)
         {
             return;
         }
@@ -91,7 +100,7 @@ public static class CacheManager
 
     private static void ImmediateFullEviction<K, V>() where K : notnull
     {
-        var evictionJob = CacheStaticHolder<K, V>.s_evictionJob;
+        var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
 
         if (!evictionJob.FullEvictionLock.Wait(millisecondsTimeout: 0))
         {
@@ -100,7 +109,7 @@ public static class CacheManager
 
         evictionJob.RescheduleConsideringExpiration();
 
-        if (CacheStaticHolder<K, V>.s_quickList.Evict(resize: true))
+        if (CacheStaticHolder<K, V>.QuickList.Evict(resize: true))
         {
             evictionJob.FullEvictionLock.Release();
             return;
@@ -127,14 +136,14 @@ public static class CacheManager
 
     private static async ValueTask StaggeredFullEviction<K, V>() where K : notnull
     {
-        var evictionJob = CacheStaticHolder<K, V>.s_evictionJob;
+        var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
 
         if (!evictionJob.FullEvictionLock.Wait(millisecondsTimeout: 0))
         {
             return;
         }
 
-        if (CacheStaticHolder<K, V>.s_quickList.Evict())
+        if (CacheStaticHolder<K, V>.QuickList.Evict())
         {
             // When a lot of items are being added to cache, it triggers GC
             // which may decrease adding performance by constantly locking quick list.
@@ -176,7 +185,7 @@ public static class CacheManager
 
     private static uint EvictFromCacheStore<K, V>() where K : notnull
     {
-        return CacheStaticHolder<K, V>.s_store.Count > Constants.ParallelEvictionThreshold
+        return CacheStaticHolder<K, V>.Store.Count > Constants.ParallelEvictionThreshold
             ? EvictFromCacheStoreParallel<K, V>()
             : EvictFromCacheStoreSingleThreaded<K, V>();
     }
@@ -184,8 +193,8 @@ public static class CacheManager
     private static uint EvictFromCacheStoreSingleThreaded<K, V>() where K : notnull
     {
         var now = TimeUtils.Now;
-        var store = CacheStaticHolder<K, V>.s_store;
-        var quickList = CacheStaticHolder<K, V>.s_quickList;
+        var store = CacheStaticHolder<K, V>.Store;
+        var quickList = CacheStaticHolder<K, V>.QuickList;
         uint totalRemoved = 0;
 
         foreach (var (identifier, value) in store)
@@ -216,16 +225,16 @@ public static class CacheManager
 
             if (now > timestamp)
             {
-                CacheStaticHolder<K, V>.s_store.TryRemove(key, out _);
+                CacheStaticHolder<K, V>.Store.TryRemove(key, out _);
                 count++;
             }
             else
             {
-                CacheStaticHolder<K, V>.s_quickList.OverwritingNonAtomicAdd(key, timestamp);
+                CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(key, timestamp);
             }
         }
 
-        CacheStaticHolder<K, V>.s_store
+        CacheStaticHolder<K, V>.Store
             .AsParallel()
             .AsUnordered()
             .ForAll(item => CheckAndRemove(item.Key, item.Value._timestamp));
@@ -269,7 +278,7 @@ public static class CacheManager
 #if FASTCACHE_DEBUG
     private static void PrintEvicted<K, V>(uint count, TimeSpan elapsed) where K : notnull
     {
-        var size = CacheStaticHolder<K, V>.s_store.Count;
+        var size = CacheStaticHolder<K, V>.Store.Count;
         Console.WriteLine(
             $"FastCache: Evicted {count} of {typeof(K).Name}:{typeof(V).Name} from cache store. Size after: {size}, took {elapsed.TotalMilliseconds} ms.");
     }
