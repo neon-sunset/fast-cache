@@ -7,13 +7,15 @@ namespace FastCache;
 
 internal sealed class EvictionQuickList<K, V> where K : notnull
 {
-    private static readonly SemaphoreSlim s_evictionLock = new(1, 1);
+    private readonly SemaphoreSlim _evictionLock = new(1, 1);
 
     private (K, long)[] _active;
     private (K, long)[] _inactive;
     private long _count;
 
     public uint AtomicCount => (uint)Interlocked.Read(ref _count);
+
+    public uint FreeSpace => (uint)_active.Length - AtomicCount;
 
     public EvictionQuickList()
     {
@@ -65,7 +67,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         var now = TimeUtils.Now;
         var store = CacheStaticHolder<K, V>.Store;
 
-        if (!s_evictionLock.Wait(0))
+        if (!_evictionLock.Wait(0))
         {
             return false;
         }
@@ -83,7 +85,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
                 Reset(lockRequired: false);
             }
 
-            s_evictionLock.Release();
+            _evictionLock.Release();
             return true;
         }
         else if (AtomicCount is 0)
@@ -94,7 +96,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
                 AtomicSwapActive(0);
             }
 
-            s_evictionLock.Release();
+            _evictionLock.Release();
             return false;
         }
 
@@ -161,7 +163,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
             CacheManager.ReportEvictions<V>(entriesRemovedCount);
-            s_evictionLock.Release();
+            _evictionLock.Release();
 
 #if FASTCACHE_DEBUG
             PrintEvicted(sw.Elapsed, entriesRemovedCount);
@@ -172,7 +174,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         if (entriesRemovedCount == 0)
         {
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
-            s_evictionLock.Release();
+            _evictionLock.Release();
 
 #if FASTCACHE_DEBUG
             PrintEvicted(sw.Elapsed, entriesRemovedCount);
@@ -206,7 +208,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         AtomicSwapActive(postEvictionCount);
 
         CacheManager.ReportEvictions<V>(entriesRemovedCount);
-        s_evictionLock.Release();
+        _evictionLock.Release();
 
 #if FASTCACHE_DEBUG
         PrintEvicted(sw.Elapsed, entriesRemovedCount);
@@ -247,7 +249,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
     {
         if (lockRequired)
         {
-            s_evictionLock.Wait();
+            _evictionLock.Wait();
         }
 
         if (RuntimeHelpers.IsReferenceOrContainsReferences<K>())
@@ -261,7 +263,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 
          if (lockRequired)
         {
-            s_evictionLock.Release();
+            _evictionLock.Release();
         }
     }
 

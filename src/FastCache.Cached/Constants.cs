@@ -3,12 +3,13 @@ namespace FastCache;
 internal static class Constants
 {
     /// <summary>
-    /// Min length: 64 * 128 default multiplier = 8192 elements. If changed, the value must be a power of 2.
+    /// Min length: 32 * 128 default multiplier = 4096 elements. If changed, the value must be a power of 2.
     /// </summary>
-    private const int DefaultQuickListMinLengthFactor = 64;
+    private const int DefaultQuickListMinLengthFactor = 32;
     private const uint DefaultQuickListAutoLengthPercent = 5;
     private const uint DefaultIntervalMultiplyFactor = 15;
     private const uint DefaultParallelEvictionThreshold = 1_572_864;
+    private const uint DefaultParallelSaveMinBatchSize = 512;
     private const uint DefaultAggregatedGCThreshold = 1_572_864;
 
     private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(15);
@@ -43,7 +44,8 @@ internal static class Constants
     public static readonly uint ParallelEvictionThreshold = uint
         .TryParse(GetVar("FASTCACHE_PARALLEL_EVICTION_THRESHOLD"), out var parsed) ? parsed : DefaultParallelEvictionThreshold;
 
-    public static int ParallelSaveThreshold = Environment.ProcessorCount * 512;
+    public static uint ParallelSaveMinBatchSize = uint
+        .TryParse(GetVar("FASTCACHE_PARALLEL_SAVE_MIN_BATCH_SIZE"), out var parsed) ? parsed : DefaultParallelSaveMinBatchSize;
 
     public static readonly bool ConsiderFullGC = bool.TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) && parsed;
 

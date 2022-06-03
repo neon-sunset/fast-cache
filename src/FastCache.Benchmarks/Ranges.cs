@@ -1,8 +1,12 @@
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Exporters.Csv;
 using FastCache.Collections;
 
 namespace FastCache.Benchmarks;
 
+[RPlotExporter]
+[CsvMeasurementsExporter(CsvSeparator.Comma)]
 [MemoryDiagnoser]
 public class Ranges
 {
@@ -10,10 +14,10 @@ public class Ranges
 
     public IEnumerable<(int, string)[]> Inputs()
     {
+        yield return Enumerable.Range(0, 100).Select(i => (i, ItemValue)).ToArray();
         yield return Enumerable.Range(0, 1000).Select(i => (i, ItemValue)).ToArray();
         yield return Enumerable.Range(0, 10_000).Select(i => (i, ItemValue)).ToArray();
         yield return Enumerable.Range(0, 100_000).Select(i => (i, ItemValue)).ToArray();
-        yield return Enumerable.Range(0, 262_144).Select(i => (i, ItemValue)).ToArray();
         yield return Enumerable.Range(0, 1_000_000).Select(i => (i, ItemValue)).ToArray();
         yield return Enumerable.Range(0, 10_000_000).Select(i => (i, ItemValue)).ToArray();
     }
@@ -28,11 +32,8 @@ public class Ranges
     }
 
     [Benchmark(Baseline = true)]
-    public void Save() => CachedRange.Save(Value.AsSpan(), TimeSpan.FromHours(3));
+    public void Save() => CachedRange.Save(Value, TimeSpan.FromHours(3));
 
     [Benchmark]
-    public void SaveMultithreaded() => CachedRange.SaveMultithreaded(Value.AsMemory(), TimeSpan.FromHours(3));
-
-    [Benchmark]
-    public void SaveEnumerable() => CachedRange.Save(Value, TimeSpan.FromHours(3));
+    public void SaveEnumerable() => CachedRange.Save(Value.AsEnumerable(), TimeSpan.FromHours(3));
 }
