@@ -10,12 +10,21 @@ public static partial class CachedRange
 
     public static void Save<K, V>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration) where K : notnull
     {
-        if (range.Length <= 0)
+        var length = range.Length;
+        if (length <= 0)
         {
             return;
         }
 
-        throw new NotImplementedException();
+        var parallelism = CalculateParalellism((uint)length);
+        if (parallelism > 1)
+        {
+            SaveMultithreaded(range, expiration, (int)parallelism);
+        }
+        else
+        {
+            SaveSinglethreaded(range, expiration);
+        }
     }
 
     public static void Save<K, V>(K[] keys, V[] values, TimeSpan expiration) where K : notnull =>

@@ -110,11 +110,11 @@ AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 |---------------------- |----------:|---------:|----------:|----------:|------:|-------:|----------:|
 | Get: FastCache.Cached |  15.63 ns | 0.452 ns |  1.334 ns |  14.61 ns |  1.00 |      - |         - |
 | Get: MemoryCache      |  56.93 ns | 1.179 ns |  1.904 ns |  55.73 ns |  3.68 |      - |         - |
-| Get: CacheManager     |  87.54 ns | 1.751 ns |  2.454 ns |  89.32 ns |  5.68 |      - |         - |
+| Get: CacheManager*    |  87.54 ns | 1.751 ns |  2.454 ns |  89.32 ns |  5.68 |      - |         - |
 | Get: LazyCache        |  73.43 ns | 1.216 ns |  1.138 ns |  73.25 ns |  4.71 |      - |         - |
 | Add/Upd: FC.Cached    |  33.75 ns | 0.861 ns |  2.539 ns |  31.92 ns |  2.18 | 0.0024 |      40 B |
 | Add/Upd: MemoryCache  | 203.32 ns | 4.033 ns |  6.956 ns | 199.77 ns | 13.23 | 0.0134 |     224 B |
-| Add/Upd: CacheManager | 436.85 ns | 8.729 ns | 19.160 ns | 433.97 ns | 28.10 | 0.0215 |     360 B |
+| Add/Upd: CacheManager*| 436.85 ns | 8.729 ns | 19.160 ns | 433.97 ns | 28.10 | 0.0215 |     360 B |
 | Add/Upd: LazyCache    | 271.56 ns | 5.428 ns |  7.785 ns | 274.19 ns | 17.58 | 0.0286 |     480 B |
 
 Further reading "Keys and composite keys performance estimation": **[Code](src/FastCache.Benchmarks/Defaults.cs)** / **[Results](docs/full-api-approx-perf-estimation-net7.md)**
@@ -122,8 +122,8 @@ Further reading "Keys and composite keys performance estimation": **[Code](src/F
 ### Notes
 - FastCache.Cached defaults provide highest performance and don't require from a developer to spend time on finding a way to use API optimally.
 - Comparison was made with a string-based key. Composite keys supported by FastCache.Cached have additional performance cost.
-- `CacheManger` documentation suggests using `WithMicrosoftMemoryCacheHandle()` by default which has terrible performance (and uses obsolete `System.Runtime.Caching`). We give it a better fighting chance by using `WithDictionaryHandle()` instead.
-- Overall performance stays relatively comparable when downgrading to .NET 5 and decreases further by 15-30% when using .NET Core 3.1 with the difference ratio between libraries staying close to provided above.
+- *`CacheManger` documentation suggests using `WithMicrosoftMemoryCacheHandle()` by default which has terrible performance (and uses obsolete `System.Runtime.Caching`). We give it a better fighting chance by using `WithDictionaryHandle()` instead.
+- Overall, performance stays relatively comparable when downgrading to .NET 5 and decreases further by 15-30% when using .NET Core 3.1 with the difference ratio between libraries staying close to provided above.
 - Non-standard platforms (the ones that aren't CLR based) use DateTime.UtcNow fallback instead of Environment.TickCount64, which will perform slower depending on the platform-specific implementation.
 ### On benchmark data
 Throughput saturation means that all necessary data structures are fully available in the CPU cache and branch predictor has learned branch patters of the executed code.
