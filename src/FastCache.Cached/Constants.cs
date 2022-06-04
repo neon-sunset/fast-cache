@@ -9,7 +9,7 @@ internal static class Constants
     private const uint DefaultQuickListAutoLengthPercent = 5;
     private const uint DefaultIntervalMultiplyFactor = 15;
     private const uint DefaultParallelEvictionThreshold = 1_572_864;
-    private const uint DefaultParallelSaveMinBatchSize = 512;
+    private const uint DefaultParallelSaveMinBatchSize = 1024;
     private const uint DefaultAggregatedGCThreshold = 1_572_864;
 
     private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(15);
