@@ -118,8 +118,9 @@ AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 | Add/Upd: CacheManager*| 436.85 ns | 8.729 ns | 19.160 ns | 433.97 ns | 28.10 | 0.0215 |     360 B |
 | Add/Upd: LazyCache    | 271.56 ns | 5.428 ns |  7.785 ns | 274.19 ns | 17.58 | 0.0286 |     480 B |
 
+Further reading "Keys and composite keys performance estimation": **[Code](src/FastCache.Benchmarks/Defaults.cs)** / **[Results](docs/full-api-approx-perf-estimation-net7.md)**
 
-### Memory cost and write throughput (incl. runtime region/segment allocation and cache store resizing latency overhead)
+### Memory cost and write throughput
 |                 Method |     Length | Writes/1s |         Mean |     StdDev | Ratio | Allocated |
 |----------------------- |----------- |-----------|-------------:|-----------:|------:|----------:|
 | Save(MT): FC.CRange**  |  1,000,000 |    58.75M |     17.02 ms |   0.349 ms |  1.00 |     53 MB |
@@ -140,7 +141,7 @@ AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 | Save(ST): CacheManager | 20,000,000 |     1.55M | 12,860.89 ms | 423.876 ms | 17.25 |  3,815 MB |
 | Save(ST): LazyCache    | 20,000,000 |     1.71M | 11,690.66 ms | 484.762 ms | 15.69 |  9,460 MB |
 
-Further reading "Keys and composite keys performance estimation": **[Code](src/FastCache.Benchmarks/Defaults.cs)** / **[Results](docs/full-api-approx-perf-estimation-net7.md)**
+(Including runtime region/segment allocation and cache store resizing latency overhead)
 
 #### Notes
 - FastCache.Cached defaults provide highest performance and don't require spending time on finding a way to use API optimally. The design goal is to nudge a developer to use the fastest way to achieve his or her goals while strictly adhering to the principle of "pay for play".
