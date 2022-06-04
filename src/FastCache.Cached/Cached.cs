@@ -24,21 +24,14 @@ public readonly struct Cached<K, V> where K : notnull
 
     public V Save(V value, TimeSpan expiration)
     {
-        var now = TimeUtils.Now;
-        var milliseconds = expiration.Ticks / TimeSpan.TicksPerMillisecond;
+        var (timestamp, milliseconds) = TimeUtils.GetTimestamp(expiration);
 
-        var expiresAt = now + milliseconds;
-        if (expiresAt <= now)
-        {
-            InvalidExpiration(expiration);
-        }
-
-        CacheStaticHolder<K, V>.s_store[_key] = new(value, expiresAt);
-        CacheStaticHolder<K, V>.s_evictionJob.ReportExpiration(milliseconds);
+        CacheStaticHolder<K, V>.Store[_key] = new(value, timestamp);
+        CacheStaticHolder<K, V>.EvictionJob.ReportExpiration(milliseconds);
 
         if (!_found)
         {
-            CacheStaticHolder<K, V>.s_quickList.Add(_key, expiresAt);
+            CacheStaticHolder<K, V>.QuickList.Add(_key, timestamp);
         }
 
         return value;
@@ -46,12 +39,17 @@ public readonly struct Cached<K, V> where K : notnull
 
     public V Save(V value, TimeSpan expiration, int limit)
     {
-        return CacheStaticHolder<K, V>.s_store.Count < limit ? Save(value, expiration) : value;
+        // TODO: Queue quicklist eviction and then fill it up with new entries. Condition: it's full or (is less or equal) to 5% of all entries.
+        // Still, it's important to consider what to do for small caches where quicklist size is below (e.g. 1000s of entries)
+        // Suggestion: for small enough sizes (10-100) items, perform clear inline, for more - queue a work item
+        // Questions: failsafe against thrashing on maximum capacity
+        // Possible compromise: thrashing with moderate perf penalty is better than a complete back-off
+        return CacheStaticHolder<K, V>.Store.Count < limit ? Save(value, expiration) : value;
     }
 
     public void Remove()
     {
-        CacheStaticHolder<K, V>.s_store.TryRemove(_key, out _);
+        CacheStaticHolder<K, V>.Store.TryRemove(_key, out _);
     }
 
     [DoesNotReturn]
@@ -64,17 +62,17 @@ public readonly struct Cached<K, V> where K : notnull
 [StructLayout(LayoutKind.Auto)]
 internal readonly struct CachedInner<T>
 {
-    internal readonly long _expiresAt;
+    internal readonly long _timestamp;
 
     public readonly T Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CachedInner(T value, long expiresAt)
+    public CachedInner(T value, long timestamp)
     {
         Value = value;
-        _expiresAt = expiresAt;
+        _timestamp = timestamp;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsNotExpired() => TimeUtils.Now < _expiresAt;
+    public bool IsNotExpired() => TimeUtils.Now < _timestamp;
 }

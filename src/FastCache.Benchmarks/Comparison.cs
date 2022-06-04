@@ -9,6 +9,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace FastCache.Benchmarks;
 
 [MemoryDiagnoser]
+[DisassemblyDiagnoser(maxDepth: 5, exportCombinedDisassemblyReport: true)]
 public class Comparison
 {
     private const string ItemKey = "item key";
@@ -16,17 +17,14 @@ public class Comparison
 
     private readonly IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
-    // CacheManager documentation by default suggest using WithMicrosoftMemoryCacheHandle() which has terrible performance
+    // CacheManager documentation by default suggests using WithMicrosoftMemoryCacheHandle() which has terrible performance
     // when compared to WithDictionaryHandle(). However, we won't be too hard on it and will give it the best chance.
     private readonly ICacheManager<string> _cacheManager = CacheFactory
         .Build<string>(p => p
         .WithDictionaryHandle()
         .WithExpiration(CacheManager.Core.ExpirationMode.Absolute, TimeSpan.FromMinutes(60)));
 
-    private readonly IAppCache _lazyCache = new CachingService()
-    {
-        DefaultCachePolicy = new CacheDefaults() { DefaultCacheDurationSeconds = 3600 }
-    };
+    private readonly IAppCache _lazyCache = new CachingService();
 
     [GlobalSetup]
     public void Initialize()
@@ -100,7 +98,7 @@ public class Comparison
     [Benchmark]
     public void UpdateCacheManager()
     {
-        _cacheManager.AddOrUpdate(ItemKey, ItemValue, static _ => ItemValue);
+        _cacheManager.Put(ItemKey, ItemValue);
     }
 
     [Benchmark]

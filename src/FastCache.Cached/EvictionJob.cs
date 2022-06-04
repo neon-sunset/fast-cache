@@ -28,7 +28,7 @@ internal sealed class EvictionJob<K, V> where K : notnull
         }
 
         _quickListEvictionTimer = new(
-            static _ => CacheStaticHolder<K, V>.s_quickList.Evict(),
+            static _ => CacheStaticHolder<K, V>.QuickList.Evict(),
             null,
             Constants.QuickListEvictionInterval,
             Constants.QuickListEvictionInterval);
