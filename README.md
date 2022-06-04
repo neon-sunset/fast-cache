@@ -141,7 +141,7 @@ Further reading "Keys and composite keys performance estimation": **[Code](src/F
 | Save(ST): CacheManager | 20,000,000 |     1.55M | 12,860.89 ms | 423.876 ms | 17.25 |  3,815 MB |
 | Save(ST): LazyCache    | 20,000,000 |     1.71M | 11,690.66 ms | 484.762 ms | 15.69 |  9,460 MB |
 
-(Including runtime region/segment allocation and cache store resizing latency overhead)
+(Including runtime region/segment allocation and copying/resizing overhead (all libraries))
 
 #### Notes
 - FastCache.Cached defaults provide highest performance and don't require spending time on finding a way to use API optimally. The design goal is to nudge a developer to use the fastest way to achieve his or her goals while strictly adhering to the principle of "pay for play".
