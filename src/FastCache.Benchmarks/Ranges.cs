@@ -61,6 +61,29 @@ public class Ranges
     }
 
     [Benchmark]
+    public void SaveMemoryCacheMT()
+    {
+        var range = GetRange();
+        var sliceLength = range.Length / Environment.ProcessorCount;
+        var expiration = DateTimeOffset.UtcNow + TimeSpan.FromHours(3);
+
+        Parallel.For(0, Environment.ProcessorCount, i => WriteSlice(i));
+
+        void WriteSlice(int i)
+        {
+            var ret = string.Empty;
+
+            var start = i * sliceLength;
+            var end = (i + 1) * sliceLength;
+
+            foreach (var (key, value) in range.Span[start..end])
+            {
+                _memoryCache.Set(key, value, expiration);
+            }
+        }
+    }
+
+    [Benchmark]
     public void SaveCacheManager()
     {
         var range = GetRange();
