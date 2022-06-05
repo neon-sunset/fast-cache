@@ -109,9 +109,10 @@ AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 ### TLDR: `FastCache.Cached` vs `Microsoft.Extensions.Caching.Memory.MemoryCache`
 |            Library | Lowest read latency | Read throughput (M/1s) | Lowest write latency | Write throughput (M/1s) | Cost per item | Cost per 10M items |
 | ------------------ | ------------------- | ---------------------- | -------------------- | ----------------------- | ------------- | ------------------ |
-|   **FastCache.Cached** |            **15.63 ns** | **114-288M MT / 9-72M ST** |             **33.75 ns** |    **28-84M MT / 6-31M ST** |          **40 B** |             **534 MB** |
-|        MemoryCache |            56.93 ns |   41-46M MT / 4-10M ST |            203.32 ns |    11-26M MT /  2-6M ST |         224 B |           2,289 MB |
-|       CacheManager |            87.54 ns |                    N/A |           ~436.85 ns |      N/A MT / 1.5-5M ST | (+alloc)360 B |           1,678 MB |
+|   **FastCache.Cached** |            **15.63 ns** | **114-288M MT / 9-72M ST** |             **33.75 ns** |    **39-81M MT / 6-31M ST** |          **40 B** |             **381 MB** |
+|        MemoryCache |            56.93 ns |   41-46M MT / 4-10M ST |            203.32 ns |    11-26M MT /  2-6M ST |         224 B |           2,136 MB |
+|       CacheManager |            87.54 ns |                    N/A |           ~436.85 ns |      N/A MT / 1.5-5M ST | (+alloc)360 B |           1,602 MB |
+
 
 +`CachedRange.Save(ReadOnlySpan<(K, V)>)` provides parallelized bulk writes out of box
 
