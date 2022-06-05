@@ -12,7 +12,7 @@ namespace FastCache.Benchmarks;
 //[SimpleJob(RuntimeMoniker.HostProcess, warmupCount: 5, targetCount: 10)] - .NET 7 is too unstable for now
 [SimpleJob(RuntimeMoniker.Net60, warmupCount: 5, targetCount: 10)]
 [MemoryDiagnoser]
-public class Ranges
+public class RangeWrites
 {
     private const string ItemValue = "1337";
 
@@ -49,18 +49,6 @@ public class Ranges
     }
 
     [Benchmark]
-    public void SaveMemoryCache()
-    {
-        var range = GetRange();
-        var expiration = DateTimeOffset.UtcNow + TimeSpan.FromHours(3);
-
-        foreach (var (key, value) in range.Span)
-        {
-            _memoryCache.Set(key, value, expiration);
-        }
-    }
-
-    [Benchmark]
     public void SaveMemoryCacheMT()
     {
         var range = GetRange();
@@ -80,6 +68,18 @@ public class Ranges
             {
                 _memoryCache.Set(key, value, expiration);
             }
+        }
+    }
+
+    [Benchmark]
+    public void SaveMemoryCache()
+    {
+        var range = GetRange();
+        var expiration = DateTimeOffset.UtcNow + TimeSpan.FromHours(3);
+
+        foreach (var (key, value) in range.Span)
+        {
+            _memoryCache.Set(key, value, expiration);
         }
     }
 
@@ -109,7 +109,7 @@ public class Ranges
     [MethodImpl(MethodImplOptions.NoInlining)]
     public ReadOnlyMemory<(string, string)> GetRange() => Length switch
     {
-        <= 20_000_000 => Range[..Length],
+        <= 20_000_000 => Range.AsMemory()[..Length],
         _ => throw new ArgumentOutOfRangeException(nameof(Length))
     };
 }
