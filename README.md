@@ -113,6 +113,7 @@ AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 |        MemoryCache |            56.93 ns |   41-46M MT / 4-10M ST |            203.32 ns |    11-26M MT /  2-6M ST |         224 B |           2,136 MB |
 |       CacheManager |            87.54 ns |                    N/A |           ~436.85 ns |      N/A MT / 1.5-5M ST | (+alloc)360 B |           1,602 MB |
 
+
 +`CachedRange.Save(ReadOnlySpan<(K, V)>)` provides parallelized bulk writes out of box
 
 ++`CacheManager` doesn't have read throughput results because test suite would take too long to run to include `CacheManager` and `LazyCache`. Given higher CPU usage by `CacheManager` and higher RAM usage by `LazyCache` it is reasonable to assume they would score lower and scale worse due to higher number of locks
