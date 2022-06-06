@@ -4,7 +4,7 @@
 [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml)
 [![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/)
 
-The fastest cache written in C# for items with set expiration time. Easy to use, thread-safe and light on memory.
+The fastest cache library written in C# for items with set expiration time. Easy to use, thread-safe and light on memory.
 
 Optimized to scale from dozens to millions of items. Features lock-free reads and writes, allocation-free reads and automatic eviction.
 
