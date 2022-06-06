@@ -75,7 +75,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         var totalCount = store.Count;
         if (totalCount is 0)
         {
-            if (_inactive.Length != Constants.QuickListMinLength)
+            if (resize || _inactive.Length != Constants.QuickListMinLength)
             {
                 ResizeInactive(Constants.QuickListMinLength);
                 AtomicSwapActive(0);

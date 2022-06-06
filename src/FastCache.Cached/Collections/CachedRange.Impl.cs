@@ -256,8 +256,8 @@ public static partial class CachedRange
     }
 
     [DoesNotReturn]
-    private static void RangeMismatch(int keys, int values)
+    private static void IncorrectLength(int keys, int values)
     {
-        throw new ArgumentOutOfRangeException($"Cannot perform 'Save()' for provided ranges - length mismatch, keys: {keys}, values: {values}.");
+        throw new ArgumentOutOfRangeException(nameof(values), values, $"Cannot perform 'Save()' for provided ranges - length mismatch. Expected: {keys}.");
     }
 }

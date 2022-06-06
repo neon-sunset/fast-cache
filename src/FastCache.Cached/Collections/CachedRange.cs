@@ -38,7 +38,7 @@ public static partial class CachedRange
         var length = keys.Length;
         if (length < 0 || length != values.Length)
         {
-            RangeMismatch(length, values.Length);
+            IncorrectLength(length, values.Length);
         }
 
         var parallelism = GetParallelism((uint)length);
@@ -73,16 +73,13 @@ public static partial class CachedRange
                 SaveListMultithreaded<K, V, IList<(K, V)>>(range, expiration, (int)parallelism);
             }
         }
+        else if (range is List<(K, V)> list)
+        {
+            SaveListSinglethreaded<K, V, List<(K, V)>>(list, expiration);
+        }
         else
         {
-            if (range is List<(K, V)> list)
-            {
-                SaveListSinglethreaded<K, V, List<(K, V)>>(list, expiration);
-            }
-            else
-            {
-                SaveListSinglethreaded<K, V, IList<(K, V)>>(range, expiration);
-            }
+            SaveListSinglethreaded<K, V, IList<(K, V)>>(range, expiration);
         }
     }
 
