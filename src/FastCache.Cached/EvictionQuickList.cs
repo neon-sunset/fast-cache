@@ -159,9 +159,18 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 
         if (entriesSurvivedCount == 0)
         {
-            Reset(lockRequired: false);
-
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
+
+            if (needsResizing)
+            {
+                ResizeInactive(resizedLength);
+                AtomicSwapActive(0);
+            }
+            else
+            {
+                Reset(lockRequired: false);
+            }
+
             CacheManager.ReportEvictions<V>(entriesRemovedCount);
             _evictionLock.Release();
 
@@ -174,6 +183,15 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         if (entriesRemovedCount == 0)
         {
             ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
+
+            if (needsResizing)
+            {
+                // If no items got evicted but we're resizing, reset the count.
+                // 'EvictFromMainCache' will push more items accordingly.
+                ResizeInactive(resizedLength);
+                AtomicSwapActive(0);
+            }
+
             _evictionLock.Release();
 
 #if FASTCACHE_DEBUG
@@ -182,19 +200,17 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             return entriesSurvivedCount >= totalCount;
         }
 
-        var postEvictionCount = entriesSurvivedCount;
         if (needsResizing)
         {
-            resizedLength = ResizeInactive(resizedLength);
-
-            postEvictionCount = Math.Min(entriesSurvivedCount, (uint)resizedLength);
+            ResizeInactive(resizedLength);
         }
 
         // Use 'inactive' replacement array to store survived items.
         // In addition, if survived items exceed resized _inactive array length,
         // just drop the rest that didn't fit - they will be handled by full eviction.
         var entriesSurvived = _inactive;
-        for (uint j = 0; j < postEvictionCount; j++)
+        var copyLength = Math.Min(entriesSurvivedCount, (uint)entriesSurvived.Length);
+        for (uint j = 0; j < copyLength; j++)
         {
             var entryIndex = entriesSurvivedIndexes[j];
             entriesSurvived[j] = entries[entryIndex];
@@ -205,7 +221,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         // Set inactive backing array where we stored survived entries as active and update entries counter accordingly.
         // In-flight writes between active-inactive swap and counter update will be missed which is by design and
         // will be handled by the next full eviction (evicted or pushed to quick list if capacity allows it).
-        AtomicSwapActive(postEvictionCount);
+        AtomicSwapActive(copyLength);
 
         CacheManager.ReportEvictions<V>(entriesRemovedCount);
         _evictionLock.Release();
@@ -219,12 +235,14 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
     private static int CalculateResize(long totalCount)
     {
         return Math.Max(
-            (int)((double)Constants.QuickListAdjustableLengthRatio / 100 * totalCount),
+            (int)(Constants.QuickListAdjustableLengthRatio / 100D * totalCount),
             Constants.QuickListMinLength);
     }
 
     private int ResizeInactive(int requestedLength)
     {
+        // Opt. opportunity: round up requestedLength to the next PowOf2
+        // so that we don't return and then rent the array when there is no need to
         if (requestedLength == _inactive.Length)
         {
             return _inactive.Length;
@@ -255,13 +273,13 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         if (RuntimeHelpers.IsReferenceOrContainsReferences<K>())
         {
             var entries = _active;
-            var length = Math.Max((int)AtomicCount, entries.Length);
-            Array.Clear(_active, 0, length);
+            var length = Math.Min((int)AtomicCount, entries.Length);
+            Array.Clear(entries, 0, length);
         }
 
-         Interlocked.Exchange(ref _count, 0);
+        Interlocked.Exchange(ref _count, 0);
 
-         if (lockRequired)
+        if (lockRequired)
         {
             _evictionLock.Release();
         }

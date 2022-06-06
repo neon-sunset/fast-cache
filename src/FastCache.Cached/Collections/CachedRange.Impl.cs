@@ -129,9 +129,7 @@ public static partial class CachedRange
         }
     }
 
-    private static void SaveEnumerableSinglethreaded<K, V, TEnumerable>(TEnumerable range, TimeSpan expiration)
-        where K : notnull
-        where TEnumerable : IEnumerable<(K, V)>
+    private static void SaveEnumerableSinglethreaded<K, V>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
     {
         var timestamp = GetAndReportTimestamp<K, V>(expiration);
 
@@ -142,9 +140,7 @@ public static partial class CachedRange
         }
     }
 
-    private static void SaveEnumerableMultithreaded<K, V, TEnumerable>(TEnumerable range, TimeSpan expiration)
-        where K : notnull
-        where TEnumerable : IEnumerable<(K Key, V Value)>
+    private static void SaveEnumerableMultithreaded<K, V>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
     {
         var timestamp = GetAndReportTimestamp<K, V>(expiration);
 

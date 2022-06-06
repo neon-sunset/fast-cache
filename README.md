@@ -4,9 +4,9 @@
 [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml)
 [![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/)
 
-High-performance, thread-safe and easy to use cache for items with set expiration time.
+The fastest cache written in C# for items with set expiration time. Easy to use, thread-safe and light on memory.
 
-Optimized for both dozens and millions of items. Features lock-free reads and writes, allocation-free reads, low memory footprint per item and automatic eviction.
+Optimized to scale from dozens to millions of items. Features lock-free reads and writes, allocation-free reads and automatic eviction.
 
 Credit to Vladimir Sadov for his implementation of `NonBlocking.ConcurrentDictionary` which is used as an underlying store.
 

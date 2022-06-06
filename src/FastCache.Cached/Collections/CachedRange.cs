@@ -86,27 +86,25 @@ public static partial class CachedRange
         }
     }
 
-    public static void Save<K, V, TEnumerable>(TEnumerable range, TimeSpan expiration)
-        where K : notnull
-        where TEnumerable : IEnumerable<(K, V)>
+    public static void Save<K, V>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
     {
         if (range is (K, V)[] array)
         {
             Save(array, expiration);
         }
-        else if (range is IList<(K,V)> genericList)
+        else if (range is IList<(K, V)> genericList)
         {
             Save(genericList, expiration);
         }
 #if NET6_0_OR_GREATER
         else if (range.TryGetNonEnumeratedCount(out var length) && GetParallelism((uint)length) > 1)
         {
-            SaveEnumerableMultithreaded<K, V, TEnumerable>(range, expiration);
+            SaveEnumerableMultithreaded(range, expiration);
         }
 #endif
         else
         {
-            SaveEnumerableSinglethreaded<K, V, TEnumerable>(range, expiration);
+            SaveEnumerableSinglethreaded(range, expiration);
         }
     }
 
