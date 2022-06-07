@@ -11,6 +11,10 @@ public readonly struct Cached<K, V> where K : notnull
 
     public readonly V Value;
 
+    /// <summary>
+    ///  Cached[K, V] default constructor must not be used and will always throw.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
     public Cached() => throw new InvalidOperationException($"Cached<{typeof(K).Name}, {typeof(V).Name}> must not be initialized with default constructor");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
