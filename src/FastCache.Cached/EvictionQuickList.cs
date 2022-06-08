@@ -235,7 +235,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
     {
         uint i = 0;
         uint limit = FreeSpace;
-        using var enumerator = CacheStaticHolder<K, V>.Store.GetEnumerator();
+        var enumerator = CacheStaticHolder<K, V>.Store.GetEnumerator();
 
         while ((i < limit) && enumerator.MoveNext())
         {

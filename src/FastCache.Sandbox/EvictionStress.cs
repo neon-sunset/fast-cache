@@ -40,6 +40,8 @@ public static class EvictionStress
         ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(1));
         ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<object>(10));
         ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<bool>(25));
+        // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Uri2>());
+        // ThreadPool.QueueUserWorkItem(_ => SeedIndefinite<Uri2>(10));
 
         Console.ReadLine();
     }
@@ -90,7 +92,7 @@ public static class EvictionStress
 
             for (int j = 0; j < countPerStep; j++)
             {
-                new T().Cache(i, "val2", j, "val4", '!', true, 0.1337f, expiration);
+                new T().Cache(i, j, expiration);
             }
         }
 
@@ -108,7 +110,7 @@ public static class EvictionStress
 
         Parallel.For(0, millions, static num =>
         {
-            var expiration = TimeSpan.FromHours(1);
+            var expiration = TimeSpan.FromHours(24);
             var sw = Stopwatch.StartNew();
             for (uint i = 0; i < count; i++)
             {

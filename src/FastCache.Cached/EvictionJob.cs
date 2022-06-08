@@ -61,9 +61,7 @@ internal sealed class EvictionJob<K, V> where K : notnull
         var milliseconds = Interlocked.Read(ref _averageExpirationMilliseconds);
         var averageExpiration = TimeSpan.FromMilliseconds(milliseconds);
 
-        var adjustedQuicklistInterval =
-            ((averageExpiration / Constants.EvictionIntervalMultiplyFactor) + Constants.QuickListEvictionInterval) / 2;
-
+        var adjustedQuicklistInterval = ((averageExpiration / 10) + Constants.QuickListEvictionInterval) / 2;
         if (adjustedQuicklistInterval > Constants.QuickListEvictionInterval)
         {
             _quickListEvictionTimer.Change(adjustedQuicklistInterval, adjustedQuicklistInterval);

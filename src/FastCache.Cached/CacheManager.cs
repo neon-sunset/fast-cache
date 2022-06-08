@@ -154,7 +154,7 @@ public static class CacheManager
         }
 
         evictionJob.EvictionGCNotificationsCount++;
-        if (evictionJob.EvictionGCNotificationsCount < 4)
+        if (evictionJob.EvictionGCNotificationsCount < 2)
         {
             await Task.Delay(Constants.EvictionCooldownDelayOnGC);
             evictionJob.FullEvictionLock.Release();
@@ -200,12 +200,11 @@ public static class CacheManager
         var store = CacheStaticHolder<K, V>.Store;
         uint totalRemoved = 0;
 
-        foreach (var (identifier, value) in store)
+        foreach (var (key, value) in store)
         {
-            var timestamp = value._timestamp;
-            if (now > timestamp)
+            if (now > value._timestamp)
             {
-                store.TryRemove(identifier, out _);
+                store.TryRemove(key, out _);
                 totalRemoved++;
             }
         }

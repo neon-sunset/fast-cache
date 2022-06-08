@@ -7,7 +7,7 @@ internal static class Constants
     /// </summary>
     private const int DefaultQuickListMinLengthFactor = 32;
     private const uint DefaultQuickListAutoLengthPercent = 5;
-    private const uint DefaultIntervalMultiplyFactor = 15;
+    private const uint DefaultIntervalMultiplyFactor = 20;
     private const uint DefaultParallelEvictionThreshold = 1_572_864;
     private const uint DefaultParallelSaveMinBatchSize = 1024;
     private const uint DefaultAggregatedGCThreshold = 1_572_864;
