@@ -32,14 +32,14 @@ public static class EvictionStress
 
     public static void Run()
     {
-        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Uri2>(10));
-        Thread.Sleep(250);
-        CacheManager.QueueFullClear<(uint, string, int, string, char, bool, float), Uri2>();
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>(10));
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<float>(10));
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(1));
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<object>(10));
-        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<bool>(25));
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Uri2>(10));
+        // Thread.Sleep(250);
+        // CacheManager.QueueFullClear<(uint, string, int, string, char, bool, float), Uri2>();
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>(10));
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<float>(10));
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(1));
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<object>(10));
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<bool>(25));
 
         Console.ReadLine();
     }

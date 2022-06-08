@@ -55,7 +55,7 @@ public static partial class CachedRange
         foreach (var (key, value) in range.Span[^remainderLength..^0])
         {
             CacheStaticHolder<K, V>.Store[key] = new(value, timestamp);
-            CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(key, timestamp);
+            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(key, timestamp);
         }
     }
 
@@ -86,7 +86,7 @@ public static partial class CachedRange
             var key = remainderKeys[i];
 
             CacheStaticHolder<K, V>.Store[key] = new(remainderValues[i], timestamp);
-            CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(key, timestamp);
+            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(key, timestamp);
         }
     }
 
@@ -125,7 +125,7 @@ public static partial class CachedRange
             var (key, value) = range[i];
 
             CacheStaticHolder<K, V>.Store[key] = new(value, timestamp);
-            CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(key, timestamp);
+            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(key, timestamp);
         }
     }
 
@@ -136,7 +136,7 @@ public static partial class CachedRange
         foreach (var (key, value) in range)
         {
             CacheStaticHolder<K, V>.Store[key] = new(value, timestamp);
-            CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(key, timestamp);
+            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(key, timestamp);
         }
     }
 
@@ -154,7 +154,7 @@ public static partial class CachedRange
             var (key, value) = (kvp.Key, kvp.Value);
 
             CacheStaticHolder<K, V>.Store[key] = new(value, timestamp);
-            CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(key, timestamp);
+            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(key, timestamp);
         }
     }
 
@@ -195,7 +195,7 @@ public static partial class CachedRange
 
         for (var i = 0; i < quickListLimit; i++)
         {
-            CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(slice[i].key, timestamp);
+            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(slice[i].key, timestamp);
         }
     }
 
@@ -210,7 +210,7 @@ public static partial class CachedRange
 
         for (var i = 0; i < quickListLimit; i++)
         {
-            CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(keys[i], timestamp);
+            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(keys[i], timestamp);
         }
     }
 
@@ -233,7 +233,7 @@ public static partial class CachedRange
 
         for (var i = start; i < quickListLimit; i++)
         {
-            CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(list[i].Key, timestamp);
+            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(list[i].Key, timestamp);
         }
     }
 

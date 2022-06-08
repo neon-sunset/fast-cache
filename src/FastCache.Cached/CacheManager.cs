@@ -185,16 +185,19 @@ public static class CacheManager
 
     private static uint EvictFromCacheStore<K, V>() where K : notnull
     {
-        return CacheStaticHolder<K, V>.Store.Count > Constants.ParallelEvictionThreshold
+        var evictedCount = CacheStaticHolder<K, V>.Store.Count > Constants.ParallelEvictionThreshold
             ? EvictFromCacheStoreParallel<K, V>()
             : EvictFromCacheStoreSingleThreaded<K, V>();
+
+        CacheStaticHolder<K, V>.QuickList.PullFromCacheStore();
+
+        return evictedCount;
     }
 
     private static uint EvictFromCacheStoreSingleThreaded<K, V>() where K : notnull
     {
         var now = TimeUtils.Now;
         var store = CacheStaticHolder<K, V>.Store;
-        var quickList = CacheStaticHolder<K, V>.QuickList;
         uint totalRemoved = 0;
 
         foreach (var (identifier, value) in store)
@@ -204,10 +207,6 @@ public static class CacheManager
             {
                 store.TryRemove(identifier, out _);
                 totalRemoved++;
-            }
-            else
-            {
-                quickList.OverwritingNonAtomicAdd(identifier, timestamp);
             }
         }
 
@@ -227,10 +226,6 @@ public static class CacheManager
             {
                 CacheStaticHolder<K, V>.Store.TryRemove(key, out _);
                 count++;
-            }
-            else
-            {
-                CacheStaticHolder<K, V>.QuickList.OverwritingNonAtomicAdd(key, timestamp);
             }
         }
 

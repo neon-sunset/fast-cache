@@ -34,8 +34,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         if (count < entries.Length)
         {
             entries[count] = (key, expiresAt);
-
-            Interlocked.CompareExchange(ref _count, count + 1, count);
+            _count = count + 1;
         }
     }
 
@@ -45,7 +44,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
     /// Atomic-compatible with AtomicSwapActive, writes are not atomically visible however which is by design.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void OverwritingNonAtomicAdd(K key, long expiresAt)
+    internal void OverwritingAdd(K key, long expiresAt)
     {
         var entries = _active;
         var count = (uint)_count;
@@ -230,6 +229,21 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         PrintEvicted(sw.Elapsed, entriesRemovedCount);
 #endif
         return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
+    }
+
+    internal void PullFromCacheStore()
+    {
+        uint i = 0;
+        uint limit = FreeSpace;
+        using var enumerator = CacheStaticHolder<K, V>.Store.GetEnumerator();
+
+        while ((i < limit) && enumerator.MoveNext())
+        {
+            var (key, inner) = enumerator.Current;
+
+            OverwritingAdd(key, inner._timestamp);
+            i++;
+        }
     }
 
     private static int CalculateResize(long totalCount)
