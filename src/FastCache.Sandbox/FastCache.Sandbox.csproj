@@ -16,12 +16,16 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <DebuggerSupport>false</DebuggerSupport>
+
     <PublishTrimmed>true</PublishTrimmed>
     <TrimmerDefaultAction>link</TrimmerDefaultAction>
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+
     <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
 	  <ServerGarbageCollection>true</ServerGarbageCollection>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  
     <ILLinkWarningLevel>999</ILLinkWarningLevel>
     <ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>

@@ -60,6 +60,12 @@ internal sealed class EvictionJob<K, V> where K : notnull
 
         var milliseconds = Interlocked.Read(ref _averageExpirationMilliseconds);
         var averageExpiration = TimeSpan.FromMilliseconds(milliseconds);
+        if (averageExpiration > TimeSpan.FromHours(72))
+        {
+            // This is necessary for rescheduling job to run often enough so that if average expiration goes down, we reschedule in reasonable time.
+            // In addition, timer.Change(TimeSpan) doesn't handle large intervals. For other scenarios, it's better to use 'SuspendEviction()' instead.
+            averageExpiration = TimeSpan.FromHours(72);
+        }
 
         var adjustedQuicklistInterval = ((averageExpiration / 10) + Constants.QuickListEvictionInterval) / 2;
         if (adjustedQuicklistInterval > Constants.QuickListEvictionInterval)
