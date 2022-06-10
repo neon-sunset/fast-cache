@@ -39,6 +39,51 @@ public static class CacheManager
     }
 
     /// <summary>
+    /// Trims cache store for a given percentage of its size. Will remove at least 1 item.
+    /// </summary>
+    /// <typeparam name="K"></typeparam>
+    /// <typeparam name="V"></typeparam>
+    /// <param name="percentage"></param>
+    /// <returns>True: trim is performed inline. False: the count to trim is above threshold and removal is queued to thread pool.</returns>
+    public static bool Trim<K, V>(double percentage) where K : notnull
+    {
+        if (percentage is > 100.0 or <= 0 + double.Epsilon)
+        {
+            ThrowHelpers.ArgumentOutOfRange(percentage, nameof(percentage));
+        }
+
+        static void ExecuteTrim(uint trimCount)
+        {
+            var removedFromQuickList = CacheStaticHolder<K, V>.QuickList.Trim(trimCount);
+            if (removedFromQuickList >= trimCount)
+            {
+                return;
+            }
+
+            var removed = 0;
+            var store = CacheStaticHolder<K, V>.Store;
+            var enumerator = store.GetEnumerator();
+            var toRemoveFromStore = trimCount - removedFromQuickList;
+
+            while (removed < toRemoveFromStore && enumerator.MoveNext())
+            {
+                store.TryRemove(enumerator.Current.Key, out _);
+                removed++;
+            }
+        }
+
+        var trimCount = Math.Max(1, (uint)(CacheStaticHolder<K, V>.Store.Count * (percentage / 100.0)));
+        if (trimCount < Constants.InlineTrimCountThreshold)
+        {
+            ExecuteTrim(trimCount);
+            return true;
+        }
+
+        ThreadPool.QueueUserWorkItem(static trimCount => ExecuteTrim(trimCount), trimCount, preferLocal: false);
+        return false;
+    }
+
+    /// <summary>
     /// Suspends automatic eviction. Does not affect already in-flight operations.
     /// </summary>
     public static void SuspendEviction<K, V>() where K : notnull => CacheStaticHolder<K, V>.EvictionJob.Stop();

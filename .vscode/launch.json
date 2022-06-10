@@ -35,8 +35,7 @@
             "args": [],
             "cwd": "${workspaceFolder}/src/FastCache.Benchmarks",
             "console": "integratedTerminal",
-            "stopAtEntry": false,
-            "requireExactSource": false
+            "stopAtEntry": false
         },
         {
             "name": ".NET Core Attach",
