@@ -25,18 +25,6 @@ internal static class CacheStaticHolder
         RuntimeHelpers.RunClassConstructor(typeof(CachedRange).TypeHandle);
 
         RuntimeHelpers.RunClassConstructor(typeof(TimeUtils).TypeHandle);
-
-        InitializeSpecialized<int, string>();
-        InitializeSpecialized<string, string>();
-    }
-
-    private static void InitializeSpecialized<K, V>() where K : notnull
-    {
-        RuntimeHelpers.RunClassConstructor(typeof(ConcurrentDictionary<K, CachedInner<V>>).TypeHandle);
-
-        RuntimeHelpers.RunClassConstructor(typeof(CacheStaticHolder<K, V>).TypeHandle);
-        RuntimeHelpers.RunClassConstructor(typeof(Cached<K, V>).TypeHandle);
-        RuntimeHelpers.RunClassConstructor(typeof(Cached<V>).TypeHandle);
     }
 }
 #pragma warning restore CA2255

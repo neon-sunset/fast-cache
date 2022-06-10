@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using FastCache.Helpers;
+using FastCache.Services;
 
 namespace FastCache;
 
@@ -41,14 +42,14 @@ public readonly struct Cached<K, V> where K : notnull
         return value;
     }
 
-    public V Save(V value, TimeSpan expiration, int limit)
+    public V Save(V value, TimeSpan expiration, uint limit)
     {
-        // TODO: Queue quicklist eviction and then fill it up with new entries. Condition: it's full or (is less or equal) to 5% of all entries.
-        // Still, it's important to consider what to do for small caches where quicklist size is below (e.g. 1000s of entries)
-        // Suggestion: for small enough sizes (10-100) items, perform clear inline, for more - queue a work item
-        // Questions: failsafe against thrashing on maximum capacity
-        // Possible compromise: thrashing with moderate perf penalty is better than a complete back-off
-        return CacheStaticHolder<K, V>.Store.Count < limit ? Save(value, expiration) : value;
+        if (CacheStaticHolder<K, V>.Store.Count < limit || CacheManager.Trim<K, V>(Constants.FullCapacityTrimPercentage))
+        {
+            return Save(value, expiration);
+        }
+
+        return value;
     }
 
     public void Remove()

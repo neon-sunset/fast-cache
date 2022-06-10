@@ -9,8 +9,8 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 {
     private readonly SemaphoreSlim _evictionLock = new(1, 1);
 
-    private (K, long)[] _active;
-    private (K, long)[] _inactive;
+    private (K Key, long Timestamp)[] _active;
+    private (K Key, long Timestamp)[] _inactive;
     private long _count;
 
     public uint AtomicCount => (uint)Interlocked.Read(ref _count);
@@ -231,6 +231,32 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
     }
 
+    internal uint Trim(uint count)
+    {
+        if (!_evictionLock.Wait(0))
+        {
+            return 0;
+        }
+
+        uint currentCount = AtomicCount;
+        uint toRemoveCount = Math.Min(currentCount, count);
+
+        uint countAfterTrim = currentCount - toRemoveCount;
+
+        uint removed = 0;
+        for (uint i = countAfterTrim; i < countAfterTrim + toRemoveCount; i++)
+        {
+            if (CacheStaticHolder<K, V>.Store.TryRemove(_active[i].Key, out var _))
+            {
+                removed++;
+            }
+        }
+
+        Interlocked.Exchange(ref _count, countAfterTrim);
+        _evictionLock.Release();
+        return removed;
+    }
+
     internal void PullFromCacheStore()
     {
         uint i = 0;
@@ -249,7 +275,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
     private static int CalculateResize(long totalCount)
     {
         return Math.Max(
-            (int)(Constants.QuickListAdjustableLengthRatio / 100D * totalCount),
+            (int)(Constants.QuickListAdjustableLengthPercentage / 100D * totalCount),
             Constants.QuickListMinLength);
     }
 

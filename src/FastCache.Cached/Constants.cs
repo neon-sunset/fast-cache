@@ -24,7 +24,7 @@ internal static class Constants
     public static readonly int QuickListMinLength = (int
         .TryParse(GetVar("FASTCACHE_QUICKLIST_MIN_LENGTH_FACTOR"), out var parsed) ? parsed : DefaultQuickListMinLengthFactor) * 128;
 
-    public static readonly uint QuickListAdjustableLengthRatio = uint
+    public static readonly uint QuickListAdjustableLengthPercentage = uint
         .TryParse(GetVar("FASTCACHE_QUICKLIST_AUTO_LENGTH_PERCENT"), out var parsed) && parsed <= 25
             ? parsed : DefaultQuickListAutoLengthPercent;
 
@@ -46,6 +46,12 @@ internal static class Constants
 
     public static uint ParallelSaveMinBatchSize = uint
         .TryParse(GetVar("FASTCACHE_PARALLEL_SAVE_MIN_BATCH_SIZE"), out var parsed) ? parsed : DefaultParallelSaveMinBatchSize;
+
+    public static double FullCapacityTrimPercentage = double
+        .TryParse(GetVar("FASTCACHE_FULL_CAPACITY_TRIM_PERCENT"), out var parsed) ? parsed : QuickListAdjustableLengthPercentage;
+
+    public static uint InlineTrimCountThreshold = uint
+        .TryParse(GetVar("FASTCACHE_INLINE_TRIM_COUNT_THRESHOLD"), out var parsed) ? parsed : 256;
 
     public static readonly bool ConsiderFullGC = bool.TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) && parsed;
 
