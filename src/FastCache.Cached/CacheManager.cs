@@ -190,9 +190,11 @@ public static class CacheManager
 
         if (CacheStaticHolder<K, V>.QuickList.Evict())
         {
-            // When a lot of items are being added to cache, it triggers GC
-            // which may decrease adding performance by constantly locking quick list.
-            // Avoid this by holding full eviction lock by additional 1000 ms (for 5s quicklist inerval).
+            // When a lot of items are being added to cache, it triggers GC and its callbacks
+            // which may decrease throughput by accessing the same memory locations
+            // from multiple threads and wasting CPU time on repeated eviction cycles
+            // over newly added items which is not profitable to do.
+            // Delaying lock release for extra (quick list interval / 5) avoids the issue. 
             await Task.Delay(Constants.EvictionCooldownDelayOnGC);
             evictionJob.FullEvictionLock.Release();
             return;
