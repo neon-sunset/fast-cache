@@ -185,10 +185,8 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 
             if (needsResizing)
             {
-                // If no items got evicted but we're resizing, reset the count.
-                // 'EvictFromMainCache' will push more items accordingly.
-                ResizeInactive(resizedLength);
-                AtomicSwapActive(0);
+                ResizeInactive(resizedLength, copy: true);
+                AtomicSwapActive(entriesSurvivedCount);
             }
 
             _evictionLock.Release();
@@ -279,7 +277,8 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             Constants.QuickListMinLength);
     }
 
-    private int ResizeInactive(int requestedLength)
+    // TODO: Refactor into 'ResizeAndSwap'
+    private int ResizeInactive(int requestedLength, bool copy = false)
     {
         // Opt. opportunity: round up requestedLength to the next PowOf2
         // so that we don't return and then rent the array when there is no need to
@@ -290,6 +289,12 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 
         ArrayPool<(K, long)>.Shared.Return(_inactive, RuntimeHelpers.IsReferenceOrContainsReferences<K>());
         _inactive = ArrayPool<(K, long)>.Shared.Rent(requestedLength);
+
+        if (copy)
+        {
+            var length = Math.Min(AtomicCount, _inactive.Length);
+            Array.Copy(_active, _inactive, length);
+        }
 
 #if FASTCACHE_DEBUG
         Console.WriteLine($"FastCache: _inactive for {_inactive.GetType()} has been resized. New length: {_inactive.Length}");
