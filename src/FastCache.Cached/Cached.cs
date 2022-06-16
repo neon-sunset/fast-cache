@@ -4,6 +4,11 @@ using FastCache.Services;
 
 namespace FastCache;
 
+/// <summary>
+/// Cache entry holder. Use 'Value' after 'TryGet()' that returned true.
+/// </summary>
+/// <typeparam name="K">Entry key. This can be a composite key expressed as (K1..K7).</typeparam>
+/// <typeparam name="V">Entry value. It is available if 'TryGet' has returned true. Accessing it otherwise is likely to return 'default'.</typeparam>
 [StructLayout(LayoutKind.Auto)]
 public readonly struct Cached<K, V> where K : notnull
 {
@@ -27,6 +32,12 @@ public readonly struct Cached<K, V> where K : notnull
         Value = value;
     }
 
+    /// <summary>
+    /// Saves the value to cache. The value will expire once the provided interval of time passes.
+    /// </summary>
+    /// <param name="value">Value to save</param>
+    /// <param name="expiration">Interval in which the value will expire</param>
+    /// <returns>Saved value</returns>
     public V Save(V value, TimeSpan expiration)
     {
         var (timestamp, milliseconds) = TimeUtils.GetTimestamp(expiration);
@@ -42,6 +53,15 @@ public readonly struct Cached<K, V> where K : notnull
         return value;
     }
 
+    /// <summary>
+    /// Saves the value to cache. The value will expire once the provided interval of time passes.
+    /// If the cache entries count is equal or above the limit, the cache is either trimmed to make place
+    /// or trimming is queued on a threadpool and the value is returned as is.
+    /// </summary>
+    /// <param name="value">Value to save</param>
+    /// <param name="expiration">Interval in which the value will expire</param>
+    /// <param name="limit">Limit for cache entries count</param>
+    /// <returns>Saved value</returns>
     public V Save(V value, TimeSpan expiration, uint limit)
     {
         if (CacheStaticHolder<K, V>.Store.Count < limit || CacheManager.Trim<K, V>(Constants.FullCapacityTrimPercentage))
@@ -52,6 +72,45 @@ public readonly struct Cached<K, V> where K : notnull
         return value;
     }
 
+    /// <summary>
+    /// Updates cached value without updating its expiration.
+    /// </summary>
+    /// <param name="value">Updated value</param>
+    /// <returns>True if the value has been updated successfully. False if the value is no longer present in cache.</returns>
+    public bool Update(V value)
+    {
+        var store = CacheStaticHolder<K, V>.Store;
+
+        if (_found && store.TryGetValue(_key, out var inner))
+        {
+            store[_key] = new(value, inner._timestamp);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Updates cached value together with its expiration.
+    /// Unlike 'Save()' overload that doesn't update expiration, this method will uncoditionally re-add the value previously found in cache.
+    /// </summary>
+    /// <param name="value">Updated value</param>
+    /// <param name="expiration">Updated expiration</param>
+    /// <returns>True if the value has been updated successfully.</returns>
+    public bool Update(V value, TimeSpan expiration)
+    {
+        if (_found)
+        {
+            Save(value, expiration);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Removes the value from cache if it's present.
+    /// </summary>
     public void Remove()
     {
         CacheStaticHolder<K, V>.Store.TryRemove(_key, out _);
