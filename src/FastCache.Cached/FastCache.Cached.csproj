@@ -24,6 +24,7 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
   <PropertyGroup>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

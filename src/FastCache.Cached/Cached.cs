@@ -10,7 +10,7 @@ namespace FastCache;
 /// <typeparam name="K">Entry key. This can be a composite key expressed as (K1..K7).</typeparam>
 /// <typeparam name="V">Entry value. It is available if 'TryGet' has returned true. Accessing it otherwise is likely to return 'default'.</typeparam>
 [StructLayout(LayoutKind.Auto)]
-public readonly struct Cached<K, V> where K : notnull
+public readonly record struct Cached<K, V> where K : notnull
 {
     private readonly K _key;
     private readonly bool _found;

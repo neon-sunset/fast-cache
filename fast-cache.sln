@@ -15,6 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastCache.Benchmarks", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache.Sandbox", "src\FastCache.Sandbox\FastCache.Sandbox.csproj", "{C574E401-620F-451A-9EC4-BF01D88294F5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E829160C-7468-4FCF-B00C-5F68A6483578}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache.Cached.Tests", "tests\FastCache.Cached.Tests\FastCache.Cached.Tests.csproj", "{431D5536-3C23-4B3A-BE69-D5FDFE5BC75D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +41,10 @@ Global
 		{C574E401-620F-451A-9EC4-BF01D88294F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C574E401-620F-451A-9EC4-BF01D88294F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C574E401-620F-451A-9EC4-BF01D88294F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{431D5536-3C23-4B3A-BE69-D5FDFE5BC75D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{431D5536-3C23-4B3A-BE69-D5FDFE5BC75D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{431D5536-3C23-4B3A-BE69-D5FDFE5BC75D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{431D5536-3C23-4B3A-BE69-D5FDFE5BC75D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +54,7 @@ Global
 		{8AB1527C-C371-4FDC-94A8-695722523A66} = {52329FE0-02E9-47AF-8BB1-5BA73D75E373}
 		{4E7B4956-26F5-46E3-99EF-3CBCC0A787E5} = {BB4200D9-5D9A-4269-8F7B-5EB41CA0DDDF}
 		{C574E401-620F-451A-9EC4-BF01D88294F5} = {BB4200D9-5D9A-4269-8F7B-5EB41CA0DDDF}
+		{431D5536-3C23-4B3A-BE69-D5FDFE5BC75D} = {E829160C-7468-4FCF-B00C-5F68A6483578}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {268C3894-4142-4229-B810-D7BD348C2CB9}
