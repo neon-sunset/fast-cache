@@ -7,7 +7,7 @@ public sealed class Cached_Sanity
     {
         static void RunCtor()
         {
-            new Cached<string, string>();
+            _ = new Cached<string, string>();
         }
 
         Assert.Throws<InvalidOperationException>(RunCtor);

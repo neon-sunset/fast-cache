@@ -115,12 +115,6 @@ public readonly record struct Cached<K, V> where K : notnull
     {
         CacheStaticHolder<K, V>.Store.TryRemove(_key, out _);
     }
-
-    [DoesNotReturn]
-    private static void InvalidExpiration(TimeSpan expiration)
-    {
-        throw new ArgumentOutOfRangeException(nameof(expiration), expiration, "Expiration must not be negative, zero or exceed multiple years.");
-    }
 }
 
 [StructLayout(LayoutKind.Auto)]

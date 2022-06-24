@@ -1,5 +1,6 @@
 namespace FastCache;
 
+//#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 public static class Cached
 {
     public static V GetOrCompute<K, V>(K param1, Func<K, V> func, TimeSpan expiration) where K : notnull
@@ -300,3 +301,4 @@ public static class Cached
             : cached.Save(await func(param1, param2, param3, param4, param5, param6, param7), expiration, limit);
     }
 }
+//#endif

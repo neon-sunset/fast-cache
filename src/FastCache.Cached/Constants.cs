@@ -5,7 +5,7 @@ internal static class Constants
     /// <summary>
     /// Min length: 32 * 128 default multiplier = 4096 elements. If changed, the value must be a power of 2.
     /// </summary>
-    private const int DefaultQuickListMinLengthFactor = 32;
+    private const int DefaultQuickListMinLengthFactor = 8;
     private const uint DefaultQuickListAutoLengthPercent = 5;
     private const uint DefaultIntervalMultiplyFactor = 20;
     private const uint DefaultParallelEvictionThreshold = 1_572_864;

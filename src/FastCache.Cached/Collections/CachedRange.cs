@@ -1,3 +1,5 @@
+using FastCache.Helpers;
+
 namespace FastCache.Collections;
 
 public static partial class CachedRange
@@ -38,7 +40,7 @@ public static partial class CachedRange
         var length = keys.Length;
         if (length < 0 || length != values.Length)
         {
-            IncorrectLength(length, values.Length);
+            ThrowHelpers.IncorrectSaveLength(length, values.Length);
         }
 
         var parallelism = GetParallelism((uint)length);
