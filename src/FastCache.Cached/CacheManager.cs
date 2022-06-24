@@ -194,11 +194,7 @@ public static class CacheManager
         evictionJob.FullEvictionLock.Release();
     }
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
     private static async ValueTask StaggeredFullEviction<K, V>() where K : notnull
-#elif NETSTANDARD2_0
-    private static async Task StaggeredFullEviction<K, V>() where K : notnull
-#endif
     {
         var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
 
@@ -302,11 +298,7 @@ public static class CacheManager
         return totalRemoved;
     }
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
     private static async ValueTask ConsiderFullGC<T>()
-#elif NETSTANDARD2_0
-    private static async Task ConsiderFullGC<T>()
-#endif
     {
         if (!Constants.ConsiderFullGC)
         {
