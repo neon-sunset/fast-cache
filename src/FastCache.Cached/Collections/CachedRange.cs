@@ -120,9 +120,7 @@ public static partial class CachedRange
         }
     }
 
-    public static void Remove<K, V, TEnumerable>(TEnumerable keys)
-        where K : notnull
-        where TEnumerable : IEnumerable<K>
+    public static void Remove<K, V>(IEnumerable<K> keys) where K : notnull
     {
         if (keys is K[] array)
         {
