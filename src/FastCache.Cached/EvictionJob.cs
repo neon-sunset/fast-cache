@@ -67,7 +67,11 @@ internal sealed class EvictionJob<K, V> where K : notnull
             averageExpiration = TimeSpan.FromHours(72);
         }
 
-        var adjustedQuicklistInterval = ((averageExpiration / 10) + Constants.QuickListEvictionInterval) / 2;
+        var adjustedQuicklistInterval = averageExpiration
+            .DivideBy(10)
+            .Add(Constants.QuickListEvictionInterval)
+            .DivideBy(2);
+
         if (adjustedQuicklistInterval > Constants.QuickListEvictionInterval)
         {
             _quickListEvictionTimer.Change(adjustedQuicklistInterval, adjustedQuicklistInterval);
@@ -77,7 +81,7 @@ internal sealed class EvictionJob<K, V> where K : notnull
         }
 
         var newFullEvictionInterval = Constants.FullEvictionInterval;
-        var adjustedFullEvictionInterval = (averageExpiration + newFullEvictionInterval) / 2;
+        var adjustedFullEvictionInterval = averageExpiration.Add(newFullEvictionInterval).DivideBy(2);
         if (adjustedFullEvictionInterval > newFullEvictionInterval)
         {
             _fullEvictionTimer.Change(adjustedFullEvictionInterval, adjustedFullEvictionInterval);

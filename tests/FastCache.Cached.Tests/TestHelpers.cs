@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace FastCache.Cached.Tests;
+namespace FastCache.Tests;
 
 internal static class TestHelpers
 {

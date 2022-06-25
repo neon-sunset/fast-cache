@@ -4,7 +4,6 @@ namespace FastCache.Helpers;
 
 internal static class ThrowHelpers
 {
-
 #if NETSTANDARD2_0
     [MethodImpl(MethodImplOptions.NoInlining)]
 #else

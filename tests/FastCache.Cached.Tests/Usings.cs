@@ -1,2 +1,2 @@
 global using Xunit;
-global using static FastCache.Cached.Tests.TestHelpers;
+global using static FastCache.Tests.TestHelpers;

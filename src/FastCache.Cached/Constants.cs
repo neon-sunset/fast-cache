@@ -1,3 +1,5 @@
+using FastCache.Helpers;
+
 namespace FastCache;
 
 internal static class Constants
@@ -86,10 +88,10 @@ internal static class Constants
         }
     }
 
-    public static readonly TimeSpan EvictionCooldownDelayOnGC = QuickListEvictionInterval / 5;
+    public static readonly TimeSpan EvictionCooldownDelayOnGC = QuickListEvictionInterval.DivideBy(5);
 
-    public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval * 4;
-    public static readonly TimeSpan CooldownDelayAfterFullGC = QuickListEvictionInterval * 4;
+    public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval.MultiplyBy(4);
+    public static readonly TimeSpan CooldownDelayAfterFullGC = QuickListEvictionInterval.MultiplyBy(4);
 
     private static string? GetVar(string key) => Environment.GetEnvironmentVariable(key);
 }
