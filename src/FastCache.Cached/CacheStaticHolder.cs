@@ -13,8 +13,6 @@ internal static class CacheStaticHolder
     [ModuleInitializer]
     public static void Initialize()
     {
-        RuntimeHelpers.RunClassConstructor(typeof(ConcurrentDictionary<,>).TypeHandle);
-
         RuntimeHelpers.RunClassConstructor(typeof(Constants).TypeHandle);
         RuntimeHelpers.RunClassConstructor(typeof(CacheStaticHolder<,>).TypeHandle);
         RuntimeHelpers.RunClassConstructor(typeof(CacheManager).TypeHandle);

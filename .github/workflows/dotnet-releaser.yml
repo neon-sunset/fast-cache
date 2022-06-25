@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
@@ -19,10 +19,11 @@ jobs:
         submodules: true
         fetch-depth: 0
 
-    - name: Install .NET 6.0 and 7.0
+    - name: Install .NET SDK
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: | 
+        dotnet-version: |
+          3.1.x
           6.0.x
           7.0.x
         include-prerelease: true

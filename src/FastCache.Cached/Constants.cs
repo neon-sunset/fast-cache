@@ -1,3 +1,5 @@
+using FastCache.Helpers;
+
 namespace FastCache;
 
 internal static class Constants
@@ -5,7 +7,7 @@ internal static class Constants
     /// <summary>
     /// Min length: 32 * 128 default multiplier = 4096 elements. If changed, the value must be a power of 2.
     /// </summary>
-    private const int DefaultQuickListMinLengthFactor = 32;
+    private const int DefaultQuickListMinLengthFactor = 8;
     private const uint DefaultQuickListAutoLengthPercent = 5;
     private const uint DefaultIntervalMultiplyFactor = 20;
     private const uint DefaultParallelEvictionThreshold = 1_572_864;
@@ -86,10 +88,10 @@ internal static class Constants
         }
     }
 
-    public static readonly TimeSpan EvictionCooldownDelayOnGC = QuickListEvictionInterval / 5;
+    public static readonly TimeSpan EvictionCooldownDelayOnGC = QuickListEvictionInterval.DivideBy(5);
 
-    public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval * 4;
-    public static readonly TimeSpan CooldownDelayAfterFullGC = QuickListEvictionInterval * 4;
+    public static readonly TimeSpan DelayToFullGC = QuickListEvictionInterval.MultiplyBy(4);
+    public static readonly TimeSpan CooldownDelayAfterFullGC = QuickListEvictionInterval.MultiplyBy(4);
 
     private static string? GetVar(string key) => Environment.GetEnvironmentVariable(key);
 }

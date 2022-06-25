@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Diagnostics;
 using FastCache.Helpers;
 
@@ -79,7 +78,11 @@ public static class CacheManager
             return true;
         }
 
-        ThreadPool.QueueUserWorkItem(static trimCount => ExecuteTrim(trimCount), trimCount, preferLocal: false);
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+        ThreadPool.QueueUserWorkItem(ExecuteTrim, trimCount, preferLocal: false);
+#elif NETSTANDARD2_0
+        ThreadPool.QueueUserWorkItem(static count => ExecuteTrim((uint)count), trimCount);
+#endif
         return false;
     }
 
@@ -96,7 +99,19 @@ public static class CacheManager
 
     internal static void ReportEvictions<T>(uint count)
     {
-        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>() && Constants.ConsiderFullGC)
+        if (!Constants.ConsiderFullGC)
+        {
+            return;
+        }
+
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+        var countTowardsEvictions = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+#elif NETSTANDARD2_0
+        // Inaccurate but this is an optional feature so this tradeoff is ok for legacy/uncommon tragets.
+        var countTowardsEvictions = !typeof(T).IsValueType;
+#endif
+
+        if (countTowardsEvictions)
         {
             Interlocked.Add(ref s_AggregatedEvictionsCount, count);
         }

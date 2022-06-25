@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\FastCache.Cached\FastCache.Cached.csproj" />
@@ -6,7 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-*" />
+    <!-- <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-*" /> -->
   </ItemGroup>
 
   <PropertyGroup>
@@ -18,12 +18,14 @@
     <DebuggerSupport>false</DebuggerSupport>
 
     <PublishTrimmed>true</PublishTrimmed>
+    <PublishSingleFile>true</PublishSingleFile>
+    <UseNativeHttpHandler>true</UseNativeHttpHandler>
     <TrimmerDefaultAction>link</TrimmerDefaultAction>
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
 
     <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
-	  <ServerGarbageCollection>true</ServerGarbageCollection>
+	  <!-- <ServerGarbageCollection>true</ServerGarbageCollection> -->
     <InvariantGlobalization>true</InvariantGlobalization>
   
     <ILLinkWarningLevel>999</ILLinkWarningLevel>

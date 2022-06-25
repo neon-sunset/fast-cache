@@ -254,10 +254,4 @@ public static partial class CachedRange
     {
         return Math.Max(Math.Min(length / Constants.ParallelSaveMinBatchSize, (uint)Environment.ProcessorCount), 1);
     }
-
-    [DoesNotReturn]
-    private static void IncorrectLength(int keys, int values)
-    {
-        throw new ArgumentOutOfRangeException(nameof(values), values, $"Cannot perform 'Save()' for provided ranges - length mismatch. Expected: {keys}.");
-    }
 }

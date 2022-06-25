@@ -287,7 +287,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             return _inactive.Length;
         }
 
-        ArrayPool<(K, long)>.Shared.Return(_inactive, RuntimeHelpers.IsReferenceOrContainsReferences<K>());
+        ArrayPool<(K, long)>.Shared.Return(_inactive, TypeInfo.IsManaged<K>());
         _inactive = ArrayPool<(K, long)>.Shared.Rent(requestedLength);
 
         if (copy)
@@ -315,7 +315,7 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             _evictionLock.Wait();
         }
 
-        if (RuntimeHelpers.IsReferenceOrContainsReferences<K>())
+        if (TypeInfo.IsManaged<K>())
         {
             var entries = _active;
             var length = Math.Min((int)AtomicCount, entries.Length);

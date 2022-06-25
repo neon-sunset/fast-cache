@@ -21,15 +21,9 @@ internal static class TimeUtils
         var timestamp = now + milliseconds;
         if (timestamp <= now)
         {
-            InvalidExpiration(expiration);
+            ThrowHelpers.InvalidExpiration(expiration);
         }
 
         return (timestamp, milliseconds);
-    }
-
-    [DoesNotReturn]
-    private static void InvalidExpiration(TimeSpan expiration)
-    {
-        throw new ArgumentOutOfRangeException(nameof(expiration), expiration, "Expiration must not be negative, zero or exceed multiple years.");
     }
 }

@@ -56,12 +56,13 @@ public static class EvictionStress
 
         Parallel.For(0, millions * 10, static num =>
         {
+            var typeName = typeof(T).Name;
             var sw = Stopwatch.StartNew();
             for (uint i = 0; i < count; i++)
             {
                 var rand = TimeSpan.FromSeconds(Random.Shared.Next(secondsMin, secondsMax));
 
-                new T().Cache(i, "val2", num, "val4", '!', true, 0.1337f, rand);
+                new T().Cache($"{typeName}:{i}:{num}", rand);
             }
 
             var elapsed = sw.Elapsed;

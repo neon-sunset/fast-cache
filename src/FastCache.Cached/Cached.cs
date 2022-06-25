@@ -10,7 +10,7 @@ namespace FastCache;
 /// <typeparam name="K">Entry key. This can be a composite key expressed as (K1..K7).</typeparam>
 /// <typeparam name="V">Entry value. It is available if 'TryGet' has returned true. Accessing it otherwise is likely to return 'default'.</typeparam>
 [StructLayout(LayoutKind.Auto)]
-public readonly struct Cached<K, V> where K : notnull
+public readonly record struct Cached<K, V> where K : notnull
 {
     private readonly K _key;
     private readonly bool _found;
@@ -114,12 +114,6 @@ public readonly struct Cached<K, V> where K : notnull
     public void Remove()
     {
         CacheStaticHolder<K, V>.Store.TryRemove(_key, out _);
-    }
-
-    [DoesNotReturn]
-    private static void InvalidExpiration(TimeSpan expiration)
-    {
-        throw new ArgumentOutOfRangeException(nameof(expiration), expiration, "Expiration must not be negative, zero or exceed multiple years.");
     }
 }
 

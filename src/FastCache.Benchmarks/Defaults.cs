@@ -5,6 +5,7 @@ namespace FastCache.Benchmarks;
 
 [ShortRunJob]
 [MemoryDiagnoser]
+[DisassemblyDiagnoser(maxDepth: 10, printSource: true, exportCombinedDisassemblyReport: true)]
 public class Defaults
 {
     private static readonly TimeSpan OneHour = TimeSpan.FromMinutes(60);
