@@ -16,7 +16,7 @@ internal static class TimeUtils
     public static (long timestamp, long offset) GetTimestamp(TimeSpan expiration)
     {
         var now = Now;
-        var milliseconds = expiration.Ticks / TimeSpan.TicksPerMillisecond;
+        var milliseconds = (long)Math.Ceiling(expiration.Ticks / (double)TimeSpan.TicksPerMillisecond);
 
         var timestamp = now + milliseconds;
         if (timestamp <= now)
