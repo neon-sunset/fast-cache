@@ -15,6 +15,15 @@ internal static class TestHelpers
         return Convert.ToBase64String(bytes);
     }
 
+    public static long RandomLong()
+    {
+        var bytes = (stackalloc byte[8]);
+
+        _random.NextBytes(bytes);
+
+        return BitConverter.ToInt64(bytes);
+    }
+
     [DoesNotReturn]
     public static void Unreachable()
     {

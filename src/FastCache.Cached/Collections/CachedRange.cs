@@ -54,7 +54,7 @@ public static partial class CachedRange
         }
     }
 
-    private static void Save<K, V>(IList<(K, V)> range, TimeSpan expiration)
+    public static void Save<K, V>(IList<(K, V)> range, TimeSpan expiration)
         where K : notnull
     {
         var length = range.Count;

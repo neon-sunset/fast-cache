@@ -1,6 +1,6 @@
 namespace FastCache.Cached.Tests;
 
-public sealed class Cached_ParamsPermutations
+public sealed class CachedTests_ParamsPermutations
 {
     private static readonly TimeSpan Expiration = TimeSpan.MaxValue;
 

@@ -1,6 +1,6 @@
 namespace FastCache.Cached.Tests;
 
-public sealed class Cached_InputValidation
+public sealed class CachedTests_InputValidation
 {
     private static IEnumerable<object[]> ValidExpirations()
     {

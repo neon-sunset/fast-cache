@@ -2,10 +2,10 @@ using FastCache.Extensions;
 
 namespace FastCache.Cached.Tests;
 
-public sealed class Cached_ExpirationPermutations
+public sealed class CachedTests_ExpirationPermutations
 {
     [Theory]
-    [InlineData(5)]
+    [InlineData(10)]
     [InlineData(250)]
     [InlineData(1000)]
     [InlineData(5000)]
