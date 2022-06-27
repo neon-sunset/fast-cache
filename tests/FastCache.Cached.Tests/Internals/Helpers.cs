@@ -23,7 +23,7 @@ public sealed class Helpers
     [Fact]
     public void TypeInfo_IsManaged_ReturnsCorrectValues()
     {
-#if !NET48
+#if !NETSTANDARD2_0
         Assert.True(TypeInfo.IsManaged<(string, long)>());
 #endif 
         Assert.True(TypeInfo.IsManaged<object>());

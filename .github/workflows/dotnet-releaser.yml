@@ -10,7 +10,7 @@ on:
 
 jobs:
   all-in-one:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v3

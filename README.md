@@ -1,7 +1,7 @@
 # FastCache.Cached
 <p><img src="https://raw.githubusercontent.com/neon-sunset/fast-cache/main/img/cached-small-transparent.png" width="180" height="180" align="right" /></p>
 
-[![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/) [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml) [![Coverage Status](https://coveralls.io/repos/github/neon-sunset/fast-cache/badge.svg?branch=main)](https://coveralls.io/github/neon-sunset/fast-cache?branch=main)
+[![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml) [![Coverage Status](https://coveralls.io/repos/github/neon-sunset/fast-cache/badge.svg?branch=main)](https://coveralls.io/github/neon-sunset/fast-cache?branch=main) [![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/)
 
 The fastest cache library written in C# for items with set expiration time. Easy to use, thread-safe and light on memory.
 
