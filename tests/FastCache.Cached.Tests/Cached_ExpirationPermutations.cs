@@ -5,8 +5,8 @@ namespace FastCache.Cached.Tests;
 public sealed class CachedTests_ExpirationPermutations
 {
     [Theory]
-    [InlineData(10)]
-    [InlineData(250)]
+    [InlineData(100)]
+    [InlineData(500)]
     [InlineData(1000)]
     [InlineData(5000)]
     public async Task Cached_TryGet_ReturnsValueAccordingToItemExpiration(int milliseconds)
