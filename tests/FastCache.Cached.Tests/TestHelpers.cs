@@ -6,7 +6,7 @@ internal static class TestHelpers
 
     public static string RandomString()
     {
-#if !NETSTANDARD2_0
+#if !NET48
         var bytes = (stackalloc byte[64]);
 #else
         var bytes = new byte[64];
@@ -19,7 +19,7 @@ internal static class TestHelpers
 
     public static long RandomLong()
     {
-#if !NETSTANDARD2_0
+#if !NET48
         var bytes = (stackalloc byte[8]);
 #else
         var bytes = new byte[8];
@@ -27,7 +27,7 @@ internal static class TestHelpers
 
         _random.NextBytes(bytes);
 
-#if !NETSTANDARD2_0
+#if !NET48
         return BitConverter.ToInt64(bytes);
 #else
         return BitConverter.ToInt64(bytes, 0);
