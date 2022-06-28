@@ -96,6 +96,27 @@ public sealed class CachedTests_TryGetAndSave
     }
 
     [Fact]
+    public void Cached_Remove_Removes()
+    {
+        var key = GetTestKey();
+        var value = GetRandomString();
+
+        value.Cache(key, TimeSpan.MaxValue);
+
+        var foundBefore = Cached<string>.TryGet(key, out var cached);
+        var valueBefore = cached.Value;
+
+        Assert.True(foundBefore);
+        Assert.Equal(value, valueBefore);
+
+        cached.Remove();
+
+        var foundAfter = Cached<string>.TryGet(key, out _);
+
+        Assert.False(foundAfter);
+    }
+
+    [Fact]
     public void Cached_NotSaved_ReturnsFalse_K2()
     {
         var k1 = GetTestKey();
