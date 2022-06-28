@@ -145,7 +145,7 @@ public sealed class CachedRangeTests
     private static (string Key, string Value)[] GenerateArray(bool lengthAboveMtThreshold, [CallerMemberName] string key = "")
     {
         var length = lengthAboveMtThreshold
-            ? (int)Constants.ParallelSaveMinBatchSize * Environment.ProcessorCount
+            ? (int)(Constants.ParallelSaveMinBatchSize * Environment.ProcessorCount) + 7
             : (int)Constants.ParallelSaveMinBatchSize;
 
         var array = new (string, string)[length];
@@ -161,7 +161,7 @@ public sealed class CachedRangeTests
     private static List<(string Key, string Value)> GenerateList(bool lengthAboveMtThreshold, [CallerMemberName] string key = "")
     {
         var length = lengthAboveMtThreshold
-            ? (int)Constants.ParallelSaveMinBatchSize * Environment.ProcessorCount
+            ? (int)(Constants.ParallelSaveMinBatchSize * Environment.ProcessorCount) + 7
             : (int)Constants.ParallelSaveMinBatchSize;
 
         var list = new List<(string, string)>(length);
