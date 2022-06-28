@@ -1,6 +1,6 @@
 using FastCache.Helpers;
 
-namespace FastCache.Cached.Tests;
+namespace FastCache.CachedTests;
 
 public sealed class Helpers
 {

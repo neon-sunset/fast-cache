@@ -1,6 +1,6 @@
 using FastCache.Extensions;
 
-namespace FastCache.Cached.Tests;
+namespace FastCache.CachedTests;
 
 public sealed class CachedTests_ExpirationPermutations
 {

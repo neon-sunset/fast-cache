@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache.Sandbox", "src\Fa
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E829160C-7468-4FCF-B00C-5F68A6483578}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache.Cached.Tests", "tests\FastCache.Cached.Tests\FastCache.Cached.Tests.csproj", "{431D5536-3C23-4B3A-BE69-D5FDFE5BC75D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastCache.CachedTests", "tests\FastCache.CachedTests\FastCache.CachedTests.csproj", "{431D5536-3C23-4B3A-BE69-D5FDFE5BC75D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

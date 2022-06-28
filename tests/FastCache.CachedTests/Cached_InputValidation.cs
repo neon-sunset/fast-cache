@@ -1,4 +1,4 @@
-namespace FastCache.Cached.Tests;
+namespace FastCache.CachedTests;
 
 public sealed class CachedTests_InputValidation
 {

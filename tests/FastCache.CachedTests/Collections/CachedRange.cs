@@ -1,6 +1,6 @@
 using FastCache.Collections;
 
-namespace FastCache.Cached.Tests.Collections;
+namespace FastCache.CachedTests.Collections;
 
 public sealed class CachedRangeTests
 {
