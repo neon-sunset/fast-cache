@@ -5,13 +5,15 @@ namespace FastCache.CachedTests.Collections;
 
 public sealed class CachedRangeTests
 {
+    private static readonly TimeSpan Expiration = TimeSpan.FromSeconds(5);
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public void SaveRange_InsertedArray_MatchesDataInCache(bool multithreaded)
     {
         var array = GenerateArray(multithreaded);
-        CachedRange<string>.Save(array, TimeSpan.MaxValue);
+        CachedRange<string>.Save(array, Expiration);
 
         foreach (var (key, expectedValue) in array)
         {
@@ -30,7 +32,7 @@ public sealed class CachedRangeTests
         var array = GenerateArray(multithreaded);
         var keys = array.Select(kvp => kvp.Key).ToArray();
         var values = array.Select(kvp => kvp.Value).ToArray();
-        CachedRange<string>.Save(keys, values, TimeSpan.MaxValue);
+        CachedRange<string>.Save(keys, values, Expiration);
 
         foreach (var (key, expectedValue) in array)
         {
@@ -48,7 +50,7 @@ public sealed class CachedRangeTests
         {
             var keys = Enumerable.Range(0, 64).ToArray();
             var values = Enumerable.Range(0, 32).Select(v => v.ToString()).ToArray();
-            CachedRange<string>.Save(keys, values, TimeSpan.MaxValue);
+            CachedRange<string>.Save(keys, values, Expiration);
         }
 
         Assert.Throws<ArgumentOutOfRangeException>(SaveMismatched);
@@ -60,7 +62,7 @@ public sealed class CachedRangeTests
     public void SaveRange_InsertedList_MatchesDataInCache(bool multithreaded)
     {
         var list = GenerateList(multithreaded);
-        CachedRange<string>.Save(list, TimeSpan.MaxValue);
+        CachedRange<string>.Save(list, Expiration);
 
         foreach (var (key, expectedValue) in list)
         {
@@ -78,7 +80,7 @@ public sealed class CachedRangeTests
     {
         var list = GenerateList(multithreaded);
         var enumerable = list.Select(kvp => kvp);
-        CachedRange<string>.Save(enumerable, TimeSpan.MaxValue);
+        CachedRange<string>.Save(enumerable, Expiration);
 
         foreach (var (key, expectedValue) in list)
         {
@@ -97,7 +99,7 @@ public sealed class CachedRangeTests
         var array = GenerateArray(multithreaded);
         var keys = array.Select(kvp => kvp.Key).ToArray();
 
-        CachedRange<string>.Save(array, TimeSpan.MaxValue);
+        CachedRange<string>.Save(array, Expiration);
         foreach (var (key, value) in array)
         {
             var found = Cached<string>.TryGet(key, out var cached);
@@ -124,7 +126,7 @@ public sealed class CachedRangeTests
         var keys = array.Select(kvp => kvp.Key).ToArray();
         var enumerable = keys.Select(key => key).ToList();
 
-        CachedRange<string>.Save(array, TimeSpan.MaxValue);
+        CachedRange<string>.Save(array, Expiration);
         foreach (var (key, value) in array)
         {
             var found = Cached<string>.TryGet(key, out var cached);

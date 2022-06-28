@@ -52,11 +52,8 @@ public static partial class CachedRange<V>
 
         Parallel.ForEach(memorySlices, static slice => SaveSlice(slice.Value.Span, slice.Timestamp));
 
-        foreach (var (key, value) in range.Span[^remainderLength..^0])
-        {
-            CacheStaticHolder<K, V>.Store[key] = new(value, timestamp);
-            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(key, timestamp);
-        }
+        // Handle remainder
+        SaveSlice(range.Span[^remainderLength..^0], timestamp);
     }
 
     private static void SaveMultithreaded<K>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration, int parallelism) where K : notnull
@@ -78,16 +75,8 @@ public static partial class CachedRange<V>
 
         Parallel.ForEach(memorySlices, static slice => SaveSlice(slice.Keys.Span, slice.Values.Span, slice.Timestamp));
 
-        var remainderKeys = keys.Span[^remainderLength..^0];
-        var remainderValues = values.Span[^remainderLength..^0];
-
-        for (int i = 0; i < remainderKeys.Length; i++)
-        {
-            var key = remainderKeys[i];
-
-            CacheStaticHolder<K, V>.Store[key] = new(remainderValues[i], timestamp);
-            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(key, timestamp);
-        }
+        // Handle remainder
+        SaveSlice(keys.Span[^remainderLength..^0], values.Span[^remainderLength..^0], timestamp);
     }
 
     private static void SaveListSinglethreaded<K, TList>(TList range, TimeSpan expiration)
@@ -173,7 +162,10 @@ public static partial class CachedRange<V>
             memorySlices[i] = keys[start..end];
         }
 
-        Parallel.ForEach(memorySlices, static slice => RemoveSlice<K>(slice.Span));
+        Parallel.ForEach(memorySlices, static slice => RemoveSlice(slice.Span));
+
+        // Handle remainder
+        RemoveSlice(keys.Span[^remainderLength..^0]);
     }
 
     private static void RemoveSlice<K>(ReadOnlySpan<K> slice) where K : notnull
