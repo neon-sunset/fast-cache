@@ -47,7 +47,7 @@ public sealed class CachedTests_Update
     [InlineData(2500)]
     public async Task Cached_Update_PreservesExpiration(int milliseconds)
     {
-        const int delayTolerance = 50;
+        const int delayTolerance = 100;
 
         var key = GetTestKey(milliseconds);
         var valueBefore = GetRandomString();
