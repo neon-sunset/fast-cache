@@ -114,6 +114,33 @@ public sealed class CachedRangeTests
         }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void RemoveRange_RemovedEnumerable_NoLongerPresentInCache(bool multithreaded)
+    {
+        var array = GenerateArray(multithreaded);
+        var keys = array.Select(kvp => kvp.Key).ToArray();
+        var enumerable = keys.Select(key => key).ToList();
+
+        CachedRange<string>.Save(array, TimeSpan.MaxValue);
+        foreach (var (key, value) in array)
+        {
+            var found = Cached<string>.TryGet(key, out var cached);
+
+            Assert.True(found);
+            Assert.Equal(value, cached.Value);
+        }
+
+        CachedRange<string>.Remove(enumerable);
+        foreach (var key in keys)
+        {
+            var found = Cached<string>.TryGet(key, out _);
+
+            Assert.False(found);
+        }
+    }
+
     private static (long Key, string Value)[] GenerateArray(bool lengthAboveMtThreshold)
     {
         var length = lengthAboveMtThreshold

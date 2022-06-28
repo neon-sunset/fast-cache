@@ -140,15 +140,11 @@ public static partial class CachedRange<V>
             Remove((ReadOnlyMemory<K>)array);
         }
 #if NET6_0_OR_GREATER
-        else if (keys.TryGetNonEnumeratedCount(out var count))
+        else if (keys.TryGetNonEnumeratedCount(out var count) && GetParallelism((uint)count) > 1)
         {
-            var parallelism = GetParallelism((uint)count);
-            if (parallelism > 1)
-            {
-                keys.AsParallel()
-                    .AsUnordered()
-                    .ForAll(static key => CacheStaticHolder<K, V>.Store.TryRemove(key, out _));
-            }
+            keys.AsParallel()
+                .AsUnordered()
+                .ForAll(static key => CacheStaticHolder<K, V>.Store.TryRemove(key, out _));
         }
 #endif
         else
