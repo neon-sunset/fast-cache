@@ -7,7 +7,7 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_NotSaved_ReturnsFalse()
     {
-        var key = RandomString();
+        var key = GetTestKey();
 
         var found = Cached<string>.TryGet(key, out var _);
 
@@ -17,8 +17,8 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_Saved_ReturnsTrueAndCorrectValue()
     {
-        var key = RandomString();
-        var value = RandomString();
+        var key = GetTestKey();
+        var value = GetRandomString();
 
         if (!Cached<string>.TryGet(key, out var beforeSave))
         {
@@ -35,8 +35,8 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_NotSaved_ReturnsFalse_K2()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
 
         var found = Cached<string>.TryGet(k1, k2, out var _);
 
@@ -46,9 +46,9 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_Saved_ReturnsTrueAndCorrectValue_K2()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var value = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var value = GetRandomString();
 
         if (!Cached<string>.TryGet(k1, k2, out var beforeSave))
         {
@@ -65,9 +65,9 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_NotSaved_ReturnsFalse_K3()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
 
         var found = Cached<string>.TryGet(k1, k2, k3, out var _);
 
@@ -77,10 +77,10 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_Saved_ReturnsTrueAndCorrectValue_K3()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
-        var value = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
+        var value = GetRandomString();
 
         if (!Cached<string>.TryGet(k1, k2, k3, out var beforeSave))
         {
@@ -97,10 +97,10 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_NotSaved_ReturnsFalse_K4()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
-        var k4 = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
+        var k4 = GetTestKey();
 
         var found = Cached<string>.TryGet(k1, k2, k3, k4, out var _);
 
@@ -110,11 +110,11 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_Saved_ReturnsTrueAndCorrectValue_K4()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
-        var k4 = RandomString();
-        var value = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
+        var k4 = GetTestKey();
+        var value = GetRandomString();
 
         if (!Cached<string>.TryGet(k1, k2, k3, k4, out var beforeSave))
         {
@@ -131,11 +131,11 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_NotSaved_ReturnsFalse_K5()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
-        var k4 = RandomString();
-        var k5 = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
+        var k4 = GetTestKey();
+        var k5 = GetTestKey();
 
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, out var _);
 
@@ -145,12 +145,12 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_Saved_ReturnsTrueAndCorrectValue_K5()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
-        var k4 = RandomString();
-        var k5 = RandomString();
-        var value = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
+        var k4 = GetTestKey();
+        var k5 = GetTestKey();
+        var value = GetRandomString();
 
         if (!Cached<string>.TryGet(k1, k2, k3, k4, k5, out var beforeSave))
         {
@@ -167,12 +167,12 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_NotSaved_ReturnsFalse_K6()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
-        var k4 = RandomString();
-        var k5 = RandomString();
-        var k6 = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
+        var k4 = GetTestKey();
+        var k5 = GetTestKey();
+        var k6 = GetTestKey();
 
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, out var _);
 
@@ -182,13 +182,13 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_Saved_ReturnsTrueAndCorrectValue_K6()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
-        var k4 = RandomString();
-        var k5 = RandomString();
-        var k6 = RandomString();
-        var value = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
+        var k4 = GetTestKey();
+        var k5 = GetTestKey();
+        var k6 = GetTestKey();
+        var value = GetRandomString();
 
         if (!Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, out var beforeSave))
         {
@@ -205,13 +205,13 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_NotSaved_ReturnsFalse_K7()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
-        var k4 = RandomString();
-        var k5 = RandomString();
-        var k6 = RandomString();
-        var k7 = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
+        var k4 = GetTestKey();
+        var k5 = GetTestKey();
+        var k6 = GetTestKey();
+        var k7 = GetTestKey();
 
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, k7, out var _);
 
@@ -221,14 +221,14 @@ public sealed class CachedTests_ParamsPermutations
     [Fact]
     public void Cached_Saved_ReturnsTrueAndCorrectValue_K7()
     {
-        var k1 = RandomString();
-        var k2 = RandomString();
-        var k3 = RandomString();
-        var k4 = RandomString();
-        var k5 = RandomString();
-        var k6 = RandomString();
-        var k7 = RandomString();
-        var value = RandomString();
+        var k1 = GetTestKey();
+        var k2 = GetTestKey();
+        var k3 = GetTestKey();
+        var k4 = GetTestKey();
+        var k5 = GetTestKey();
+        var k6 = GetTestKey();
+        var k7 = GetTestKey();
+        var value = GetRandomString();
 
         if (!Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, k7, out var beforeSave))
         {

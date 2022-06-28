@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using FastCache.Collections;
 
 namespace FastCache.CachedTests.Collections;
@@ -141,33 +142,33 @@ public sealed class CachedRangeTests
         }
     }
 
-    private static (long Key, string Value)[] GenerateArray(bool lengthAboveMtThreshold)
+    private static (string Key, string Value)[] GenerateArray(bool lengthAboveMtThreshold, [CallerMemberName] string key = "")
     {
         var length = lengthAboveMtThreshold
             ? (int)Constants.ParallelSaveMinBatchSize * Environment.ProcessorCount
             : (int)Constants.ParallelSaveMinBatchSize;
 
-        var array = new (long, string)[length];
+        var array = new (string, string)[length];
 
         for (int i = 0; i < array.Length; i++)
         {
-            array[i] = (RandomLong(), RandomString());
+            array[i] = (GetTestKey(key, i, lengthAboveMtThreshold), GetRandomString());
         }
 
         return array;
     }
 
-    private static List<(long Key, string Value)> GenerateList(bool lengthAboveMtThreshold)
+    private static List<(string Key, string Value)> GenerateList(bool lengthAboveMtThreshold, [CallerMemberName] string key = "")
     {
         var length = lengthAboveMtThreshold
             ? (int)Constants.ParallelSaveMinBatchSize * Environment.ProcessorCount
             : (int)Constants.ParallelSaveMinBatchSize;
 
-        var list = new List<(long, string)>(length);
+        var list = new List<(string, string)>(length);
 
         for (int i = 0; i < list.Capacity; i++)
         {
-            list.Add((RandomLong(), RandomString()));
+            list.Add((GetTestKey(key, i, lengthAboveMtThreshold), GetRandomString()));
         }
 
         return list;

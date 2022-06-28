@@ -13,8 +13,8 @@ public sealed class CachedTests_ExpirationPermutations
     {
         const int delayTolerance = 50;
 
-        var key = RandomString();
-        var value = RandomString();
+        var key = GetTestKey(milliseconds);
+        var value = GetRandomString();
         value.Cache(key, TimeSpan.FromMilliseconds(milliseconds));
 
         await Task.Delay(milliseconds - delayTolerance);
@@ -23,7 +23,7 @@ public sealed class CachedTests_ExpirationPermutations
         Assert.True(foundBefore);
         Assert.Equal(value, cachedBefore.Value);
 
-        await Task.Delay(milliseconds);
+        await Task.Delay(delayTolerance);
         var foundAfter = Cached<string>.TryGet(key, out _);
 
         Assert.False(foundAfter);

@@ -91,24 +91,6 @@ public readonly record struct Cached<K, V> where K : notnull
     }
 
     /// <summary>
-    /// Updates cached value together with its expiration.
-    /// Unlike 'Save()' overload that doesn't update expiration, this method will uncoditionally re-add the value previously found in cache.
-    /// </summary>
-    /// <param name="value">Updated value</param>
-    /// <param name="expiration">Updated expiration</param>
-    /// <returns>True if the value has been updated successfully.</returns>
-    public bool Update(V value, TimeSpan expiration)
-    {
-        if (_found)
-        {
-            Save(value, expiration);
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Removes the value from cache if it's present.
     /// </summary>
     public void Remove()

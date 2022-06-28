@@ -40,20 +40,22 @@ public sealed class CachedTests_InputValidation
     [MemberData(nameof(InvalidExpirations))]
     public void Cached_Save_ThrowsOnInvalidExpiration(TimeSpan expiration)
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        void SaveInvalidExpiration()
         {
-            if (!Cached<string>.TryGet(RandomString(), out var cached))
+            if (!Cached<string>.TryGet(GetTestKey(expiration), out var cached))
             {
-                cached.Save(RandomString(), expiration);
+                cached.Save(GetRandomString(), expiration);
             }
-        });
+        }
+
+        Assert.Throws<ArgumentOutOfRangeException>(SaveInvalidExpiration);
     }
 
     [Theory]
     [MemberData(nameof(ValidExpirations))]
     public void Cached_Save_DoesNotThrowOnValidExpiration(TimeSpan expiration)
     {
-        Cached<string>.TryGet(RandomString(), out var cached);
-        cached.Save(RandomString(), expiration);
+        Cached<string>.TryGet(GetTestKey(expiration), out var cached);
+        cached.Save(GetRandomString(), expiration);
     }
 }

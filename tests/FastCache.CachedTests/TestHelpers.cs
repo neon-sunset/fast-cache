@@ -1,15 +1,42 @@
-﻿namespace FastCache.Tests;
+﻿using System.Runtime.CompilerServices;
+
+namespace FastCache.Tests;
 
 internal static class TestHelpers
 {
     private static readonly Random _random = new();
 
-    public static string RandomString()
+    public static string GetTestKey([CallerMemberName] string testName = "")
+    {
+        return testName;
+    }
+
+    public static string GetTestKey<T>(T arg1, [CallerMemberName] string testName = "")
+    {
+        return $"{testName}:{arg1}";
+    }
+
+    public static string GetTestKey<T1, T2>(T1 arg1, T2 arg2, [CallerMemberName] string testName = "")
+    {
+        return testName + string.Join(':', arg1, arg2);
+    }
+
+    public static string GetTestKey<T1, T2, T3>(T1 arg1, T2 arg2, T3 arg3, [CallerMemberName] string testName = "")
+    {
+        return testName + string.Join(':', arg1, arg2, arg3);
+    }
+
+    public static string GetTestKey<T1, T2, T3, T4>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, [CallerMemberName] string testName = "")
+    {
+        return testName + string.Join(':', arg1, arg2, arg3, arg4);
+    }
+
+    public static string GetRandomString()
     {
 #if !NETSTANDARD2_0
-        var bytes = (stackalloc byte[64]);
+        var bytes = (stackalloc byte[256]);
 #else
-        var bytes = new byte[64];
+        var bytes = new byte[256];
 #endif
 
         _random.NextBytes(bytes);
@@ -17,7 +44,7 @@ internal static class TestHelpers
         return Convert.ToBase64String(bytes);
     }
 
-    public static long RandomLong()
+    public static long GetRandomLong()
     {
 #if !NETSTANDARD2_0
         var bytes = (stackalloc byte[8]);
