@@ -34,9 +34,9 @@ internal static class TestHelpers
     public static string GetRandomString()
     {
 #if !NETSTANDARD2_0
-        var bytes = (stackalloc byte[256]);
+        var bytes = (stackalloc byte[64]);
 #else
-        var bytes = new byte[256];
+        var bytes = new byte[64];
 #endif
 
         _random.NextBytes(bytes);
