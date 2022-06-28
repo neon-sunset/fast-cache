@@ -12,6 +12,8 @@ public sealed class CachedRangeTests
     [InlineData(false)]
     public void SaveRange_InsertedArray_MatchesDataInCache(bool multithreaded)
     {
+        CacheStaticHolder<string, string>.QuickList.Reset();
+
         var array = GenerateArray(multithreaded);
         CachedRange<string>.Save(array, Expiration);
 
@@ -29,6 +31,8 @@ public sealed class CachedRangeTests
     [InlineData(false)]
     public void SaveRange_InsertedArrayPairs_MatchDataInCache(bool multithreaded)
     {
+        CacheStaticHolder<string, string>.QuickList.Reset();
+
         var array = GenerateArray(multithreaded);
         var keys = array.Select(kvp => kvp.Key).ToArray();
         var values = array.Select(kvp => kvp.Value).ToArray();
@@ -61,6 +65,8 @@ public sealed class CachedRangeTests
     [InlineData(false)]
     public void SaveRange_InsertedList_MatchesDataInCache(bool multithreaded)
     {
+        CacheStaticHolder<string, string>.QuickList.Reset();
+
         var list = GenerateList(multithreaded);
         CachedRange<string>.Save(list, Expiration);
 
@@ -78,6 +84,8 @@ public sealed class CachedRangeTests
     [InlineData(false)]
     public void SaveRange_InsertedEnumerable_MatchesDataInCache(bool multithreaded)
     {
+        CacheStaticHolder<string, string>.QuickList.Reset();
+
         var list = GenerateList(multithreaded);
         var enumerable = list.Select(kvp => kvp);
         CachedRange<string>.Save(enumerable, Expiration);
