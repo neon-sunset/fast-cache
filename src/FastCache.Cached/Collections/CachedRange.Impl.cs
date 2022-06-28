@@ -3,7 +3,7 @@ using FastCache.Helpers;
 
 namespace FastCache.Collections;
 
-public static partial class CachedRange
+public static partial class CachedRange<V>
 {
     private readonly record struct ListSlice<T, TList> where TList : IList<T>
     {
@@ -19,23 +19,23 @@ public static partial class CachedRange
         }
     }
 
-    internal static void SaveSinglethreaded<K, V>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration) where K : notnull
+    internal static void SaveSinglethreaded<K>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration) where K : notnull
     {
-        var timestamp = GetAndReportTimestamp<K, V>(expiration);
+        var timestamp = GetAndReportTimestamp<K>(expiration);
 
         SaveSlice(range.Span, timestamp);
     }
 
-    private static void SaveSinglethreaded<K, V>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration) where K : notnull
+    private static void SaveSinglethreaded<K>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration) where K : notnull
     {
-        var timestamp = GetAndReportTimestamp<K, V>(expiration);
+        var timestamp = GetAndReportTimestamp<K>(expiration);
 
         SaveSlice(keys.Span, values.Span, timestamp);
     }
 
-    private static void SaveMultithreaded<K, V>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration, int parallelism) where K : notnull
+    private static void SaveMultithreaded<K>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration, int parallelism) where K : notnull
     {
-        var timestamp = GetAndReportTimestamp<K, V>(expiration);
+        var timestamp = GetAndReportTimestamp<K>(expiration);
 
         var sliceLength = range.Length / parallelism;
         var remainderLength = range.Length % parallelism;
@@ -59,9 +59,9 @@ public static partial class CachedRange
         }
     }
 
-    private static void SaveMultithreaded<K, V>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration, int parallelism) where K : notnull
+    private static void SaveMultithreaded<K>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration, int parallelism) where K : notnull
     {
-        var timestamp = GetAndReportTimestamp<K, V>(expiration);
+        var timestamp = GetAndReportTimestamp<K>(expiration);
 
         var sliceLength = keys.Length / parallelism;
         var remainderLength = keys.Length % parallelism;
@@ -90,20 +90,20 @@ public static partial class CachedRange
         }
     }
 
-    private static void SaveListSinglethreaded<K, V, TList>(TList range, TimeSpan expiration)
+    private static void SaveListSinglethreaded<K, TList>(TList range, TimeSpan expiration)
         where K : notnull
         where TList : IList<(K, V)>
     {
-        var timestamp = GetAndReportTimestamp<K, V>(expiration);
+        var timestamp = GetAndReportTimestamp<K>(expiration);
 
-        SaveListSlice<K, V, TList>(new(range, 0, range.Count), timestamp);
+        SaveListSlice<K, TList>(new(range, 0, range.Count), timestamp);
     }
 
-    private static void SaveListMultithreaded<K, V, TList>(TList range, TimeSpan expiration, int parallelism)
+    private static void SaveListMultithreaded<K, TList>(TList range, TimeSpan expiration, int parallelism)
         where K : notnull
         where TList : IList<(K, V)>
     {
-        var timestamp = GetAndReportTimestamp<K, V>(expiration);
+        var timestamp = GetAndReportTimestamp<K>(expiration);
 
         var sliceLength = range.Count / parallelism;
         var remainderLength = range.Count % parallelism;
@@ -129,9 +129,9 @@ public static partial class CachedRange
         }
     }
 
-    private static void SaveEnumerableSinglethreaded<K, V>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
+    private static void SaveEnumerableSinglethreaded<K>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
     {
-        var timestamp = GetAndReportTimestamp<K, V>(expiration);
+        var timestamp = GetAndReportTimestamp<K>(expiration);
 
         foreach (var (key, value) in range)
         {
@@ -140,9 +140,9 @@ public static partial class CachedRange
         }
     }
 
-    private static void SaveEnumerableMultithreaded<K, V>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
+    private static void SaveEnumerableMultithreaded<K>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
     {
-        var timestamp = GetAndReportTimestamp<K, V>(expiration);
+        var timestamp = GetAndReportTimestamp<K>(expiration);
 
         range
             .AsParallel()
@@ -158,7 +158,7 @@ public static partial class CachedRange
         }
     }
 
-    private static void RemoveMultithreaded<K, V>(ReadOnlyMemory<K> keys, int parallelism) where K : notnull
+    private static void RemoveMultithreaded<K>(ReadOnlyMemory<K> keys, int parallelism) where K : notnull
     {
         var sliceLength = keys.Length / parallelism;
         var remainderLength = keys.Length % parallelism;
@@ -173,10 +173,10 @@ public static partial class CachedRange
             memorySlices[i] = keys[start..end];
         }
 
-        Parallel.ForEach(memorySlices, static slice => RemoveSlice<K, V>(slice.Span));
+        Parallel.ForEach(memorySlices, static slice => RemoveSlice<K>(slice.Span));
     }
 
-    private static void RemoveSlice<K, V>(ReadOnlySpan<K> slice) where K : notnull
+    private static void RemoveSlice<K>(ReadOnlySpan<K> slice) where K : notnull
     {
         foreach (var key in slice)
         {
@@ -184,14 +184,14 @@ public static partial class CachedRange
         }
     }
 
-    private static void SaveSlice<K, V>(ReadOnlySpan<(K key, V value)> slice, long timestamp) where K : notnull
+    private static void SaveSlice<K>(ReadOnlySpan<(K key, V value)> slice, long timestamp) where K : notnull
     {
         foreach (var (key, value) in slice)
         {
             CacheStaticHolder<K, V>.Store[key] = new(value, timestamp);
         }
 
-        var quickListLimit = GetQuickListInsertLength<K, V>(slice.Length);
+        var quickListLimit = GetQuickListInsertLength<K>(slice.Length);
 
         for (var i = 0; i < quickListLimit; i++)
         {
@@ -199,14 +199,14 @@ public static partial class CachedRange
         }
     }
 
-    private static void SaveSlice<K, V>(ReadOnlySpan<K> keys, ReadOnlySpan<V> values, long timestamp) where K : notnull
+    private static void SaveSlice<K>(ReadOnlySpan<K> keys, ReadOnlySpan<V> values, long timestamp) where K : notnull
     {
         for (var i = 0; i < keys.Length; i++)
         {
             CacheStaticHolder<K, V>.Store[keys[i]] = new(values[i], timestamp);
         }
 
-        var quickListLimit = GetQuickListInsertLength<K, V>(keys.Length);
+        var quickListLimit = GetQuickListInsertLength<K>(keys.Length);
 
         for (var i = 0; i < quickListLimit; i++)
         {
@@ -214,7 +214,7 @@ public static partial class CachedRange
         }
     }
 
-    private static void SaveListSlice<K, V, TList>(ListSlice<(K, V), TList> slice, long timestamp)
+    private static void SaveListSlice<K, TList>(ListSlice<(K, V), TList> slice, long timestamp)
         where K : notnull
         where TList : IList<(K Key, V Value)>
     {
@@ -229,7 +229,7 @@ public static partial class CachedRange
             CacheStaticHolder<K, V>.Store[key] = new(value, timestamp);
         }
 
-        var quickListLimit = GetQuickListInsertLength<K, V>(end - start) + start;
+        var quickListLimit = GetQuickListInsertLength<K>(end - start) + start;
 
         for (var i = start; i < quickListLimit; i++)
         {
@@ -237,7 +237,7 @@ public static partial class CachedRange
         }
     }
 
-    private static long GetAndReportTimestamp<K, V>(TimeSpan expiration) where K : notnull
+    private static long GetAndReportTimestamp<K>(TimeSpan expiration) where K : notnull
     {
         var (timestamp, milliseconds) = TimeUtils.GetTimestamp(expiration);
         CacheStaticHolder<K, V>.EvictionJob.ReportExpiration(milliseconds);
@@ -245,7 +245,7 @@ public static partial class CachedRange
         return timestamp;
     }
 
-    private static int GetQuickListInsertLength<K, V>(int sliceLength) where K : notnull
+    private static int GetQuickListInsertLength<K>(int sliceLength) where K : notnull
     {
         return (int)Math.Min(CacheStaticHolder<K, V>.QuickList.FreeSpace, (uint)sliceLength);
     }

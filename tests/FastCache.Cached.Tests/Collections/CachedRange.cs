@@ -8,7 +8,7 @@ public sealed class CachedRangeTests
     public void SaveRange_InsertedArray_MatchesDataInCache()
     {
         var array = GenerateArray();
-        CachedRange.Save(array, TimeSpan.FromHours(1));
+        CachedRange<string>.Save(array, TimeSpan.MaxValue);
 
         foreach (var (key, expectedValue) in array)
         {
@@ -23,9 +23,9 @@ public sealed class CachedRangeTests
     public void SaveRange_InsertedArrayPairs_MatchDataInCache()
     {
         var array = GenerateArray();
-        var keys = array.Select(kvp => kvp.Item1).ToArray();
-        var values = array.Select(kvp => kvp.Item2).ToArray();
-        CachedRange.Save(keys, values, TimeSpan.FromHours(1));
+        var keys = array.Select(kvp => kvp.Key).ToArray();
+        var values = array.Select(kvp => kvp.Value).ToArray();
+        CachedRange<string>.Save(keys, values, TimeSpan.MaxValue);
 
         foreach (var (key, expectedValue) in array)
         {
@@ -42,8 +42,8 @@ public sealed class CachedRangeTests
         static void SaveMismatched()
         {
             var keys = Enumerable.Range(0, 64).ToArray();
-            var values = Enumerable.Range(0, 32).ToArray();
-            CachedRange.Save(keys, values, TimeSpan.FromHours(1));
+            var values = Enumerable.Range(0, 32).Select(v => v.ToString()).ToArray();
+            CachedRange<string>.Save(keys, values, TimeSpan.MaxValue);
         }
 
         Assert.Throws<ArgumentOutOfRangeException>(SaveMismatched);
@@ -53,7 +53,7 @@ public sealed class CachedRangeTests
     public void SaveRange_InsertedList_MatchesDataInCache()
     {
         var list = GenerateList();
-        CachedRange.Save(list, TimeSpan.FromHours(1));
+        CachedRange<string>.Save(list, TimeSpan.MaxValue);
 
         foreach (var (key, expectedValue) in list)
         {
@@ -69,7 +69,7 @@ public sealed class CachedRangeTests
     {
         var list = GenerateList();
         var enumerable = list.Select(kvp => kvp);
-        CachedRange.Save(enumerable, TimeSpan.FromHours(1));
+        CachedRange<string>.Save(enumerable, TimeSpan.MaxValue);
 
         foreach (var (key, expectedValue) in list)
         {
@@ -80,7 +80,31 @@ public sealed class CachedRangeTests
         }
     }
 
-    private static (long, string)[] GenerateArray()
+    [Fact]
+    public void RemoveRange_RemovedArray_NoLongerPresentInCache()
+    {
+        var array = GenerateArray();
+        var keys = array.Select(kvp => kvp.Key).ToArray();
+
+        CachedRange<string>.Save(array, TimeSpan.MaxValue);
+        foreach (var (key, value) in array)
+        {
+            var found = Cached<string>.TryGet(key, out var cached);
+
+            Assert.True(found);
+            Assert.Equal(value, cached.Value);
+        }
+
+        CachedRange<string>.Remove(keys);
+        foreach (var key in keys)
+        {
+            var found = Cached<string>.TryGet(key, out _);
+
+            Assert.False(found);
+        }
+    }
+
+    private static (long Key, string Value)[] GenerateArray()
     {
         var sequence = new (long, string)[8192];
 
@@ -92,7 +116,7 @@ public sealed class CachedRangeTests
         return sequence;
     }
 
-    private static List<(long, string)> GenerateList()
+    private static List<(long Key, string Value)> GenerateList()
     {
         var list = new List<(long, string)>(8192);
 

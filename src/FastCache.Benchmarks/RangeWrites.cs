@@ -39,13 +39,13 @@ public class RangeWrites
     [Benchmark(Baseline = true)]
     public void Save()
     {
-        CachedRange.Save(GetRange(), TimeSpan.FromHours(3));
+        CachedRange<string>.Save(GetRange(), TimeSpan.FromHours(3));
     }
 
     [Benchmark]
     public void SaveForceST()
     {
-        CachedRange.SaveSinglethreaded(GetRange(), TimeSpan.FromHours(3));
+        CachedRange<string>.SaveSinglethreaded(GetRange(), TimeSpan.FromHours(3));
     }
 
     [Benchmark]

@@ -18,7 +18,7 @@ public class Reads
     public void GlobalSetup()
     {
         Services.CacheManager.SuspendEviction<string, string>();
-        CachedRange.Save(Range, TimeSpan.FromHours(3));
+        CachedRange<string>.Save(Range, TimeSpan.FromHours(3));
 
         var expiration = DateTimeOffset.UtcNow + TimeSpan.FromHours(3);
         Seed(kvp => _memoryCache.Set(kvp.Item1, kvp.Item2, expiration));

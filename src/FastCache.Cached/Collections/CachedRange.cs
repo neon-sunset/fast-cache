@@ -2,15 +2,15 @@ using FastCache.Helpers;
 
 namespace FastCache.Collections;
 
-public static partial class CachedRange
+public static partial class CachedRange<V>
 {
-    public static void Save<K, V>((K, V)[] range, TimeSpan expiration) where K : notnull =>
-        Save(range.AsMemory(), expiration);
-
-    public static void Save<K, V>(Memory<(K, V)> range, TimeSpan expiration) where K : notnull =>
+    public static void Save<K>((K, V)[] range, TimeSpan expiration) where K : notnull =>
         Save((ReadOnlyMemory<(K, V)>)range, expiration);
 
-    public static void Save<K, V>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration) where K : notnull
+    public static void Save<K>(Memory<(K, V)> range, TimeSpan expiration) where K : notnull =>
+        Save((ReadOnlyMemory<(K, V)>)range, expiration);
+
+    public static void Save<K>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration) where K : notnull
     {
         var length = range.Length;
         if (length <= 0)
@@ -29,13 +29,13 @@ public static partial class CachedRange
         }
     }
 
-    public static void Save<K, V>(K[] keys, V[] values, TimeSpan expiration) where K : notnull =>
-        Save(keys.AsMemory(), values.AsMemory(), expiration);
-
-    public static void Save<K, V>(Memory<K> keys, Memory<V> values, TimeSpan expiration) where K : notnull =>
+    public static void Save<K>(K[] keys, V[] values, TimeSpan expiration) where K : notnull =>
         Save((ReadOnlyMemory<K>)keys, (ReadOnlyMemory<V>)values, expiration);
 
-    public static void Save<K, V>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration) where K : notnull
+    public static void Save<K>(Memory<K> keys, Memory<V> values, TimeSpan expiration) where K : notnull =>
+        Save((ReadOnlyMemory<K>)keys, (ReadOnlyMemory<V>)values, expiration);
+
+    public static void Save<K>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration) where K : notnull
     {
         var length = keys.Length;
         if (length < 0 || length != values.Length)
@@ -54,7 +54,7 @@ public static partial class CachedRange
         }
     }
 
-    public static void Save<K, V>(IList<(K, V)> range, TimeSpan expiration)
+    public static void Save<K>(IList<(K, V)> range, TimeSpan expiration)
         where K : notnull
     {
         var length = range.Count;
@@ -63,29 +63,36 @@ public static partial class CachedRange
             return;
         }
 
+        if (range is (K, V)[] array)
+        {
+            Save(array, expiration);
+            return;
+        }
+
         var parallelism = GetParallelism((uint)length);
         if (parallelism > 1)
         {
             if (range is List<(K, V)> list)
             {
-                SaveListMultithreaded<K, V, List<(K, V)>>(list, expiration, (int)parallelism);
+                SaveListMultithreaded<K, List<(K, V)>>(list, expiration, (int)parallelism);
             }
             else
             {
-                SaveListMultithreaded<K, V, IList<(K, V)>>(range, expiration, (int)parallelism);
+                SaveListMultithreaded<K, IList<(K, V)>>(range, expiration, (int)parallelism);
             }
         }
         else if (range is List<(K, V)> list)
         {
-            SaveListSinglethreaded<K, V, List<(K, V)>>(list, expiration);
+            SaveListSinglethreaded<K, List<(K, V)>>(list, expiration);
         }
         else
         {
-            SaveListSinglethreaded<K, V, IList<(K, V)>>(range, expiration);
+            SaveListSinglethreaded<K, IList<(K, V)>>(range, expiration);
         }
     }
 
-    public static void Save<K, V>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
+    public static void Save<K>(IEnumerable<(K, V)> range, TimeSpan expiration)
+        where K : notnull
     {
         if (range is (K, V)[] array)
         {
@@ -107,24 +114,30 @@ public static partial class CachedRange
         }
     }
 
-    public static void Remove<K, V>(ReadOnlyMemory<K> keys) where K : notnull
+    public static void Remove<K>(K[] keys) where K : notnull =>
+        Remove((ReadOnlyMemory<K>)keys);
+
+    public static void Remove<K>(Memory<K> keys) where K : notnull =>
+        Remove((ReadOnlyMemory<K>)keys);
+
+    public static void Remove<K>(ReadOnlyMemory<K> keys) where K : notnull
     {
         var parallelism = GetParallelism((uint)keys.Length);
         if (parallelism > 1)
         {
-            RemoveMultithreaded<K, V>(keys, (int)parallelism);
+            RemoveMultithreaded(keys, (int)parallelism);
         }
         else
         {
-            RemoveSlice<K, V>(keys.Span);
+            RemoveSlice(keys.Span);
         }
     }
 
-    public static void Remove<K, V>(IEnumerable<K> keys) where K : notnull
+    public static void Remove<K>(IEnumerable<K> keys) where K : notnull
     {
         if (keys is K[] array)
         {
-            Remove<K, V>((ReadOnlyMemory<K>)array);
+            Remove((ReadOnlyMemory<K>)array);
         }
 #if NET6_0_OR_GREATER
         else if (keys.TryGetNonEnumeratedCount(out var count))

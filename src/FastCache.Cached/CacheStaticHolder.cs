@@ -20,7 +20,7 @@ internal static class CacheStaticHolder
         RuntimeHelpers.RunClassConstructor(typeof(Cached<,>).TypeHandle);
         RuntimeHelpers.RunClassConstructor(typeof(Cached).TypeHandle);
         RuntimeHelpers.RunClassConstructor(typeof(CachedExtensions).TypeHandle);
-        RuntimeHelpers.RunClassConstructor(typeof(CachedRange).TypeHandle);
+        RuntimeHelpers.RunClassConstructor(typeof(CachedRange<>).TypeHandle);
 
         RuntimeHelpers.RunClassConstructor(typeof(TimeUtils).TypeHandle);
     }
