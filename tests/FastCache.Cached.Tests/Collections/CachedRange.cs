@@ -4,10 +4,12 @@ namespace FastCache.Cached.Tests.Collections;
 
 public sealed class CachedRangeTests
 {
-    [Fact]
-    public void SaveRange_InsertedArray_MatchesDataInCache()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SaveRange_InsertedArray_MatchesDataInCache(bool multithreaded)
     {
-        var array = GenerateArray();
+        var array = GenerateArray(multithreaded);
         CachedRange<string>.Save(array, TimeSpan.MaxValue);
 
         foreach (var (key, expectedValue) in array)
@@ -19,10 +21,12 @@ public sealed class CachedRangeTests
         }
     }
 
-    [Fact]
-    public void SaveRange_InsertedArrayPairs_MatchDataInCache()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SaveRange_InsertedArrayPairs_MatchDataInCache(bool multithreaded)
     {
-        var array = GenerateArray();
+        var array = GenerateArray(multithreaded);
         var keys = array.Select(kvp => kvp.Key).ToArray();
         var values = array.Select(kvp => kvp.Value).ToArray();
         CachedRange<string>.Save(keys, values, TimeSpan.MaxValue);
@@ -49,10 +53,12 @@ public sealed class CachedRangeTests
         Assert.Throws<ArgumentOutOfRangeException>(SaveMismatched);
     }
 
-    [Fact]
-    public void SaveRange_InsertedList_MatchesDataInCache()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SaveRange_InsertedList_MatchesDataInCache(bool multithreaded)
     {
-        var list = GenerateList();
+        var list = GenerateList(multithreaded);
         CachedRange<string>.Save(list, TimeSpan.MaxValue);
 
         foreach (var (key, expectedValue) in list)
@@ -64,10 +70,12 @@ public sealed class CachedRangeTests
         }
     }
 
-    [Fact]
-    public void SaveRange_InsertedEnumerable_MatchesDataInCache()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SaveRange_InsertedEnumerable_MatchesDataInCache(bool multithreaded)
     {
-        var list = GenerateList();
+        var list = GenerateList(multithreaded);
         var enumerable = list.Select(kvp => kvp);
         CachedRange<string>.Save(enumerable, TimeSpan.MaxValue);
 
@@ -80,10 +88,12 @@ public sealed class CachedRangeTests
         }
     }
 
-    [Fact]
-    public void RemoveRange_RemovedArray_NoLongerPresentInCache()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void RemoveRange_RemovedArray_NoLongerPresentInCache(bool multithreaded)
     {
-        var array = GenerateArray();
+        var array = GenerateArray(multithreaded);
         var keys = array.Select(kvp => kvp.Key).ToArray();
 
         CachedRange<string>.Save(array, TimeSpan.MaxValue);
@@ -104,21 +114,29 @@ public sealed class CachedRangeTests
         }
     }
 
-    private static (long Key, string Value)[] GenerateArray()
+    private static (long Key, string Value)[] GenerateArray(bool lengthAboveMtThreshold)
     {
-        var sequence = new (long, string)[8192];
+        var length = lengthAboveMtThreshold
+            ? (int)Constants.ParallelSaveMinBatchSize * Environment.ProcessorCount
+            : (int)Constants.ParallelSaveMinBatchSize;
 
-        for (int i = 0; i < sequence.Length; i++)
+        var array = new (long, string)[length];
+
+        for (int i = 0; i < array.Length; i++)
         {
-            sequence[i] = (RandomLong(), RandomString());
+            array[i] = (RandomLong(), RandomString());
         }
 
-        return sequence;
+        return array;
     }
 
-    private static List<(long Key, string Value)> GenerateList()
+    private static List<(long Key, string Value)> GenerateList(bool lengthAboveMtThreshold)
     {
-        var list = new List<(long, string)>(8192);
+        var length = lengthAboveMtThreshold
+            ? (int)Constants.ParallelSaveMinBatchSize * Environment.ProcessorCount
+            : (int)Constants.ParallelSaveMinBatchSize;
+
+        var list = new List<(long, string)>(length);
 
         for (int i = 0; i < list.Capacity; i++)
         {
