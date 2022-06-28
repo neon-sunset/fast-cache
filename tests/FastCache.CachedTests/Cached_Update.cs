@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using FastCache.Extensions;
 
 namespace FastCache.CachedTests;

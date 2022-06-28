@@ -1,7 +1,12 @@
+using FastCache.Extensions;
+
 namespace FastCache.CachedTests;
 
-public sealed class CachedTests_ParamsPermutations
+public sealed class CachedTests_TryGetAndSave
 {
+    private record InlineTrimItem(string Value);
+    private record NonInlineTrimItem(string Value);
+
     private static readonly TimeSpan Expiration = TimeSpan.MaxValue;
 
     [Fact]
@@ -30,6 +35,64 @@ public sealed class CachedTests_ParamsPermutations
 
         Assert.True(found);
         Assert.Equal(value, foundValue);
+    }
+
+    [Fact]
+    public void Cached_SaveWithLimit_TrimsOnMaxCapacity_And_ReplacesValue()
+    {
+        var limit = (int)(Constants.InlineTrimCountThreshold * (100.0 / Constants.FullCapacityTrimPercentage));
+
+        for (uint i = 0; i < limit; i++)
+        {
+            var item = new InlineTrimItem(GetRandomString());
+
+            item.Cache(GetTestKey(i), TimeSpan.MaxValue);
+        }
+
+        Assert.Equal(limit, CacheStaticHolder<string, InlineTrimItem>.Store.Count);
+
+        var key = GetTestKey(-1);
+        var foundBefore = Cached<InlineTrimItem>.TryGet(key, out var cached);
+        var value = cached.Save(new InlineTrimItem(GetRandomString()), TimeSpan.MaxValue, (uint)limit);
+
+        Assert.False(foundBefore);
+
+        var foundAfter = Cached<InlineTrimItem>.TryGet(key, out var cachedAfter);
+
+        Assert.True(foundAfter);
+        Assert.Equal(value, cachedAfter.Value);
+        Assert.True(CacheStaticHolder<string, InlineTrimItem>.Store.Count < limit);
+    }
+
+    [Fact]
+    public async Task Cached_SaveWithLimit_DoesNotSaveOnOverCapacity_And_OverInlineTrimThreshold()
+    {
+        // Trimming is done with an accuracy of 1% of the capacity.
+        // Therefore calculate the limit with accounting for the rounding error.
+        var limit = (int)((Constants.InlineTrimCountThreshold * (100.0 / Constants.FullCapacityTrimPercentage))
+            + Constants.InlineTrimCountThreshold);
+
+        for (uint i = 0; i < limit; i++)
+        {
+            var item = new NonInlineTrimItem(GetRandomString());
+
+            item.Cache(GetTestKey(i), TimeSpan.MaxValue);
+        }
+
+        Assert.Equal(limit, CacheStaticHolder<string, NonInlineTrimItem>.Store.Count);
+
+        var key = GetTestKey(-1);
+        var foundBefore = Cached<NonInlineTrimItem>.TryGet(key, out var cached);
+        cached.Save(new NonInlineTrimItem(GetRandomString()), TimeSpan.MaxValue, (uint)limit);
+
+        Assert.False(foundBefore);
+
+        var foundAfter = Cached<NonInlineTrimItem>.TryGet(key, out _);
+
+        Assert.False(foundAfter);
+
+        await Task.Delay(500);
+        Assert.True(CacheStaticHolder<string, NonInlineTrimItem>.Store.Count < limit);
     }
 
     [Fact]

@@ -72,7 +72,7 @@ public static class CacheManager
         }
 
         var trimCount = Math.Max(1, (uint)(CacheStaticHolder<K, V>.Store.Count * (percentage / 100.0)));
-        if (trimCount < Constants.InlineTrimCountThreshold)
+        if (trimCount <= Constants.InlineTrimCountThreshold)
         {
             ExecuteTrim(trimCount);
             return true;
