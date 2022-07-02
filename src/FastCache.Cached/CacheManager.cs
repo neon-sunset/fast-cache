@@ -59,13 +59,13 @@ public static class CacheManager
 
         static void ExecuteTrim(uint trimCount, bool takeLock)
         {
-            if (takeLock && !CacheStaticHolder<K, V>.QuickList.TryLock())
+            var removedFromQuickList = CacheStaticHolder<K, V>.QuickList.Trim(trimCount);
+            if (removedFromQuickList >= trimCount)
             {
                 return;
             }
 
-            var removedFromQuickList = CacheStaticHolder<K, V>.QuickList.Trim(trimCount);
-            if (removedFromQuickList >= trimCount)
+            if (takeLock && !CacheStaticHolder<K, V>.QuickList.TryLock())
             {
                 return;
             }
