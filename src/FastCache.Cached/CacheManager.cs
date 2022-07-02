@@ -51,8 +51,19 @@ public static class CacheManager
             ThrowHelpers.ArgumentOutOfRange(percentage, nameof(percentage));
         }
 
-        static void ExecuteTrim(uint trimCount)
+        if (CacheStaticHolder<K, V>.QuickList.InProgress)
         {
+            // Bail out early if the items are being removed via quick list.
+            return false;
+        }
+
+        static void ExecuteTrim(uint trimCount, bool takeLock)
+        {
+            if (takeLock && !CacheStaticHolder<K, V>.QuickList.TryLock())
+            {
+                return;
+            }
+
             var removedFromQuickList = CacheStaticHolder<K, V>.QuickList.Trim(trimCount);
             if (removedFromQuickList >= trimCount)
             {
@@ -69,19 +80,24 @@ public static class CacheManager
                 store.TryRemove(enumerator.Current.Key, out _);
                 removed++;
             }
+
+            if (takeLock)
+            {
+                CacheStaticHolder<K, V>.QuickList.Release();
+            }
         }
 
         var trimCount = Math.Max(1, (uint)(CacheStaticHolder<K, V>.Store.Count * (percentage / 100.0)));
         if (trimCount <= Constants.InlineTrimCountThreshold)
         {
-            ExecuteTrim(trimCount);
+            ExecuteTrim(trimCount, takeLock: false);
             return true;
         }
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-        ThreadPool.QueueUserWorkItem(ExecuteTrim, trimCount, preferLocal: false);
+        ThreadPool.QueueUserWorkItem(static count => ExecuteTrim(count, takeLock: true), trimCount, preferLocal: false);
 #elif NETSTANDARD2_0
-        ThreadPool.QueueUserWorkItem(static count => ExecuteTrim((uint)count), trimCount);
+        ThreadPool.QueueUserWorkItem(static count => ExecuteTrim((uint)count, takeLock: true), trimCount);
 #endif
         return false;
     }

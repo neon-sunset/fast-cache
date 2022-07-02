@@ -17,6 +17,8 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
 
     public uint FreeSpace => (uint)_active.Length - AtomicCount;
 
+    public bool InProgress => _evictionLock.CurrentCount == 0;
+
     public EvictionQuickList()
     {
         _active = ArrayPool<(K, long)>.Shared.Rent(Constants.QuickListMinLength);
@@ -268,6 +270,16 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
             OverwritingAdd(key, inner._timestamp);
             i++;
         }
+    }
+
+    internal bool TryLock()
+    {
+        return _evictionLock.Wait(0);
+    }
+
+    internal void Release()
+    {
+        _evictionLock.Release();
     }
 
     private static int CalculateResize(long totalCount)
