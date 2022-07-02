@@ -301,9 +301,11 @@ public sealed class CachedTests_GetOrCompute
         return input + GetRandomString();
     }
 
-    private static ValueTask<string> ValueTaskDelegate<K>(K input)
+    private static async ValueTask<string> ValueTaskDelegate<K>(K input)
     {
-        return ValueTask.FromResult(input + GetRandomString());
+        await Task.Yield();
+
+        return input + GetRandomString();
     }
 
     private static Task<string> TaskDelegate<K>(K input)
