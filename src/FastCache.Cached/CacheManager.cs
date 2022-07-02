@@ -46,7 +46,7 @@ public static class CacheManager
     /// <returns>True: trim is performed inline. False: the count to trim is above threshold and removal is queued to thread pool.</returns>
     public static bool Trim<K, V>(double percentage) where K : notnull
     {
-        if (percentage is > 100.0 or <= double.Epsilon)
+        if (percentage is > 100.0 or <= double.Epsilon or double.NaN)
         {
             ThrowHelpers.ArgumentOutOfRange(percentage, nameof(percentage));
         }

@@ -21,7 +21,7 @@ internal static class ThrowHelpers
 #endif
     public static void InvalidExpiration(TimeSpan expiration)
     {
-        throw new ArgumentOutOfRangeException(nameof(expiration), expiration, "Expiration must not be negative, zero or exceed multiple years.");
+        throw new ArgumentOutOfRangeException(nameof(expiration), expiration, "Expiration must not be negative or zero.");
     }
 
 #if NETSTANDARD2_0
