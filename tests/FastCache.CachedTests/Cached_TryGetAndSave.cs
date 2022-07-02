@@ -67,10 +67,7 @@ public sealed class CachedTests_TryGetAndSave
     [Fact]
     public async Task Cached_SaveWithLimit_DoesNotSaveOnOverCapacity_And_OverInlineTrimThreshold()
     {
-        // Trimming is done with an accuracy of 1% of the capacity.
-        // Therefore calculate the limit with accounting for the rounding error.
-        var limit = (int)((Constants.InlineTrimCountThreshold * (100.0 / Constants.FullCapacityTrimPercentage))
-            + Constants.InlineTrimCountThreshold);
+        var limit = (int)(Constants.QuickListMinLength * (100.0 / Constants.FullCapacityTrimPercentage)) + Constants.InlineTrimCountThreshold;
 
         for (uint i = 0; i < limit; i++)
         {
