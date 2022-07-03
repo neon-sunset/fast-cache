@@ -27,6 +27,10 @@ jobs:
         include-prerelease: true
     - name: Build, Test, Pack, Publish
       shell: pwsh
+      env:
+        FASTCACHE_CONSIDER_GC: true
+        FASTCACHE_GC_THRESHOLD: 1024
+        FASTCACHE_QUICKLIST_EVICTION_INTERVAL: 00:00:01
       run: |
         dotnet tool install -g dotnet-releaser
         dotnet-releaser run --nuget-token "${{secrets.NUGET_TOKEN}}" --github-token "${{secrets.GITHUB_TOKEN}}" dotnet-releaser.toml
