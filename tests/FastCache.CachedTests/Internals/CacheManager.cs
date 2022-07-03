@@ -8,7 +8,9 @@ public sealed class CacheManagerTests
 {
     private record ExpiredEntry(string Value);
     private record OptionallyExpiredEntry(string Value, bool IsExpired);
+    private record RemovableEntry(string Value);
 
+    private static readonly Random Random = new();
     private static readonly TimeSpan DelayTolerance = TimeSpan.FromMilliseconds(100);
 
     [Theory]
@@ -28,7 +30,7 @@ public sealed class CacheManagerTests
     }
 
     [Fact]
-    public async Task ImmediateFullEviction_CorrectlyEvictsEntries_AllExpired()
+    public async Task QueueFullEviction_CorrectlyEvictsEntries_AllExpired()
     {
         CacheManager.SuspendEviction<int, ExpiredEntry>();
 
@@ -55,7 +57,7 @@ public sealed class CacheManagerTests
     }
 
     [Fact]
-    public async Task ImmediateFullEviction_CorrectlyEvictsEntries_SomeExpired()
+    public async Task QueueFullEviction_CorrectlyEvictsEntries_SomeExpired()
     {
         CacheManager.SuspendEviction<int, OptionallyExpiredEntry>();
 
@@ -88,5 +90,32 @@ public sealed class CacheManagerTests
         {
             Assert.False(inner.Value.IsExpired);
         }
+    }
+
+    [Fact]
+    public async Task QueueFullClear_Clears()
+    {
+        CacheManager.SuspendEviction<string, RemovableEntry>();
+
+        var quickList = CacheStaticHolder<string, RemovableEntry>.QuickList;
+        var store = CacheStaticHolder<string, RemovableEntry>.Store;
+
+        var length = Constants.QuickListMinLength * 2;
+        for (var i = 0; i < length; i++)
+        {
+            var expiration = TimeSpan.FromMilliseconds(Random.Next(1, int.MaxValue));
+
+            new RemovableEntry(GetRandomString()).Cache(i.ToString(), expiration);
+        }
+
+        Assert.Equal((uint)Constants.QuickListMinLength, quickList.AtomicCount);
+        Assert.Equal(length, store.Count);
+
+        CacheManager.QueueFullClear<string, RemovableEntry>();
+
+        await Task.Delay(DelayTolerance);
+
+        Assert.Equal(0u, quickList.AtomicCount);
+        Assert.Empty(store);
     }
 }

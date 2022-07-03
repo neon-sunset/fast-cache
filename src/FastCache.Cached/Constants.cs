@@ -17,9 +17,7 @@ internal static class Constants
     private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan MaxQuickListInterval = TimeSpan.FromSeconds(60);
 
-#if NET6_0_OR_GREATER
-    private static readonly Random Random = Random.Shared;
-#else
+#if !NET6_0_OR_GREATER
     private static readonly Random Random = new();
 #endif
 
@@ -73,7 +71,7 @@ internal static class Constants
             // This is necessary to avoid application stalling induced by all caches getting collected at the same time.
             var quickListTicks = (int)QuickListEvictionInterval.TotalMilliseconds;
             var delay = quickListTicks * EvictionIntervalMultiplyFactor;
-            var jitter = Random.Next(-quickListTicks, (quickListTicks * 2) + 1);
+            var jitter = GetRandomInt(-quickListTicks, (quickListTicks * 2) + 1);
             return TimeSpan.FromMilliseconds(delay + jitter);
         }
     }
@@ -83,7 +81,7 @@ internal static class Constants
         get
         {
             var delay = (int)QuickListEvictionInterval.TotalMilliseconds;
-            var jitter = Random.Next(0, delay * 2);
+            var jitter = GetRandomInt(0, delay * 2);
             return TimeSpan.FromMilliseconds(delay + jitter);
         }
     }
@@ -94,4 +92,16 @@ internal static class Constants
     public static readonly TimeSpan CooldownDelayAfterFullGC = QuickListEvictionInterval.MultiplyBy(4);
 
     private static string? GetVar(string key) => Environment.GetEnvironmentVariable(key);
+
+    private static int GetRandomInt(int minValue, int maxValue)
+    {
+#if NET6_0_OR_GREATER
+        return Random.Shared.Next(minValue, maxValue);
+#else
+        lock (Random)
+        {
+            return Random.Next(minValue, maxValue);
+        }
+#endif
+    }
 }
