@@ -9,7 +9,7 @@ public sealed class CacheManagerTests
     private record ExpiredEntry(string Value);
     private record OptionallyExpiredEntry(string Value, bool IsExpired);
 
-    private static readonly TimeSpan EvictionDelayTolerance = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan DelayTolerance = TimeSpan.FromMilliseconds(100);
 
     [Theory]
     [InlineData(double.NaN)]
@@ -28,32 +28,37 @@ public sealed class CacheManagerTests
     }
 
     [Fact]
-    public async Task QueueFullEviction_CorrectlyEvictsEntries_AllExpired()
+    public async Task ImmediateFullEviction_CorrectlyEvictsEntries_AllExpired()
     {
+        CacheManager.SuspendEviction<int, ExpiredEntry>();
+
         var quickList = CacheStaticHolder<int, ExpiredEntry>.QuickList;
         var store = CacheStaticHolder<int, ExpiredEntry>.Store;
 
         var length = Constants.QuickListMinLength * 2;
         var entries = Enumerable.Range(0, length).Select(i => (i, new ExpiredEntry(GetRandomString())));
 
-        CachedRange<ExpiredEntry>.Save(entries, TimeSpan.FromMilliseconds(250));
+        CachedRange<ExpiredEntry>.Save(entries, DelayTolerance / 2);
 
         Assert.Equal((uint)Constants.QuickListMinLength, quickList.AtomicCount);
         Assert.Equal(length, store.Count);
 
-        await Task.Delay(250);
+        await Task.Delay(DelayTolerance);
 
+        CacheManager.ResumeEviction<int, ExpiredEntry>();
         CacheManager.QueueFullEviction<int, ExpiredEntry>();
 
-        await Task.Delay(EvictionDelayTolerance);
+        await Task.Delay(DelayTolerance);
 
         Assert.Equal(0u, quickList.AtomicCount);
         Assert.Empty(store);
     }
 
     [Fact]
-    public async Task QueueFullEviction_CorrectlyEvictsEntries_SomeExpired()
+    public async Task ImmediateFullEviction_CorrectlyEvictsEntries_SomeExpired()
     {
+        CacheManager.SuspendEviction<int, OptionallyExpiredEntry>();
+
         var quickList = CacheStaticHolder<int, OptionallyExpiredEntry>.QuickList;
         var store = CacheStaticHolder<int, OptionallyExpiredEntry>.Store;
 
@@ -62,18 +67,19 @@ public sealed class CacheManagerTests
         for (var i = 0; i < length; i++)
         {
             _ = i % 2 is 0
-                ? new OptionallyExpiredEntry(GetRandomString(), IsExpired: true).Cache(i, TimeSpan.FromMilliseconds(250))
+                ? new OptionallyExpiredEntry(GetRandomString(), IsExpired: true).Cache(i, DelayTolerance / 2)
                 : new OptionallyExpiredEntry(GetRandomString(), IsExpired: false).Cache(i, TimeSpan.MaxValue);
         }
 
         Assert.Equal((uint)Constants.QuickListMinLength, quickList.AtomicCount);
         Assert.Equal(length, store.Count);
 
-        await Task.Delay(250);
+        await Task.Delay(DelayTolerance);
 
+        CacheManager.ResumeEviction<int, OptionallyExpiredEntry>();
         CacheManager.QueueFullEviction<int, OptionallyExpiredEntry>();
 
-        await Task.Delay(EvictionDelayTolerance);
+        await Task.Delay(DelayTolerance);
 
         Assert.Equal((uint)length / 2, quickList.AtomicCount);
         Assert.Equal(length / 2, store.Count);
