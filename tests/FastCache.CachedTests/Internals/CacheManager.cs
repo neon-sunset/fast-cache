@@ -9,6 +9,8 @@ public sealed class CacheManagerTests
     private record ExpiredEntry(string Value);
     private record OptionallyExpiredEntry(string Value, bool IsExpired);
 
+    private static readonly TimeSpan EvictionDelayTolerance = TimeSpan.FromMilliseconds(500);
+
     [Theory]
     [InlineData(double.NaN)]
     [InlineData(double.MinValue)]
@@ -43,7 +45,7 @@ public sealed class CacheManagerTests
 
         CacheManager.QueueFullEviction<int, ExpiredEntry>();
 
-        await Task.Delay(50);
+        await Task.Delay(EvictionDelayTolerance);
 
         Assert.Equal(0u, quickList.AtomicCount);
         Assert.Empty(store);
@@ -71,7 +73,7 @@ public sealed class CacheManagerTests
 
         CacheManager.QueueFullEviction<int, OptionallyExpiredEntry>();
 
-        await Task.Delay(50);
+        await Task.Delay(EvictionDelayTolerance);
 
         Assert.Equal((uint)length / 2, quickList.AtomicCount);
         Assert.Equal(length / 2, store.Count);
