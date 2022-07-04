@@ -14,9 +14,9 @@ Credit to Vladimir Sadov for his implementation of `NonBlocking.ConcurrentDictio
 
 Get cached value or save a new one with expiration of 60 minutes
 ```csharp
-public FinancialReport GetReport(int month, int year)
+public FinancialReport GetReport(Guid companyId, int month, int year)
 {
-  if (Cached<FinancialReport>.TryGet(month, year, out var cached))
+  if (Cached<FinancialReport>.TryGet(companyId, month, year, out var cached))
   {
     return cached.Value;
   }
@@ -29,41 +29,50 @@ public FinancialReport GetReport(int month, int year)
 
 Wrap and cache the result of a regular method call
 ```csharp
-var report = Cached.GetOrCompute(month, year, GetReport, TimeSpan.FromMinutes(60));
+var report = Cached.GetOrCompute(companyId, month, year, GetReport, TimeSpan.FromMinutes(60));
 ```
 
 Or an async one
 ```csharp
 // For methods that return Task<T> or ValueTask<T>
-var report = await Cached.GetOrCompute(month, year, GetReportAsync, TimeSpan.FromMinutes(60));
+var report = await Cached.GetOrCompute(companyId, month, year, GetReportAsync, TimeSpan.FromMinutes(60));
 ```
 
-Save the value to cache but only if the cache size is below limit
+Save the value to cache (if it fits) and keep the cached items count below specified limit
 ```csharp
-public FinancialReport GetReport(int month, int year)
+public FinancialReport GetReport(Guid companyId, int month, int year)
 {
-  if (Cached<FinancialReport>.TryGet(month, year, out var cached))
+  if (Cached<FinancialReport>.TryGet(companyId, month, year, out var cached))
   {
     return cached.Value;
   }
-
-  return cached.Save(report, TimeSpan.FromMinutes(60), limit: 2_500_000);
+  ...
+  return cached.Save(report, TimeSpan.FromMinutes(60), limit: 500_000);
 }
 ```
 ```csharp
 // GetOrCompute with maximum cache size limit.
 // RAM is usually plenty but what if the user runs Chrome?
-var report = Cached.GetOrCompute(month, year, GetReport, TimeSpan.FromMinutes(60), limit: 2_500_000);
+var report = Cached.GetOrCompute(
+  companyId, month, year, GetReport, TimeSpan.FromMinutes(60), limit: 500_000);
 ```
 
-Add new data without accessing cache item first (e.g. loading a large batch of independent values to cache)
+Add new data without accessing cache item first
 ```csharp
 using FastCache.Extensions;
 ...
-foreach (var ((month, year), report) in reportsResultBatch)
-{
-  report.Cache(month, year, TimeSpan.FromMinutes(60));
-}
+report.Cache(companyId, month, year, TimeSpan.FromMinutes(60));
+```
+
+Save an entire range of values in one call. Fast for `IEnumerable`, extremely fast for lists, arrays and `ROM`/`Memory`.
+```csharp
+using FastCache.Collections;
+...
+var reports = ReportsService
+  .GetReports(11, 2022)
+  .Select(report => ((report.CompanyId, 11, 2022), report);
+
+CachedRange<FinancialReport>.Save(reports, TimeSpan.FromMinutes(60));
 ```
 
 Store common type (string) in a shared cache store (other users may share the cache for the same parameter type, this time it's `int`)
