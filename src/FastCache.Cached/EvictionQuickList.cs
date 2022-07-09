@@ -5,7 +5,7 @@ using FastCache.Services;
 
 namespace FastCache;
 
-internal sealed class EvictionQuickList<K, V> where K : notnull
+internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
 {
     private readonly SemaphoreSlim _evictionLock = new(1, 1);
 
@@ -32,10 +32,11 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
     public void Add(K key, long expiresAt)
     {
         var entries = _active;
-        var count = AtomicCount;
+        var count = (uint)_count;
         if (count < entries.Length)
         {
             entries[count] = (key, expiresAt);
+            Interlocked.MemoryBarrier();
             _count = count + 1;
         }
     }
@@ -340,6 +341,12 @@ internal sealed class EvictionQuickList<K, V> where K : notnull
         {
             _evictionLock.Release();
         }
+    }
+
+    public void Dispose()
+    {
+        ArrayPool<(K, long)>.Shared.Return(_active);
+        ArrayPool<(K, long)>.Shared.Return(_inactive);
     }
 
 #if FASTCACHE_DEBUG

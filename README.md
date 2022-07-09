@@ -12,37 +12,58 @@ Credit to Vladimir Sadov for his implementation of `NonBlocking.ConcurrentDictio
 ## Quick start
 `dotnet add package FastCache.Cached` or `Install-Package FastCache.Cached`
 
-Get cached value or save a new one with expiration of 60 minutes
+### Get cached value or save a new one with expiration of 60 minutes
 ```csharp
-public FinancialReport GetReport(Guid companyId, int month, int year)
+public SalesReport GetReport(Guid companyId)
 {
-  if (Cached<FinancialReport>.TryGet(companyId, month, year, out var cached))
+  if (Cached<SalesReport>.TryGet(companyId, out var cached))
   {
     return cached.Value;
   }
 
-  var report = // Expensive computation: retrieve data and calculate report
+  var report = // Expensive operation: retrieve and compute data
 
   return cached.Save(report, TimeSpan.FromMinutes(60));
 }
 ```
 
-Wrap and cache the result of a regular method call
+### Get cached value or call a method to compute and cache it
 ```csharp
-var report = Cached.GetOrCompute(companyId, month, year, GetReport, TimeSpan.FromMinutes(60));
+var report = Cached.GetOrCompute(companyId, GetReport, TimeSpan.FromMinutes(60));
 ```
 
-Or an async one
+### Async version (works with `Task<T>` and `ValueTask<T>`)
 ```csharp
-// For methods that return Task<T> or ValueTask<T>
-var report = await Cached.GetOrCompute(companyId, month, year, GetReportAsync, TimeSpan.FromMinutes(60));
+var report = await Cached.GetOrCompute(companyId, GetReportAsync, TimeSpan.FromMinutes(60));
 ```
 
-Save the value to cache (if it fits) and keep the cached items count below specified limit
+### Use multiple arguments as key (up to 7)
 ```csharp
-public FinancialReport GetReport(Guid companyId, int month, int year)
+public async Task<Picture> GetPictureOfTheDay(DateOnly date, FeedKind kind, bool compressed)
 {
-  if (Cached<FinancialReport>.TryGet(companyId, month, year, out var cached))
+  if (Cached<Picture>.TryGet(date, kind, compressed, out var cached))
+  {
+    return cached.Value;
+  }
+
+  var api = GetApiService(kind);
+  var picture = await api.GetPictureOfTheDay(date, compressed);
+
+  return cached.Save(picture, TimeSpan.FromHours(3));
+}
+```
+
+### Use multiple arguments with `GetOrCompute`
+```csharp
+var expiration = TimeSpan.FromHours(3);
+var picture = await Cached.GetOrCompute(date, kind, compressed, GetPictureOfTheDay, expiration);
+```
+
+### Save the value to cache (if it fits) and keep the cached items count below specified limit
+```csharp
+public SalesReport GetReport(Guid companyId)
+{
+  if (Cached<SalesReport>.TryGet(companyId, out var cached))
   {
     return cached.Value;
   }
@@ -53,36 +74,45 @@ public FinancialReport GetReport(Guid companyId, int month, int year)
 ```csharp
 // GetOrCompute with maximum cache size limit.
 // RAM is usually plenty but what if the user runs Chrome?
-var report = Cached.GetOrCompute(
-  companyId, month, year, GetReport, TimeSpan.FromMinutes(60), limit: 500_000);
+var report = Cached.GetOrCompute(companyId, GetReport, TimeSpan.FromMinutes(60), limit: 500_000);
 ```
 
-Add new data without accessing cache item first
+### Add new data without accessing cache item first
 ```csharp
 using FastCache.Extensions;
 ...
-report.Cache(companyId, month, year, TimeSpan.FromMinutes(60));
+report.Cache(companyId, TimeSpan.FromMinutes(60));
 ```
 
-Save an entire range of values in one call. Fast for `IEnumerable`, extremely fast for lists, arrays and `ROM`/`Memory`.
+### Save an entire range of values in one call. Fast for `IEnumerable`, extremely fast for lists, arrays and `ROM`/`Memory`.
 ```csharp
 using FastCache.Collections;
 ...
 var reports = ReportsService
   .GetReports(11, 2022)
-  .Select(report => ((report.CompanyId, 11, 2022), report);
+  .Select(report => (report.CompanyId, report));
 
-CachedRange<FinancialReport>.Save(reports, TimeSpan.FromMinutes(60));
+CachedRange<SalesReport>.Save(reports, TimeSpan.FromMinutes(60));
+```
+### Save range of cached values with multiple arguments as key
+```csharp
+var februaryReports = reports.Select(report => ((report.CompanyId, 02, 2022), report));
+
+CachedRange<SalesReport>.Save(februaryReports, TimeSpan.FromMinutes(60));
+
+var companyId = februaryReports.First().CompanyId;
+var reportFound = Cached<SalesReport>.TryGet(companyId, 02, 2022, out _);
+Assert.True(reportFound);
 ```
 
-Store common type (string) in a shared cache store (other users may share the cache for the same parameter type, this time it's `int`)
+### Store common type (string) in a shared cache store (other users may share the cache for the same `<K, V>` type, this time it's `<int, string>`)
 ```csharp
 // GetOrCompute<...V> where V is string.
 // To save some other string for the same 'int' number simultaneously, look at the option below :)
 var userNote = Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
 ```
 
-Or in a separate one by using value object (Recommended)
+### Or in a separate one by using value object (Recommended)
 ```csharp
 readonly record struct UserNote(string Value);
 
