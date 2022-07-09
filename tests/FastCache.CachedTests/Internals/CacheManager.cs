@@ -42,6 +42,8 @@ public sealed class CacheManagerTests
 
         CachedRange<ExpiredEntry>.Save(entries, DelayTolerance / 2);
 
+        await Task.Delay(DelayTolerance);
+
         Assert.Equal((uint)Constants.QuickListMinLength, quickList.AtomicCount);
         Assert.Equal(length, store.Count);
 
