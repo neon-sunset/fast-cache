@@ -12,7 +12,7 @@ Credit to Vladimir Sadov for his implementation of `NonBlocking.ConcurrentDictio
 ## Quick start
 `dotnet add package FastCache.Cached` or `Install-Package FastCache.Cached`
 
-### Get cached value or save a new one with expiration of 60 minutes
+#### Get cached value or save a new one with expiration of 60 minutes
 ```csharp
 public SalesReport GetReport(Guid companyId)
 {
@@ -27,17 +27,17 @@ public SalesReport GetReport(Guid companyId)
 }
 ```
 
-### Get cached value or call a method to compute and cache it
+#### Get cached value or call a method to compute and cache it
 ```csharp
 var report = Cached.GetOrCompute(companyId, GetReport, TimeSpan.FromMinutes(60));
 ```
 
-### Async version (works with `Task<T>` and `ValueTask<T>`)
+#### Async version (works with `Task<T>` and `ValueTask<T>`)
 ```csharp
 var report = await Cached.GetOrCompute(companyId, GetReportAsync, TimeSpan.FromMinutes(60));
 ```
 
-### Use multiple arguments as key (up to 7)
+#### Use multiple arguments as key (up to 7)
 ```csharp
 public async Task<Picture> GetPictureOfTheDay(DateOnly date, FeedKind kind, bool compressed)
 {
@@ -53,13 +53,13 @@ public async Task<Picture> GetPictureOfTheDay(DateOnly date, FeedKind kind, bool
 }
 ```
 
-### Use multiple arguments with `GetOrCompute`
+#### Use multiple arguments with `GetOrCompute`
 ```csharp
 var expiration = TimeSpan.FromHours(3);
 var picture = await Cached.GetOrCompute(date, kind, compressed, GetPictureOfTheDay, expiration);
 ```
 
-### Save the value to cache (if it fits) and keep the cached items count below specified limit
+#### Save the value to cache (if it fits) and keep the cached items count below specified limit
 ```csharp
 public SalesReport GetReport(Guid companyId)
 {
@@ -77,14 +77,14 @@ public SalesReport GetReport(Guid companyId)
 var report = Cached.GetOrCompute(companyId, GetReport, TimeSpan.FromMinutes(60), limit: 500_000);
 ```
 
-### Add new data without accessing cache item first
+#### Add new data without accessing cache item first
 ```csharp
 using FastCache.Extensions;
 ...
 report.Cache(companyId, TimeSpan.FromMinutes(60));
 ```
 
-### Save an entire range of values in one call. Fast for `IEnumerable`, extremely fast for lists, arrays and `ROM`/`Memory`.
+#### Save an entire range of values in one call. Fast for `IEnumerable`, extremely fast for lists, arrays and `ROM`/`Memory`.
 ```csharp
 using FastCache.Collections;
 ...
@@ -94,7 +94,7 @@ var reports = ReportsService
 
 CachedRange<SalesReport>.Save(reports, TimeSpan.FromMinutes(60));
 ```
-### Save range of cached values with multiple arguments as key
+#### Save range of cached values with multiple arguments as key
 ```csharp
 var februaryReports = reports.Select(report => ((report.CompanyId, 02, 2022), report));
 
@@ -105,14 +105,14 @@ var reportFound = Cached<SalesReport>.TryGet(companyId, 02, 2022, out _);
 Assert.True(reportFound);
 ```
 
-### Store common type (string) in a shared cache store (other users may share the cache for the same `<K, V>` type, this time it's `<int, string>`)
+#### Store common type (string) in a shared cache store (other users may share the cache for the same `<K, V>` type, this time it's `<int, string>`)
 ```csharp
 // GetOrCompute<...V> where V is string.
 // To save some other string for the same 'int' number simultaneously, look at the option below :)
 var userNote = Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
 ```
 
-### Or in a separate one by using value object (Recommended)
+#### Or in a separate one by using value object (Recommended)
 ```csharp
 readonly record struct UserNote(string Value);
 
