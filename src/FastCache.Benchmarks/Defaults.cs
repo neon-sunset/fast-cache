@@ -1,4 +1,3 @@
-using BenchmarkDotNet.Attributes;
 using FastCache.Extensions;
 
 namespace FastCache.Benchmarks;

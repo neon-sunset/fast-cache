@@ -1,6 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 using CacheManager.Core;
 using FastCache.Extensions;
 using LazyCache;

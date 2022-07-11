@@ -1,22 +1,22 @@
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 using FastCache.Collections;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace FastCache.Benchmarks;
 
+[ShortRunJob]
 [MemoryDiagnoser]
-[SimpleJob(RuntimeMoniker.Net60)]
 [DisassemblyDiagnoser(maxDepth: 5, exportCombinedDisassemblyReport: true)]
 public class Reads
 {
     private const string ItemValue = "1337";
 
-    private static readonly (string, string)[] Range = Enumerable.Range(0, 10_000_000).Select(i => (i.ToString(), ItemValue)).ToArray();
+    private static (string, string)[] Range = default!;
 
     [GlobalSetup]
     public void GlobalSetup()
     {
+        Range = Enumerable.Range(0, Length).Select(i => (i.ToString(), ItemValue)).ToArray();
+
         Services.CacheManager.SuspendEviction<string, string>();
         CachedRange<string>.Save(Range, TimeSpan.FromHours(3));
 

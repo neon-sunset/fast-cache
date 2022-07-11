@@ -1,6 +1,3 @@
-using System.Runtime.CompilerServices;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 using CacheManager.Core;
 using FastCache.Collections;
 using LazyCache;
@@ -8,17 +5,16 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace FastCache.Benchmarks;
 
-// WARNING: Takes 4-8 GB of RAM to run 10-20M
-//[SimpleJob(RuntimeMoniker.HostProcess, warmupCount: 5, targetCount: 10)] - .NET 7 is too unstable for now
-[SimpleJob(RuntimeMoniker.Net60, warmupCount: 5, targetCount: 10)]
+// WARNING: Takes up to 4GB of RAM to run 10M option
+[ShortRunJob]
 [MemoryDiagnoser]
 public class RangeWrites
 {
     private const string ItemValue = "1337";
 
-    private static readonly (string, string)[] Range = Enumerable.Range(0, 20_000_000).Select(i => (i.ToString(), ItemValue)).ToArray();
+    private static (string, string)[] Range = default!;
 
-    [Params(1000, 100_000, 1_000_000, 10_000_000, 20_000_000)]
+    [Params(1000, 100_000, 1_000_000, 10_000_000)]
     public int Length;
 
     private readonly IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
@@ -34,24 +30,25 @@ public class RangeWrites
     public void GlobalSetup()
     {
         Services.CacheManager.SuspendEviction<string, string>();
+        Range = Enumerable.Range(0, Length).Select(i => (i.ToString(), ItemValue)).ToArray();
     }
 
     [Benchmark(Baseline = true)]
     public void Save()
     {
-        CachedRange<string>.Save(GetRange(), TimeSpan.FromHours(3));
+        CachedRange<string>.Save(Range, TimeSpan.FromHours(3));
     }
 
     [Benchmark]
     public void SaveForceST()
     {
-        CachedRange<string>.SaveSinglethreaded(GetRange(), TimeSpan.FromHours(3));
+        CachedRange<string>.SaveSinglethreaded<string>(Range, TimeSpan.FromHours(3));
     }
 
     [Benchmark]
     public void SaveMemoryCacheMT()
     {
-        var range = GetRange();
+        var range = Range;
         var sliceLength = range.Length / Environment.ProcessorCount;
         var expiration = DateTimeOffset.UtcNow + TimeSpan.FromHours(3);
 
@@ -64,7 +61,7 @@ public class RangeWrites
             var start = i * sliceLength;
             var end = (i + 1) * sliceLength;
 
-            foreach (var (key, value) in range.Span[start..end])
+            foreach (var (key, value) in range.AsSpan()[start..end])
             {
                 _memoryCache.Set(key, value, expiration);
             }
@@ -74,10 +71,10 @@ public class RangeWrites
     [Benchmark]
     public void SaveMemoryCache()
     {
-        var range = GetRange();
+        var range = Range;
         var expiration = DateTimeOffset.UtcNow + TimeSpan.FromHours(3);
 
-        foreach (var (key, value) in range.Span)
+        foreach (var (key, value) in range)
         {
             _memoryCache.Set(key, value, expiration);
         }
@@ -86,9 +83,9 @@ public class RangeWrites
     [Benchmark]
     public void SaveCacheManager()
     {
-        var range = GetRange();
+        var range = Range;
 
-        foreach (var (key, value) in range.Span)
+        foreach (var (key, value) in range)
         {
             _cacheManager.Put(key, value);
         }
@@ -97,19 +94,12 @@ public class RangeWrites
     [Benchmark]
     public void SaveLazyCache()
     {
-        var range = GetRange();
+        var range = Range;
         var expiration = DateTimeOffset.UtcNow + TimeSpan.FromHours(3);
 
-        foreach (var (key, value) in range.Span)
+        foreach (var (key, value) in range)
         {
            _lazyCache.Add(key, value, expiration);
         }
     }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public ReadOnlyMemory<(string, string)> GetRange() => Length switch
-    {
-        <= 20_000_000 => Range.AsMemory()[..Length],
-        _ => throw new ArgumentOutOfRangeException(nameof(Length))
-    };
 }
