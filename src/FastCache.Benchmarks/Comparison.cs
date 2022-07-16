@@ -5,14 +5,16 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace FastCache.Benchmarks;
 
+[ShortRunJob]
 [MemoryDiagnoser]
 [DisassemblyDiagnoser(maxDepth: 5, exportCombinedDisassemblyReport: true)]
 public class Comparison
 {
-    private const string ItemKey = "item key";
-    private const string ItemValue = "item value";
+    [Params("A", "abcd", "long ass string with букви кирилицею AND UPPERCASE")]
+    public string ItemKey = default!;
+    public string ItemValue = "item value";
 
-    private readonly IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
+    private readonly MemoryCache _memoryCache = new(new MemoryCacheOptions());
 
     // CacheManager documentation by default suggests using WithMicrosoftMemoryCacheHandle() which has terrible performance
     // when compared to WithDictionaryHandle(). However, we won't be too hard on it and will give it the best chance.
@@ -28,7 +30,7 @@ public class Comparison
     {
         ItemValue.Cache(ItemKey, TimeSpan.FromMinutes(60));
         _memoryCache.Set(ItemKey, ItemValue, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
-        _cacheManager.AddOrUpdate(ItemKey, ItemValue, static _ => ItemValue);
+        _cacheManager.AddOrUpdate(ItemKey, ItemValue, _ => ItemValue);
         _lazyCache.Add(ItemKey, ItemValue, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
 
         Services.CacheManager.SuspendEviction<string, string>();
@@ -89,7 +91,7 @@ public class Comparison
     [Benchmark]
     public void UpdateMemoryCache()
     {
-        _memoryCache.Set(ItemKey, ItemValue, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
+        _memoryCache.Set(ItemKey, ItemValue, TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]

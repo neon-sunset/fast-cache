@@ -1,6 +1,7 @@
 using FastCache.Collections;
 using FastCache.Extensions;
 using FastCache.Services;
+using FastCache.Helpers;
 
 namespace FastCache.CachedTests.Internals;
 
@@ -40,7 +41,7 @@ public sealed class CacheManagerTests
         var length = Constants.QuickListMinLength * 2;
         var entries = Enumerable.Range(0, length).Select(i => (i, new ExpiredEntry(GetRandomString())));
 
-        CachedRange<ExpiredEntry>.Save(entries, DelayTolerance / 2);
+        CachedRange<ExpiredEntry>.Save(entries, DelayTolerance.DivideBy(2));
 
         await Task.Delay(DelayTolerance);
 
@@ -71,7 +72,7 @@ public sealed class CacheManagerTests
         for (var i = 0; i < length; i++)
         {
             _ = i % 2 is 0
-                ? new OptionallyExpiredEntry(GetRandomString(), IsExpired: true).Cache(i, DelayTolerance / 2)
+                ? new OptionallyExpiredEntry(GetRandomString(), IsExpired: true).Cache(i, DelayTolerance.DivideBy(2))
                 : new OptionallyExpiredEntry(GetRandomString(), IsExpired: false).Cache(i, TimeSpan.MaxValue);
         }
 
