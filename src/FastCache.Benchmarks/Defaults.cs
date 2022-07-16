@@ -394,7 +394,7 @@ public class Defaults
 
     private static string Delegate(string input) => $"computed: {input}";
 
-    private static ValueTask<string> DelegateValueTask(string input) => ValueTask.FromResult($"computed: {input}");
+    private static ValueTask<string> DelegateValueTask(string input) => new($"computed: {input}");
 
     private static Task<string> DelegateTask(string input) => Task.FromResult($"computed: {input}");
 }

@@ -23,8 +23,6 @@ jobs:
         dotnet-version: |
           3.1.x
           6.0.x
-          7.0.x
-        include-prerelease: true
     - name: Build, Test, Pack, Publish
       shell: pwsh
       env:
@@ -49,8 +47,6 @@ jobs:
         dotnet-version: |
           3.1.x
           6.0.x
-          7.0.x
-        include-prerelease: true
     - name: Build, Test, Pack, Publish
       shell: pwsh
       run: |
