@@ -24,7 +24,7 @@ jobs:
           3.1.x
           6.0.x
     - name: Build, Test, Pack, Publish
-      shell: pwsh
+      shell: bash
       env:
         FASTCACHE_CONSIDER_GC: true
         FASTCACHE_GC_THRESHOLD: 1024
