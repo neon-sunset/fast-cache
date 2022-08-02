@@ -2,7 +2,7 @@ namespace FastCache.CachedTests;
 
 public sealed class CachedTests_InputValidation
 {
-    private static IEnumerable<object[]> ValidExpirations()
+    public static IEnumerable<object[]> ValidExpirations()
     {
         yield return new object[] { TimeSpan.FromTicks(1) };
         yield return new object[] { TimeSpan.FromMilliseconds(1) };
@@ -13,7 +13,7 @@ public sealed class CachedTests_InputValidation
         yield return new object[] { TimeSpan.MaxValue };
     }
 
-    private static IEnumerable<object[]> InvalidExpirations()
+    public static IEnumerable<object[]> InvalidExpirations()
     {
         yield return new object[] { TimeSpan.Zero };
         yield return new object[] { TimeSpan.MinValue };
