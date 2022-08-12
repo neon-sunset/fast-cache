@@ -4,5 +4,3 @@ project = "fast-cache.sln"
 [github]
 user = "neon-sunset"
 repo = "fast-cache"
-[coveralls]
-publish = false
