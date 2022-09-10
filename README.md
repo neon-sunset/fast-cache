@@ -10,12 +10,12 @@ Optimized to scale from dozens to millions of items. Features lock-free reads an
 Credit to Vladimir Sadov for his implementation of `NonBlocking.ConcurrentDictionary` which is used as an underlying store.
 
 ### When to use FastCache.Cached over M.E.C.M.MemoryCache
-- When cache is used for expirable items only or does not need complex behavior (eviction delegates, multiple expiration modes, etc.), 90% use cases fall into this category
+- When cache is used for expirable items only or does not need complex behavior (eviction delegates, multiple expiration modes, etc.), ~80% use cases fall into this category
 - When there are strict memory limits (381MB for 10 million items vs 2136MB for MemoryCache)
 - When you need pseudo-memoization: `cached.Save(value, TimeSpan.MaxValue)`
 - When deployed to highly-parallel systems (much better multi-core scaling vs all alternatives thanks to lock-free reads/writes)
 - When you need convenient limit API: `cached.Save(value, TimeSpan.FromSeconds(180), limit: 50_000)` (auto trim logic included)
-- When you need the fastest solution - read/write paths are hand tuned to be as short as possible, no interface calls, all static dispatch
+- When you need the fastest solution - read/write paths are hand tuned to be as short as possible, no interface calls, all static dispatch, etc.
 
 ## Quick start
 ### Install
