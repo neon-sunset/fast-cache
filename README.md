@@ -1,4 +1,4 @@
-# FastCache.Cached
+## FastCache.Cached
 <p><img src="https://raw.githubusercontent.com/neon-sunset/fast-cache/main/img/cached-small-transparent.png" width="180" height="180" align="right" /></p>
 
 [![CI/CD](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml/badge.svg)](https://github.com/neon-sunset/fast-cache/actions/workflows/dotnet-releaser.yml) [![Coverage Status](https://coveralls.io/repos/github/neon-sunset/fast-cache/badge.svg?branch=main)](https://coveralls.io/github/neon-sunset/fast-cache?branch=main) [![nuget](https://badgen.net/nuget/v/FastCache.Cached/latest)](https://www.nuget.org/packages/FastCache.Cached/)
@@ -9,10 +9,20 @@ Optimized to scale from dozens to millions of items. Features lock-free reads an
 
 Credit to Vladimir Sadov for his implementation of `NonBlocking.ConcurrentDictionary` which is used as an underlying store.
 
+### When to use FastCache.Cached over M.E.C.M.MemoryCache
+- When cache is used for expirable items only or does not need complex behavior (eviction delegates, multiple expiration modes, etc.), 90% use cases fall into this category
+- When there are strict memory limits (381MB for 10 million items vs 2136MB for MemoryCache)
+- When you need pseudo-memoization: `cached.Save(value, TimeSpan.MaxValue)`
+- When deployed to highly-parallel systems (much better multi-core scaling vs all alternatives thanks to lock-free reads/writes)
+- When you need convenient limit API: `cached.Save(value, TimeSpan.FromSeconds(180), limit: 50_000)` (auto trim logic included)
+- When you need the fastest solution - read/write paths are hand tuned to be as short as possible, no interface calls, all static dispatch
+
 ## Quick start
+### Install
 `dotnet add package FastCache.Cached` or `Install-Package FastCache.Cached`
 
-#### Get cached value or save a new one with expiration of 60 minutes
+### How to use
+Get cached value or save a new one with expiration of 60 minutes
 ```csharp
 public SalesReport GetReport(Guid companyId)
 {
@@ -27,17 +37,17 @@ public SalesReport GetReport(Guid companyId)
 }
 ```
 
-#### Get cached value or call a method to compute and cache it
+Get cached value or call a method to compute and cache it
 ```csharp
 var report = Cached.GetOrCompute(companyId, GetReport, TimeSpan.FromMinutes(60));
 ```
 
-#### Async version (works with `Task<T>` and `ValueTask<T>`)
+Async version (works with `Task<T>` and `ValueTask<T>`)
 ```csharp
 var report = await Cached.GetOrCompute(companyId, GetReportAsync, TimeSpan.FromMinutes(60));
 ```
 
-#### Use multiple arguments as key (up to 7)
+Use multiple arguments as key (up to 7)
 ```csharp
 public async Task<Picture> GetPictureOfTheDay(DateOnly date, FeedKind kind, bool compressed)
 {
@@ -53,13 +63,13 @@ public async Task<Picture> GetPictureOfTheDay(DateOnly date, FeedKind kind, bool
 }
 ```
 
-#### Use multiple arguments with `GetOrCompute`
+Use multiple arguments with `GetOrCompute`
 ```csharp
 var expiration = TimeSpan.FromHours(3);
 var picture = await Cached.GetOrCompute(date, kind, compressed, GetPictureOfTheDay, expiration);
 ```
 
-#### Save the value to cache (if it fits) and keep the cached items count below specified limit
+Save the value to cache (if it fits) and keep the cached items count below specified limit
 ```csharp
 public SalesReport GetReport(Guid companyId)
 {
@@ -77,14 +87,14 @@ public SalesReport GetReport(Guid companyId)
 var report = Cached.GetOrCompute(companyId, GetReport, TimeSpan.FromMinutes(60), limit: 500_000);
 ```
 
-#### Add new data without accessing cache item first
+Add new data without accessing cache item first
 ```csharp
 using FastCache.Extensions;
 ...
 report.Cache(companyId, TimeSpan.FromMinutes(60));
 ```
 
-#### Save an entire range of values in one call. Fast for `IEnumerable`, extremely fast for lists, arrays and `ROM`/`Memory`.
+Save an entire range of values in one call. Fast for `IEnumerable`, extremely fast for lists, arrays and `ROM`/`Memory`.
 ```csharp
 using FastCache.Collections;
 ...
@@ -94,7 +104,7 @@ var reports = ReportsService
 
 CachedRange<SalesReport>.Save(reports, TimeSpan.FromMinutes(60));
 ```
-#### Save range of cached values with multiple arguments as key
+Save range of cached values with multiple arguments as key
 ```csharp
 var februaryReports = reports.Select(report => ((report.CompanyId, 02, 2022), report));
 
@@ -105,14 +115,14 @@ var reportFound = Cached<SalesReport>.TryGet(companyId, 02, 2022, out _);
 Assert.True(reportFound);
 ```
 
-#### Store common type (string) in a shared cache store (other users may share the cache for the same `<K, V>` type, this time it's `<int, string>`)
+Store common type (string) in a shared cache store (other users may share the cache for the same `<K, V>` type, this time it's `<int, string>`)
 ```csharp
 // GetOrCompute<...V> where V is string.
 // To save some other string for the same 'int' number simultaneously, look at the option below :)
 var userNote = Cached.GetOrCompute(userId, GetUserNoteString, TimeSpan.FromMinutes(5));
 ```
 
-#### Or in a separate one by using value object (Recommended)
+Or in a separate one by using value object (Recommended)
 ```csharp
 readonly record struct UserNote(string Value);
 
@@ -129,7 +139,7 @@ if (Cached<UserNote>.TryGet(userId, out var cached))
 return cached.Save(userNote, TimeSpan.FromMinutes(5));
 ```
 
-## Features and design philosophy
+### Features and design philosophy
 - In-memory cache for items with expiration time and automatic eviction
 - Little to no ceremony - no need to configure or initialize, just add the package and you are ready to go. Behavior can be further customized via env variables
 - Focused design allows to reduce memory footprint per item and minimize overhead via inlining and static dispatch
@@ -138,13 +148,13 @@ return cached.Save(userNote, TimeSpan.FromMinutes(5));
 - Multi-key store access without collisions between key types. Collisions are avoided by statically dispatching on the composite key type signature e.g. `(string, CustomEnum, int)` together with the type of cached value - composite keys are structurally evaluated for equality, different combinations will correspond to different cache items
 - Handles timezone/DST updates on most platforms by relying on system uptime timestamp for item expiration - `Environment.TickCount64` which is also significantly faster than `DateTime.UtcNow`
 
-## Performance
+### Performance
 ``` ini
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 .NET 6.0.5 (6.0.522.21309), X64 RyuJIT
 ```
-### TLDR: `FastCache.Cached` vs `Microsoft.Extensions.Caching.Memory.MemoryCache`
+TLDR: `FastCache.Cached` vs `Microsoft.Extensions.Caching.Memory.MemoryCache`
 |            Library | Lowest read latency | Read throughput (M/1s) | Lowest write latency | Write throughput (M/1s) | Cost per item | Cost per 10M items |
 | ------------------ | ------------------- | ---------------------- | -------------------- | ----------------------- | ------------- | ------------------ |
 |   **FastCache.Cached** |            **15.63 ns** | **114-288M MT / 9-72M ST** |             **33.75 ns** |    **39-81M MT / 6-31M ST** |          **40 B** |             **381 MB** |
@@ -156,7 +166,7 @@ AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 
 ++`CacheManager` doesn't have read throughput results because test suite would take too long to run to include `CacheManager` and `LazyCache`. Given higher CPU usage by `CacheManager` and higher RAM usage by `LazyCache` it is reasonable to assume they would score lower and scale worse due to higher number of locks
 
-### Read/Write lowest achievable latency
+#### Read/Write lowest achievable latency
 |                Method |      Mean |    Error |    StdDev |    Median | Ratio |  Gen 0 | Allocated |
 |---------------------- |----------:|---------:|----------:|----------:|------:|-------:|----------:|
 | **Get: FastCache.Cached** |  **15.63 ns** | **0.452 ns** |  **1.334 ns** |  **14.61 ns** |  **1.00** |      **-** |         **-** |
@@ -168,7 +178,7 @@ AMD Ryzen 7 5800X, 1 CPU, 16 logical and 8 physical cores
 | Set: CacheManager*    | 436.85 ns | 8.729 ns | 19.160 ns | 433.97 ns | 28.10 | 0.0215 |     360 B |
 | Set: LazyCache        | 271.56 ns | 5.428 ns |  7.785 ns | 274.19 ns | 17.58 | 0.0286 |     480 B |
 
-### Read throughput detailed
+#### Read throughput detailed
 |                Method |      Count | Reads/1s |             Mean |          Error |         StdDev | Ratio |
 |---------------------- |----------- |--------- |-----------------:|---------------:|---------------:|------:|
 | **Read(MT): FastCache**   |      **1,000** |  **130.97M** |        **7.635 us** |      **0.1223 us** |      **0.1144 us** |  **1.00** |
