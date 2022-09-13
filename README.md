@@ -16,6 +16,7 @@ Credit to Vladimir Sadov for his implementation of `NonBlocking.ConcurrentDictio
 - When deployed to highly-parallel systems (much better multi-core scaling vs all alternatives thanks to lock-free reads/writes)
 - When you need convenient limit API: `cached.Save(value, TimeSpan.FromSeconds(180), limit: 50_000)` (auto trim logic included)
 - When you need the fastest solution - read/write paths are hand tuned to be as short as possible, no interface calls, all static dispatch, etc.
+- When global static cache is an acceptable choice (vs instanced, works best for medium and fine-grained highly loaded microservices)
 
 ## Quick start
 ### Install
