@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using FastCache.Extensions;
-using FastCache.Services;
 
 namespace FastCache.Sandbox;
 
@@ -35,11 +34,10 @@ public static class EvictionStress
         // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Uri2>(10));
         // Thread.Sleep(250);
         // CacheManager.QueueFullClear<(uint, string, int, string, char, bool, float), Uri2>();
-        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>(10));
-        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<float>(10));
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>(5));
+        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<long>(10));
         ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(1));
-        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<object>(10));
-        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<bool>(25));
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<bool>(25));
         // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Uri2>());
         // ThreadPool.QueueUserWorkItem(_ => SeedIndefinite<Uri2>(10));
 

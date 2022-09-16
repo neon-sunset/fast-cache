@@ -1,40 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <ProjectReference Include="..\FastCache.Cached\FastCache.Cached.csproj" />
-    <TrimmerRootAssembly Include="FastCache.Cached" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-*" /> -->
-  </ItemGroup>
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- <TargetFrameworks>net6.0;net7.0</TargetFrameworks> -->
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <DebuggerSupport>false</DebuggerSupport>
-
-    <PublishTrimmed>true</PublishTrimmed>
-    <PublishSingleFile>true</PublishSingleFile>
-    <UseNativeHttpHandler>true</UseNativeHttpHandler>
-    <TrimmerDefaultAction>link</TrimmerDefaultAction>
-    <TrimmerSingleWarn>false</TrimmerSingleWarn>
-    <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
-
-    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
-	  <!-- <ServerGarbageCollection>true</ServerGarbageCollection> -->
-    <InvariantGlobalization>true</InvariantGlobalization>
-  
-    <ILLinkWarningLevel>999</ILLinkWarningLevel>
-    <ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors>
-    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
-    <IlcTrimMetadata>true</IlcTrimMetadata>
-    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
-    <IlcInstructionSet>avx2,bmi2,fma,pclmul,popcnt,aes,lzcnt</IlcInstructionSet>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FastCache.Cached\FastCache.Cached.csproj" />
+  </ItemGroup>
 
 </Project>
