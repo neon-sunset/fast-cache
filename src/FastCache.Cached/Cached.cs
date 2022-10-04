@@ -12,9 +12,16 @@ namespace FastCache;
 [StructLayout(LayoutKind.Auto)]
 public readonly record struct Cached<K, V> where K : notnull
 {
-    private readonly K _key;
     private readonly bool _found;
 
+    /// <summary>
+    /// Cache entry key. Either a single-argument like string, int, etc. or multi-key value as tuple like (int, int, bool).
+    /// </summary>
+    public readonly K Key;
+
+    /// <summary>
+    /// Cache entry value. Guaranteed to be up-to-date with millisecond accuracy as long as 'bool TryGet' conditional is checked.
+    /// </summary>
     public readonly V Value;
 
     /// <summary>
@@ -26,9 +33,9 @@ public readonly record struct Cached<K, V> where K : notnull
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal Cached(K key, V value, bool found)
     {
-        _key = key;
         _found = found;
 
+        Key = key;
         Value = value;
     }
 
@@ -42,12 +49,12 @@ public readonly record struct Cached<K, V> where K : notnull
     {
         var (timestamp, milliseconds) = TimeUtils.GetTimestamp(expiration);
 
-        CacheStaticHolder<K, V>.Store[_key] = new(value, timestamp);
+        CacheStaticHolder<K, V>.Store[Key] = new(value, timestamp);
         CacheStaticHolder<K, V>.EvictionJob.ReportExpiration(milliseconds);
 
         if (!_found)
         {
-            CacheStaticHolder<K, V>.QuickList.Add(_key, timestamp);
+            CacheStaticHolder<K, V>.QuickList.Add(Key, timestamp);
         }
 
         return value;
@@ -81,9 +88,9 @@ public readonly record struct Cached<K, V> where K : notnull
     {
         var store = CacheStaticHolder<K, V>.Store;
 
-        if (_found && store.TryGetValue(_key, out var inner))
+        if (_found && store.TryGetValue(Key, out var inner))
         {
-            store[_key] = new(value, inner._timestamp);
+            store[Key] = new(value, inner._timestamp);
             return true;
         }
 
@@ -95,7 +102,7 @@ public readonly record struct Cached<K, V> where K : notnull
     /// </summary>
     public void Remove()
     {
-        CacheStaticHolder<K, V>.Store.TryRemove(_key, out _);
+        CacheStaticHolder<K, V>.Store.TryRemove(Key, out _);
     }
 }
 
