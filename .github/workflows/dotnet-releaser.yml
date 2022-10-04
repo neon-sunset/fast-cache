@@ -28,6 +28,7 @@ jobs:
       env:
         FASTCACHE_CONSIDER_GC: true
         FASTCACHE_GC_THRESHOLD: 1024
+        FASTCACHE_PARALLEL_EVICTION_THRESHOLD: 2048
         FASTCACHE_QUICKLIST_EVICTION_INTERVAL: 00:00:01
       run: |
         dotnet tool install -g dotnet-releaser
