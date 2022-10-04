@@ -2,6 +2,7 @@ using FastCache.Collections;
 using FastCache.Extensions;
 using FastCache.Services;
 using FastCache.Helpers;
+using System.Linq;
 
 namespace FastCache.CachedTests.Internals;
 
@@ -10,9 +11,43 @@ public sealed class CacheManagerTests
     private record ExpiredEntry(string Value);
     private record OptionallyExpiredEntry(string Value, bool IsExpired);
     private record RemovableEntry(string Value);
+    private record TotalCountEntry(int Value);
+    private record EnumerableEntry();
 
     private static readonly Random Random = new();
     private static readonly TimeSpan DelayTolerance = TimeSpan.FromMilliseconds(100);
+
+    [Fact]
+    public void TotalCount_ReturnsCorrectValue()
+    {
+        const int expectedCount = 32768;
+
+        var entries = (0..32768)
+            .AsEnumerable()
+            .Select(i => (i, new TotalCountEntry(i)));
+
+        CachedRange<TotalCountEntry>.Save(entries, TimeSpan.MaxValue);
+
+        Assert.Equal(expectedCount, CacheManager.TotalCount<int, TotalCountEntry>());
+    }
+
+    [Fact]
+    public async Task EnumerateEntries_ReturnsCorrectValues()
+    {
+        var expired = (0..1024).AsEnumerable().ToDictionary(i => i, _ => new EnumerableEntry());
+        var notExpired = (1024..2048).AsEnumerable().ToDictionary(i => i, _ => new EnumerableEntry());
+
+        CachedRange<EnumerableEntry>.Save(expired.Select(kvp => (kvp.Key, kvp.Value)), DelayTolerance);
+        CachedRange<EnumerableEntry>.Save(notExpired.Select(kvp => (kvp.Key, kvp.Value)), DelayTolerance * 2);
+
+        await Task.Delay(DelayTolerance);
+
+        foreach (var cached in CacheManager.EnumerateEntries<int, EnumerableEntry>())
+        {
+            Assert.False(expired.ContainsKey(cached.Key));
+            Assert.True(notExpired.ContainsKey(cached.Key));
+        }
+    }
 
     [Theory]
     [InlineData(double.NaN)]

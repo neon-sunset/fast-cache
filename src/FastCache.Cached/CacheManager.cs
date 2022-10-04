@@ -10,10 +10,20 @@ public static class CacheManager
     private static long s_AggregatedEvictionsCount;
 
     /// <summary>
-    /// Submit full eviction for specified Cached<K, V> value
+    /// Total atomic count of entries present in cache, including expired.
+    /// </summary>
+    /// <typeparam name="K">Cache entry key type. string, int or (int, int) for multi-key.</typeparam>
+    /// <typeparam name="V">Cache entry value type</typeparam>
+    public static int TotalCount<K, V>() where K : notnull => CacheStaticHolder<K, V>.Store.Count;
+
+    /// <summary>
+    /// Trigger full eviction for expired cache entries of type Cached[K, V]
     /// </summary>
     public static void QueueFullEviction<K, V>() where K : notnull => QueueFullEviction<K, V>(triggeredByTimer: true);
 
+    /// <summary>
+    /// Remove all cache entries of type Cached[K, V] from the cache
+    /// </summary>
     public static void QueueFullClear<K, V>() where K : notnull
     {
         ThreadPool.QueueUserWorkItem(async static _ =>
@@ -38,10 +48,27 @@ public static class CacheManager
     }
 
     /// <summary>
+    /// Enumerates all not expired entries currently present in the cache.
+    /// Cache changes introduced from other threads may not be visible to the enumerator.
+    /// </summary>
+    /// <typeparam name="K">Cache entry key type. string, int or (int, int) for multi-key.</typeparam>
+    /// <typeparam name="V">Cache entry value type</typeparam>
+    public static IEnumerable<Cached<K, V>> EnumerateEntries<K, V>() where K : notnull
+    {
+        foreach (var (key, inner) in CacheStaticHolder<K, V>.Store)
+        {
+            if (inner.IsNotExpired())
+            {
+                yield return new(key, inner.Value, found: true);
+            }
+        }
+    }
+
+    /// <summary>
     /// Trims cache store for a given percentage of its size. Will remove at least 1 item.
     /// </summary>
-    /// <typeparam name="K"></typeparam>
-    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="K">Cache entry key type. string, int or (int, int) for multi-key.</typeparam>
+    /// <typeparam name="V">Cache entry value type</typeparam>
     /// <param name="percentage"></param>
     /// <returns>True: trim is performed inline. False: the count to trim is above threshold and removal is queued to thread pool.</returns>
     public static bool Trim<K, V>(double percentage) where K : notnull
