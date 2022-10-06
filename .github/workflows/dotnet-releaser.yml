@@ -4,7 +4,6 @@ on:
   push:
     paths-ignore:
     - 'src/FastCache.Sanbox/**'
-    - 'src/FastCache.Benchmarks/**'
     - 'examples/**'
   pull_request:
 
