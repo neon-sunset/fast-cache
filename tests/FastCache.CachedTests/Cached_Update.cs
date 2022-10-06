@@ -57,7 +57,7 @@ public sealed class CachedTests_Update
         await Task.Delay(milliseconds - delayTolerance);
         var updated = Cached<string>.TryGet(key, out var cached) && cached.Update(valueAfter);
 
-        await Task.Delay(delayTolerance);
+        await Task.Delay(delayTolerance + 1);
         var foundAfter = Cached<string>.TryGet(key, out _);
 
         Assert.True(updated);

@@ -24,7 +24,7 @@ public sealed class CachedTests_ExpirationPermutations
         Assert.True(foundBefore);
         Assert.Equal(value, cachedBefore.Value);
 
-        await Task.Delay(delayTolerance);
+        await Task.Delay(delayTolerance + 1);
         var foundAfter = Cached<string>.TryGet(key, out _);
 
         Assert.False(foundAfter);
