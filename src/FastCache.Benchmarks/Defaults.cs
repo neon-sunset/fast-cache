@@ -12,23 +12,6 @@ public class Defaults
     [GlobalSetup]
     public void Initialize()
     {
-        Services.CacheManager.SuspendEviction<string, string>();
-        Services.CacheManager.SuspendEviction<(string, string), string>();
-        Services.CacheManager.SuspendEviction<(string, string, string), string>();
-        Services.CacheManager.SuspendEviction<(string, string, string, string), string>();
-        Services.CacheManager.SuspendEviction<(string, string, string, string, string, string, string), string>();
-
-        Services.CacheManager.SuspendEviction<int, string>();
-        Services.CacheManager.SuspendEviction<(int, int), string>();
-        Services.CacheManager.SuspendEviction<(int, int, int), string>();
-        Services.CacheManager.SuspendEviction<(int, int, int, int), string>();
-        Services.CacheManager.SuspendEviction<(int, int, int, int, int, int, int), string>();
-
-        Services.CacheManager.SuspendEviction<(string, int), string>();
-        Services.CacheManager.SuspendEviction<(string, int, string), string>();
-        Services.CacheManager.SuspendEviction<(string, int, string, int), string>();
-        Services.CacheManager.SuspendEviction<(string, int, string, int, string, int, string), string>();
-
         "single".Cache("one", OneHour);
         "two".Cache("one", "two", OneHour);
         "three".Cache("one", "two", "three", OneHour);

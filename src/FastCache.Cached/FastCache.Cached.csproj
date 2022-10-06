@@ -19,6 +19,7 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>nullable</WarningsAsErrors>
+    <NoWarn>CS1591</NoWarn>
     <DefineConstants>$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
