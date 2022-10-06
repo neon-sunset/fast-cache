@@ -38,7 +38,7 @@ public sealed class CacheManagerTests
         var notExpired = (1024..2048).AsEnumerable().ToDictionary(i => i, _ => new EnumerableEntry());
 
         CachedRange<EnumerableEntry>.Save(expired.Select(kvp => (kvp.Key, kvp.Value)), DelayTolerance);
-        CachedRange<EnumerableEntry>.Save(notExpired.Select(kvp => (kvp.Key, kvp.Value)), DelayTolerance * 2);
+        CachedRange<EnumerableEntry>.Save(notExpired.Select(kvp => (kvp.Key, kvp.Value)), DelayTolerance.MultiplyBy(2));
 
         await Task.Delay(DelayTolerance);
 
