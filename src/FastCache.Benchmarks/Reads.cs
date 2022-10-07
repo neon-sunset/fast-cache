@@ -49,7 +49,7 @@ public class Reads
             {
                 if (Cached<string>.TryGet(key, out var cached))
                 {
-                    ret = cached.Value;
+                    ret = cached;
                 }
                 else
                 {
@@ -72,7 +72,7 @@ public class Reads
         {
             if (Cached<string>.TryGet(key, out var cached))
             {
-                value = cached.Value;
+                value = cached;
             }
             else
             {

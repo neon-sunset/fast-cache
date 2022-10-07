@@ -29,7 +29,7 @@ public SalesReport GetReport(Guid companyId)
 {
   if (Cached<SalesReport>.TryGet(companyId, out var cached))
   {
-    return cached.Value;
+    return cached;
   }
 
   var report = // Expensive operation: retrieve and compute data
@@ -54,7 +54,7 @@ public async Task<Picture> GetPictureOfTheDay(DateOnly date, FeedKind kind, bool
 {
   if (Cached<Picture>.TryGet(date, kind, compressed, out var cached))
   {
-    return cached.Value;
+    return cached;
   }
 
   var api = GetApiService(kind);
@@ -76,7 +76,7 @@ public SalesReport GetReport(Guid companyId)
 {
   if (Cached<SalesReport>.TryGet(companyId, out var cached))
   {
-    return cached.Value;
+    return cached;
   }
   ...
   return cached.Save(report, TimeSpan.FromMinutes(60), limit: 500_000);
@@ -134,7 +134,7 @@ var userNote = Cached.GetOrCompute(userId, GetUserNote, TimeSpan.FromMinutes(5))
 // This is how it looks for TryGet
 if (Cached<UserNote>.TryGet(userId, out var cached))
 {
-  return cached.Value;
+  return cached;
 }
 ...
 return cached.Save(userNote, TimeSpan.FromMinutes(5));

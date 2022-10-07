@@ -35,7 +35,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet("one", out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -46,7 +46,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet("one", "two", out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -57,7 +57,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet("one", "two", "three", out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -68,7 +68,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet("one", "two", "three", "four", out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -79,7 +79,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -90,7 +90,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet(1, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -101,7 +101,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet(1, 2, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -112,7 +112,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet(1, 2, 3, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -123,7 +123,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet(1, 2, 3, 4, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -134,7 +134,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet(1, 2, 3, 4, 5, 6, 7, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -145,7 +145,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet("one", 2, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -156,7 +156,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet("one", 2, "three", out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -167,7 +167,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet("one", 2, "three", 4, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -178,7 +178,7 @@ public class Defaults
     {
         if (Cached<string>.TryGet("one", 2, "three", 4, "five", 6, "seven", out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();

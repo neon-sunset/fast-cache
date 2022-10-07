@@ -41,7 +41,7 @@ public class Comparison
     {
         if (Cached<string>.TryGet(ItemKey, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();

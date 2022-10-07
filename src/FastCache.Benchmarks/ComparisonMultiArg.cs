@@ -29,7 +29,7 @@ public class ComparisonMultiArg
     {
         if (Cached<string>.TryGet(ItemKey, ItemKey, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();
@@ -40,7 +40,7 @@ public class ComparisonMultiArg
     {
         if (Cached<string>.TryGet(ItemKey, ItemKey, ItemKey, ItemKey, out var cached))
         {
-            return cached.Value;
+            return cached;
         }
 
         return Unreachable<string>();

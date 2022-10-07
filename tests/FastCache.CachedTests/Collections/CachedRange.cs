@@ -22,7 +22,7 @@ public sealed class CachedRangeTests
             var found = Cached<string>.TryGet(key, out var cached);
 
             Assert.True(found);
-            Assert.Equal(expectedValue, cached.Value);
+            Assert.Equal(expectedValue, cached);
         }
     }
 
@@ -43,7 +43,7 @@ public sealed class CachedRangeTests
             var found = Cached<string>.TryGet(key, out var cached);
 
             Assert.True(found);
-            Assert.Equal(expectedValue, cached.Value);
+            Assert.Equal(expectedValue, cached);
         }
     }
 
@@ -75,7 +75,7 @@ public sealed class CachedRangeTests
             var found = Cached<string>.TryGet(key, out var cached);
 
             Assert.True(found);
-            Assert.Equal(expectedValue, cached.Value);
+            Assert.Equal(expectedValue, cached);
         }
     }
 
@@ -95,7 +95,7 @@ public sealed class CachedRangeTests
             var found = Cached<string>.TryGet(key, out var cached);
 
             Assert.True(found);
-            Assert.Equal(expectedValue, cached.Value);
+            Assert.Equal(expectedValue, cached);
         }
     }
 
@@ -113,7 +113,7 @@ public sealed class CachedRangeTests
             var found = Cached<string>.TryGet(key, out var cached);
 
             Assert.True(found);
-            Assert.Equal(value, cached.Value);
+            Assert.Equal(value, cached);
         }
 
         CachedRange<string>.Remove(keys);
@@ -140,7 +140,7 @@ public sealed class CachedRangeTests
             var found = Cached<string>.TryGet(key, out var cached);
 
             Assert.True(found);
-            Assert.Equal(value, cached.Value);
+            Assert.Equal(value, cached);
         }
 
         CachedRange<string>.Remove(enumerable);

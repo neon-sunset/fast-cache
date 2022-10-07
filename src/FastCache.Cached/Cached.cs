@@ -104,6 +104,9 @@ public readonly record struct Cached<K, V> where K : notnull
     {
         CacheStaticHolder<K, V>.Store.TryRemove(Key, out _);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator V(Cached<K, V> cached) => cached.Value;
 }
 
 [StructLayout(LayoutKind.Auto)]

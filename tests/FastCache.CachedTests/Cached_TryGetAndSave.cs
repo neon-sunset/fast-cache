@@ -31,10 +31,9 @@ public sealed class CachedTests_TryGetAndSave
         }
 
         var found = Cached<string>.TryGet(key, out var afterSave);
-        var foundValue = afterSave.Value;
 
         Assert.True(found);
-        Assert.Equal(value, foundValue);
+        Assert.Equal(value, afterSave);
     }
 
     [Fact]
@@ -60,7 +59,7 @@ public sealed class CachedTests_TryGetAndSave
         var foundAfter = Cached<InlineTrimItem>.TryGet(key, out var cachedAfter);
 
         Assert.True(foundAfter);
-        Assert.Equal(value, cachedAfter.Value);
+        Assert.Equal(value, cachedAfter);
         Assert.True(CacheStaticHolder<string, InlineTrimItem>.Store.Count < limit);
     }
 
@@ -101,10 +100,9 @@ public sealed class CachedTests_TryGetAndSave
         value.Cache(key, TimeSpan.MaxValue);
 
         var foundBefore = Cached<string>.TryGet(key, out var cached);
-        var valueBefore = cached.Value;
 
         Assert.True(foundBefore);
-        Assert.Equal(value, valueBefore);
+        Assert.Equal(value, cached);
 
         cached.Remove();
 
@@ -137,10 +135,9 @@ public sealed class CachedTests_TryGetAndSave
         }
 
         var found = Cached<string>.TryGet(k1, k2, out var afterSave);
-        var foundValue = afterSave.Value;
 
         Assert.True(found);
-        Assert.Equal(value, foundValue);
+        Assert.Equal(value, afterSave);
     }
 
     [Fact]
@@ -169,10 +166,9 @@ public sealed class CachedTests_TryGetAndSave
         }
 
         var found = Cached<string>.TryGet(k1, k2, k3, out var afterSave);
-        var foundValue = afterSave.Value;
 
         Assert.True(found);
-        Assert.Equal(value, foundValue);
+        Assert.Equal(value, afterSave);
     }
 
     [Fact]
@@ -203,10 +199,9 @@ public sealed class CachedTests_TryGetAndSave
         }
 
         var found = Cached<string>.TryGet(k1, k2, k3, k4, out var afterSave);
-        var foundValue = afterSave.Value;
 
         Assert.True(found);
-        Assert.Equal(value, foundValue);
+        Assert.Equal(value, afterSave);
     }
 
     [Fact]
@@ -239,10 +234,9 @@ public sealed class CachedTests_TryGetAndSave
         }
 
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, out var afterSave);
-        var foundValue = afterSave.Value;
 
         Assert.True(found);
-        Assert.Equal(value, foundValue);
+        Assert.Equal(value, afterSave);
     }
 
     [Fact]
@@ -277,10 +271,9 @@ public sealed class CachedTests_TryGetAndSave
         }
 
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, out var afterSave);
-        var foundValue = afterSave.Value;
 
         Assert.True(found);
-        Assert.Equal(value, foundValue);
+        Assert.Equal(value, afterSave);
     }
 
     [Fact]
@@ -317,9 +310,8 @@ public sealed class CachedTests_TryGetAndSave
         }
 
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, k7, out var afterSave);
-        var foundValue = afterSave.Value;
 
         Assert.True(found);
-        Assert.Equal(value, foundValue);
+        Assert.Equal(value, afterSave);
     }
 }

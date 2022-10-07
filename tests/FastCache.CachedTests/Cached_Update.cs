@@ -14,7 +14,7 @@ public sealed class CachedTests_Update
         var found = Cached<string>.TryGet(key, out var cachedBefore);
 
         Assert.True(found);
-        Assert.Equal(valueBefore, cachedBefore.Value);
+        Assert.Equal(valueBefore, cachedBefore);
 
         var valueAfter = GetRandomString();
         var updated = cachedBefore.Update(valueAfter);
@@ -23,7 +23,7 @@ public sealed class CachedTests_Update
 
         Assert.True(updated);
         Assert.True(foundAfter);
-        Assert.Equal(valueAfter, cachedAfter.Value);
+        Assert.Equal(valueAfter, cachedAfter);
     }
 
     [Fact]

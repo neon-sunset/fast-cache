@@ -15,7 +15,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(key, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(key, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, k4, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, k4, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, k7, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 
     [Fact]
@@ -239,6 +239,6 @@ public sealed class CachedTests_Extensions
         var found = Cached<string>.TryGet(k1, k2, k3, k4, k5, k6, k7, out var cached);
 
         Assert.True(found);
-        Assert.Equal(value, cached.Value);
+        Assert.Equal(value, cached);
     }
 }

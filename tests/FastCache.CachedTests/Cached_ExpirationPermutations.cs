@@ -22,7 +22,7 @@ public sealed class CachedTests_ExpirationPermutations
         var foundBefore = Cached<string>.TryGet(key, out var cachedBefore);
 
         Assert.True(foundBefore);
-        Assert.Equal(value, cachedBefore.Value);
+        Assert.Equal(value, cachedBefore);
 
         await Task.Delay(delayTolerance + 1);
         var foundAfter = Cached<string>.TryGet(key, out _);

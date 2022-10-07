@@ -322,8 +322,9 @@ public static class CacheManager
         var now = TimeUtils.Now;
         uint totalRemoved = 0;
 
-        void CheckAndRemove(K key, long timestamp)
+        void CheckAndRemove(KeyValuePair<K, CachedInner<V>> kvp)
         {
+            var (key, timestamp) = (kvp.Key, kvp.Value._timestamp);
             ref var count = ref totalRemoved;
 
             if (now > timestamp)
@@ -336,7 +337,7 @@ public static class CacheManager
         CacheStaticHolder<K, V>.Store
             .AsParallel()
             .AsUnordered()
-            .ForAll(item => CheckAndRemove(item.Key, item.Value._timestamp));
+            .ForAll(CheckAndRemove);
 
         return totalRemoved;
     }
