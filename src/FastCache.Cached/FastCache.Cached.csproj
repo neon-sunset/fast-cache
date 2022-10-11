@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <Authors>neon-sunset</Authors>
-    <RepositoryUrl>https://github.com/neon-sunset/fast-cache</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/neon-sunset/fast-cache</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/neon-sunset/fast-cache</PackageProjectUrl>
     <PackageTags>Cache;Caching;Lock-Free;Performance;MemoryCache;In-Memory;High-Load</PackageTags>
     <PackageIcon>cached-small-transparent.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
