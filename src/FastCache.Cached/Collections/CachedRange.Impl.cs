@@ -196,7 +196,7 @@ public static partial class CachedRange<V>
     {
         var (list, start, end) = slice;
 
-        // Suprisingly, on plain lists the performance is within 1.1x of array/span impl.
+        // Surprisingly, on plain lists the performance is within 1.1x of array/span impl.
         // Perhaps devirtualization via generics and TieredPGO is all that we need
         for (var i = start; i < end; i++)
         {
