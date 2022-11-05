@@ -40,6 +40,7 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NonBlocking" Version="2.1.0" />
+    <PackageReference Include="PolySharp" Version="1.7.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">

@@ -1,23 +1,11 @@
-using System.Diagnostics.CodeAnalysis;
 using FastCache.Helpers;
 
 namespace FastCache.Collections;
 
 public static partial class CachedRange<V>
 {
-    private readonly record struct ListSlice<T, TList> where TList : IList<T>
-    {
-        public readonly TList List;
-        public readonly int Start;
-        public readonly int End;
-
-        public ListSlice(TList list, int start, int end)
-        {
-            List = list;
-            Start = start;
-            End = end;
-        }
-    }
+    private record struct ListSlice<T, TList>(TList List, int Start, int End)
+        where TList : IList<T>;
 
     internal static void SaveSinglethreaded<K>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration) where K : notnull
     {
@@ -26,14 +14,16 @@ public static partial class CachedRange<V>
         SaveSlice(range.Span, timestamp);
     }
 
-    private static void SaveSinglethreaded<K>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration) where K : notnull
+    private static void SaveSinglethreaded<K>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration)
+        where K : notnull
     {
         var timestamp = GetAndReportTimestamp<K>(expiration);
 
         SaveSlice(keys.Span, values.Span, timestamp);
     }
 
-    private static void SaveMultithreaded<K>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration, int parallelism) where K : notnull
+    private static void SaveMultithreaded<K>(ReadOnlyMemory<(K, V)> range, TimeSpan expiration, int parallelism)
+        where K : notnull
     {
         var timestamp = GetAndReportTimestamp<K>(expiration);
 
@@ -56,7 +46,8 @@ public static partial class CachedRange<V>
         SaveSlice(range.Span[^remainderLength..^0], timestamp);
     }
 
-    private static void SaveMultithreaded<K>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration, int parallelism) where K : notnull
+    private static void SaveMultithreaded<K>(ReadOnlyMemory<K> keys, ReadOnlyMemory<V> values, TimeSpan expiration, int parallelism)
+        where K : notnull
     {
         var timestamp = GetAndReportTimestamp<K>(expiration);
 
@@ -125,8 +116,9 @@ public static partial class CachedRange<V>
         foreach (var (key, value) in range)
         {
             CacheStaticHolder<K, V>.Store[key] = new(value, timestamp);
-            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(key, timestamp);
         }
+
+        CacheStaticHolder<K, V>.QuickList.PullFromCacheStore();
     }
 
     private static void SaveEnumerableMultithreaded<K>(IEnumerable<(K, V)> range, TimeSpan expiration) where K : notnull
@@ -135,16 +127,10 @@ public static partial class CachedRange<V>
 
         range
             .AsParallel()
-            .AsUnordered()
-            .ForAll(SaveEntry);
+            .ForAll(
+                kvp => CacheStaticHolder<K, V>.Store[kvp.Item1] = new(kvp.Item2, timestamp));
 
-        void SaveEntry((K Key, V Value) kvp)
-        {
-            var (key, value) = (kvp.Key, kvp.Value);
-
-            CacheStaticHolder<K, V>.Store[key] = new(value, timestamp);
-            CacheStaticHolder<K, V>.QuickList.OverwritingAdd(key, timestamp);
-        }
+        CacheStaticHolder<K, V>.QuickList.PullFromCacheStore();
     }
 
     private static void RemoveMultithreaded<K>(ReadOnlyMemory<K> keys, int parallelism) where K : notnull
@@ -172,7 +158,7 @@ public static partial class CachedRange<V>
     {
         foreach (var key in slice)
         {
-            CacheStaticHolder<K, V>.Store.TryRemove(key, out _);
+            _ = CacheStaticHolder<K, V>.Store.TryRemove(key, out _);
         }
     }
 
@@ -184,7 +170,6 @@ public static partial class CachedRange<V>
         }
 
         var quickListLimit = GetQuickListInsertLength<K>(slice.Length);
-
         for (var i = 0; i < quickListLimit; i++)
         {
             CacheStaticHolder<K, V>.QuickList.OverwritingAdd(slice[i].key, timestamp);
@@ -199,7 +184,6 @@ public static partial class CachedRange<V>
         }
 
         var quickListLimit = GetQuickListInsertLength<K>(keys.Length);
-
         for (var i = 0; i < quickListLimit; i++)
         {
             CacheStaticHolder<K, V>.QuickList.OverwritingAdd(keys[i], timestamp);
@@ -210,10 +194,10 @@ public static partial class CachedRange<V>
         where K : notnull
         where TList : IList<(K Key, V Value)>
     {
-        var list = slice.List;
-        var start = slice.Start;
-        var end = slice.End;
+        var (list, start, end) = slice;
 
+        // Suprisingly, on plain lists the performance is within 1.1x of array/span impl.
+        // Perhaps devirtualization via generics and TieredPGO is all that we need
         for (var i = start; i < end; i++)
         {
             var (key, value) = list[i];

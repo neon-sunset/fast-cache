@@ -262,11 +262,13 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
     {
         uint i = 0;
         uint limit = FreeSpace;
-        var enumerator = CacheStaticHolder<K, V>.Store.GetEnumerator();
 
-        while ((i < limit) && enumerator.MoveNext())
+        foreach (var (key, inner) in CacheStaticHolder<K, V>.Store)
         {
-            var (key, inner) = enumerator.Current;
+            if (i >= limit)
+            {
+                break;
+            }
 
             OverwritingAdd(key, inner._timestamp);
             i++;
