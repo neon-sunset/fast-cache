@@ -2,7 +2,6 @@ using FastCache.Collections;
 using FastCache.Extensions;
 using FastCache.Services;
 using FastCache.Helpers;
-using System.Linq;
 
 namespace FastCache.CachedTests.Internals;
 
@@ -22,8 +21,8 @@ public sealed class CacheManagerTests
     {
         const int expectedCount = 32768;
 
-        var entries = (0..32768)
-            .AsEnumerable()
+        var entries = Enumerable
+            .Range(0, 32768)
             .Select(i => (i, new TotalCountEntry(i)));
 
         CachedRange<TotalCountEntry>.Save(entries, TimeSpan.MaxValue);
@@ -34,8 +33,8 @@ public sealed class CacheManagerTests
     [Fact]
     public async Task EnumerateEntries_ReturnsCorrectValues()
     {
-        var expired = (0..1024).AsEnumerable().ToDictionary(i => i, _ => new EnumerableEntry());
-        var notExpired = (1024..2048).AsEnumerable().ToDictionary(i => i, _ => new EnumerableEntry());
+        var expired = Enumerable.Range(0, 1024).ToDictionary(i => i, _ => new EnumerableEntry());
+        var notExpired = Enumerable.Range(1024, 1024).ToDictionary(i => i, _ => new EnumerableEntry());
 
         CachedRange<EnumerableEntry>.Save(expired.Select(kvp => (kvp.Key, kvp.Value)), DelayTolerance);
         CachedRange<EnumerableEntry>.Save(notExpired.Select(kvp => (kvp.Key, kvp.Value)), DelayTolerance.MultiplyBy(2));
