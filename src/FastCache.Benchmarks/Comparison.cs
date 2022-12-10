@@ -39,47 +39,27 @@ public class Comparison
     [Benchmark(Baseline = true)]
     public string TryGetCached()
     {
-        if (Cached<string>.TryGet(ItemKey, out var cached))
-        {
-            return cached;
-        }
-
-        return Unreachable<string>();
+        return Cached<string>.TryGet(ItemKey, out var cached) ? cached : Unreachable<string>();
     }
 
     [Benchmark]
     public string TryGetMemoryCache()
     {
-        var found = _memoryCache.TryGetValue(ItemKey, out var cacheItem);
-        if (found && cacheItem is string value)
-        {
-            return value;
-        }
-
-        return Unreachable<string>();
+        return _memoryCache.TryGetValue(ItemKey, out var result) && result is string value
+            ? value
+            : Unreachable<string>();
     }
 
     [Benchmark]
     public string TryGetCacheManager()
     {
-        var value = _cacheManager.Get(ItemKey);
-        if (value is not null)
-        {
-            return value;
-        }
-
-        return Unreachable<string>();
+        return _cacheManager.Get(ItemKey) ?? Unreachable<string>();
     }
 
     [Benchmark]
     public string TryGetLazyCache()
     {
-        if (_lazyCache.TryGetValue<string>(ItemKey, out var value))
-        {
-            return value;
-        }
-
-        return Unreachable<string>();
+        return _lazyCache.TryGetValue<string>(ItemKey, out var value) ? value : Unreachable<string>();
     }
 
     [Benchmark]

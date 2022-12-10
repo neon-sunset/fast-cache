@@ -15,23 +15,8 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0</TargetFrameworks>
-    <LangVersion>10</LangVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <WarningsAsErrors>nullable</WarningsAsErrors>
-    <NoWarn>CS1591</NoWarn>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants)</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <IsTrimmable>true</IsTrimmable>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <EnableNETAnalyzers>True</EnableNETAnalyzers>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <!-- <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow> -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,7 +25,6 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NonBlocking" Version="2.1.0" />
-    <PackageReference Include="PolySharp" Version="1.7.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
@@ -48,7 +32,6 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="IndexRange" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup>

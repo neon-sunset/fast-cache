@@ -36,7 +36,7 @@ public class Reads
         var sliceLength = keys.Length / Environment.ProcessorCount;
         var value = string.Empty;
 
-        Parallel.For(0, Environment.ProcessorCount, i => ReadSlice(i));
+        Parallel.For(0, Environment.ProcessorCount, ReadSlice);
 
         void ReadSlice(int i)
         {
@@ -47,14 +47,7 @@ public class Reads
 
             foreach (var (key, _) in keys.Span[start..end])
             {
-                if (Cached<string>.TryGet(key, out var cached))
-                {
-                    ret = cached;
-                }
-                else
-                {
-                    ret = Unreachable<string>();
-                }
+                ret = Cached<string>.TryGet(key, out var cached) ? cached : Unreachable<string>();
             }
 
             value = ret;
@@ -70,14 +63,7 @@ public class Reads
 
         foreach (var (key, _) in Range.AsSpan()[..Length])
         {
-            if (Cached<string>.TryGet(key, out var cached))
-            {
-                value = cached;
-            }
-            else
-            {
-                value = Unreachable<string>();
-            }
+            value = Cached<string>.TryGet(key, out var cached) ? cached : Unreachable<string>();
         }
 
         return value;
@@ -90,7 +76,7 @@ public class Reads
         var sliceLength = keys.Length / Environment.ProcessorCount;
         var value = string.Empty;
 
-        Parallel.For(0, Environment.ProcessorCount, i => ReadSlice(i));
+        Parallel.For(0, Environment.ProcessorCount, ReadSlice);
 
         void ReadSlice(int i)
         {
@@ -101,15 +87,8 @@ public class Reads
 
             foreach (var (key, _) in keys.Span[start..end])
             {
-                var found = _memoryCache.TryGetValue(key, out var cacheItem);
-                if (found && cacheItem is string value)
-                {
-                    ret = value;
-                }
-                else
-                {
-                    ret = Unreachable<string>();
-                }
+                ret = _memoryCache.TryGetValue(key, out var cacheItem)
+                    && cacheItem is string value ? value : Unreachable<string>();
             }
 
             value = ret;
@@ -125,15 +104,8 @@ public class Reads
 
         foreach (var (key, _) in Range.AsSpan()[..Length])
         {
-            var found = _memoryCache.TryGetValue(key, out var cacheItem);
-            if (found && cacheItem is string stringValue)
-            {
-                value = stringValue;
-            }
-            else
-            {
-                value = Unreachable<string>();
-            }
+            value = _memoryCache.TryGetValue(key, out var cacheItem) && cacheItem is string stringValue
+                ? stringValue : Unreachable<string>();
         }
 
         return value;

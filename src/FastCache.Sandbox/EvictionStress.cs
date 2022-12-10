@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
+using FastCache.Collections;
 using FastCache.Extensions;
 
 namespace FastCache.Sandbox;
@@ -34,9 +35,9 @@ public static class EvictionStress
         // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Uri2>(10));
         // Thread.Sleep(250);
         // CacheManager.QueueFullClear<(uint, string, int, string, char, bool, float), Uri2>();
-        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>(5));
-        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<long>(10));
-        ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(1));
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<Struct>(5));
+        ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<long>());
+        // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<User>(1));
         // ThreadPool.QueueUserWorkItem(_ => SeedRandomlyExpirable<bool>(25));
         // ThreadPool.QueueUserWorkItem(_ => SeedSequentiallyExpirable<Uri2>());
         // ThreadPool.QueueUserWorkItem(_ => SeedIndefinite<Uri2>(10));
@@ -48,7 +49,7 @@ public static class EvictionStress
     {
         const int secondsMin = 1;
         const int secondsMax = 900;
-        const uint count = 100_000;
+        const int count = 100_000;
 
         // CacheManager.SuspendEviction<T>();
 
@@ -56,11 +57,12 @@ public static class EvictionStress
         {
             var typeName = typeof(T).Name;
             var sw = Stopwatch.StartNew();
-            for (uint i = 0; i < count; i++)
+
+            foreach (var i in 0..count)
             {
                 var rand = TimeSpan.FromSeconds(Random.Shared.Next(secondsMin, secondsMax));
 
-                new T().Cache($"{typeName}:{i}:{num}", rand);
+                _ = new T().Cache(i, num, rand);
             }
 
             var elapsed = sw.Elapsed;
@@ -75,9 +77,9 @@ public static class EvictionStress
 
     private static void SeedSequentiallyExpirable<T>() where T : new()
     {
-        const int countPerStep = 250_000;
+        const int countPerStep = 1_000_000;
 
-        const int steps = 120;
+        const int steps = 20;
         const int secondsMin = 1;
         const int secondsMax = 600;
 
@@ -85,14 +87,14 @@ public static class EvictionStress
 
         var sw = Stopwatch.StartNew();
 
-        for (int i = 0; i < steps; i++)
+        foreach (var step in 0..steps)
         {
-            var expiration = TimeSpan.FromSeconds(secondsMin + (stepIncrement * i));
+            var expiration = TimeSpan.FromSeconds(secondsMin + (stepIncrement * step));
+            var values = (0..countPerStep)
+                .AsEnumerable()
+                .Select(i => ((step, i), new T()));
 
-            for (int j = 0; j < countPerStep; j++)
-            {
-                new T().Cache(i, j, expiration);
-            }
+            CachedRange<T>.Save(values, expiration);
         }
 
         const int count = countPerStep * steps;
