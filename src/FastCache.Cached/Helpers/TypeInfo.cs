@@ -3,13 +3,9 @@ namespace FastCache.Helpers;
 internal static class TypeInfo<T>
 {
     // Will miss nested reference types on netstandard2.0
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsManaged()
-    {
 #if NETSTANDARD2_0
-        return !typeof(T).IsValueType;
+    public static readonly bool IsManaged = !typeof(T).IsValueType;
 #else
-        return RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+    public static readonly bool IsManaged = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
 #endif
-    }
 }

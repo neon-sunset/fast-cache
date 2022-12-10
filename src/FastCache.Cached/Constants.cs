@@ -44,13 +44,13 @@ internal static class Constants
     public static readonly uint ParallelEvictionThreshold = uint
         .TryParse(GetVar("FASTCACHE_PARALLEL_EVICTION_THRESHOLD"), out var parsed) ? parsed : DefaultParallelEvictionThreshold;
 
-    public static uint ParallelSaveMinBatchSize = uint
+    public static readonly uint ParallelSaveMinBatchSize = uint
         .TryParse(GetVar("FASTCACHE_PARALLEL_SAVE_MIN_BATCH_SIZE"), out var parsed) ? parsed : DefaultParallelSaveMinBatchSize;
 
-    public static double FullCapacityTrimPercentage = double
+    public static readonly double FullCapacityTrimPercentage = double
         .TryParse(GetVar("FASTCACHE_FULL_CAPACITY_TRIM_PERCENT"), out var parsed) ? parsed : QuickListAdjustableLengthPercentage;
 
-    public static uint InlineTrimCountThreshold = uint
+    public static readonly uint InlineTrimCountThreshold = uint
         .TryParse(GetVar("FASTCACHE_INLINE_TRIM_COUNT_THRESHOLD"), out var parsed) ? parsed : 256;
 
     public static readonly bool ConsiderFullGC = bool.TryParse(GetVar("FASTCACHE_CONSIDER_GC"), out var parsed) && parsed;

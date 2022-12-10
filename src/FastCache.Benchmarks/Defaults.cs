@@ -4,30 +4,25 @@ namespace FastCache.Benchmarks;
 
 [ShortRunJob]
 [MemoryDiagnoser]
-[DisassemblyDiagnoser(maxDepth: 10, printSource: true, exportCombinedDisassemblyReport: true)]
+// [DisassemblyDiagnoser(maxDepth: 10, printSource: true, exportCombinedDisassemblyReport: true)]
 public class Defaults
 {
-    private static readonly TimeSpan OneHour = TimeSpan.FromMinutes(60);
-
     [GlobalSetup]
     public void Initialize()
     {
-        "single".Cache("one", OneHour);
-        "two".Cache("one", "two", OneHour);
-        "three".Cache("one", "two", "three", OneHour);
-        "four".Cache("one", "two", "three", "four", OneHour);
-        "seven".Cache("one", "two", "three", "four", "five", "six", "seven", OneHour);
+        "single".Cache("one", TimeSpan.FromMinutes(60));
+        "two".Cache("one", "two", TimeSpan.FromMinutes(60));
+        "three".Cache("one", "two", "three", TimeSpan.FromMinutes(60));
+        "four".Cache("one", "two", "three", "four", TimeSpan.FromMinutes(60));
 
-        "single".Cache(1, OneHour);
-        "two".Cache(1, 2, OneHour);
-        "three".Cache(1, 2, 3, OneHour);
-        "four".Cache(1, 2, 3, 4, OneHour);
-        "seven".Cache(1, 2, 3, 4, 5, 6, 7, OneHour);
+        "single".Cache(1, TimeSpan.FromMinutes(60));
+        "two".Cache(1, 2, TimeSpan.FromMinutes(60));
+        "three".Cache(1, 2, 3, TimeSpan.FromMinutes(60));
+        "four".Cache(1, 2, 3, 4, TimeSpan.FromMinutes(60));
 
-        "two".Cache("one", 2, OneHour);
-        "three".Cache("one", 2, "three", OneHour);
-        "four".Cache("one", 2, "three", 4, OneHour);
-        "seven".Cache("one", 2, "three", 4, "five", 6, "seven", OneHour);
+        "two".Cache("one", 2, TimeSpan.FromMinutes(60));
+        "three".Cache("one", 2, "three", TimeSpan.FromMinutes(60));
+        "four".Cache("one", 2, "three", 4, TimeSpan.FromMinutes(60));
     }
 
     [Benchmark(Baseline = true)]
@@ -67,17 +62,6 @@ public class Defaults
     public string TryGetFour()
     {
         if (Cached<string>.TryGet("one", "two", "three", "four", out var cached))
-        {
-            return cached;
-        }
-
-        return Unreachable<string>();
-    }
-
-    [Benchmark]
-    public string TryGetSeven()
-    {
-        if (Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", out var cached))
         {
             return cached;
         }
@@ -130,17 +114,6 @@ public class Defaults
     }
 
     [Benchmark]
-    public string TryGetSevenInt()
-    {
-        if (Cached<string>.TryGet(1, 2, 3, 4, 5, 6, 7, out var cached))
-        {
-            return cached;
-        }
-
-        return Unreachable<string>();
-    }
-
-    [Benchmark]
     public string TryGetTwoMixed()
     {
         if (Cached<string>.TryGet("one", 2, out var cached))
@@ -174,206 +147,156 @@ public class Defaults
     }
 
     [Benchmark]
-    public string TryGetSevenMixed()
-    {
-        if (Cached<string>.TryGet("one", 2, "three", 4, "five", 6, "seven", out var cached))
-        {
-            return cached;
-        }
-
-        return Unreachable<string>();
-    }
-
-    [Benchmark]
     public string GetAndSaveSingle()
     {
         Cached<string>.TryGet("one", out var cached);
-        return cached.Save("single", OneHour);
+        return cached.Save("single", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveTwo()
     {
         Cached<string>.TryGet("one", "two", out var cached);
-        return cached.Save("two", OneHour);
+        return cached.Save("two", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveThree()
     {
         Cached<string>.TryGet("one", "two", "three", out var cached);
-        return cached.Save("three", OneHour);
+        return cached.Save("three", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveFour()
     {
         Cached<string>.TryGet("one", "two", "three", "four", out var cached);
-        return cached.Save("four", OneHour);
-    }
-
-    [Benchmark]
-    public string GetAndSaveSeven()
-    {
-        Cached<string>.TryGet("one", "two", "three", "four", "five", "six", "seven", out var cached);
-        return cached.Save("seven", OneHour);
+        return cached.Save("four", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveSingleInt()
     {
         Cached<string>.TryGet(1, out var cached);
-        return cached.Save("single", OneHour);
+        return cached.Save("single", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveTwoInt()
     {
         Cached<string>.TryGet(1, 2, out var cached);
-        return cached.Save("two", OneHour);
+        return cached.Save("two", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveThreeInt()
     {
         Cached<string>.TryGet(1, 2, 3, out var cached);
-        return cached.Save("three", OneHour);
+        return cached.Save("three", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveFourInt()
     {
         Cached<string>.TryGet(1, 2, 3, 4, out var cached);
-        return cached.Save("four", OneHour);
-    }
-
-    [Benchmark]
-    public string GetAndSaveSevenInt()
-    {
-        Cached<string>.TryGet(1, 2, 3, 4, 5, 6, 7, out var cached);
-        return cached.Save("seven", OneHour);
+        return cached.Save("four", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveTwoMixed()
     {
         Cached<string>.TryGet("one", 2, out var cached);
-        return cached.Save("two", OneHour);
+        return cached.Save("two", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveThreeMixed()
     {
         Cached<string>.TryGet("one", 2, "three", out var cached);
-        return cached.Save("three", OneHour);
+        return cached.Save("three", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public string GetAndSaveFourMixed()
     {
         Cached<string>.TryGet("one", 2, "three", 4, out var cached);
-        return cached.Save("four", OneHour);
-    }
-
-    [Benchmark]
-    public string GetAndSaveSevenMixed()
-    {
-        Cached<string>.TryGet("one", 2, "three", 4, "five", 6, "seven", out var cached);
-        return cached.Save("seven", OneHour);
+        return cached.Save("four", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheSingle()
     {
-        "single".Cache("one", OneHour);
+        "single".Cache("one", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheTwo()
     {
-        "two".Cache("one", "two", OneHour);
+        "two".Cache("one", "two", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheThree()
     {
-        "three".Cache("one", "two", "three", OneHour);
+        "three".Cache("one", "two", "three", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheFour()
     {
-        "four".Cache("one", "two", "three", "four", OneHour);
-    }
-
-    [Benchmark]
-    public void CacheSeven()
-    {
-        "seven".Cache("one", "two", "three", "four", "five", "six", "seven", OneHour);
+        "four".Cache("one", "two", "three", "four", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheSingleInt()
     {
-        "single".Cache(1, OneHour);
+        "single".Cache(1, TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheTwoInt()
     {
-        "two".Cache(1, 2, OneHour);
+        "two".Cache(1, 2, TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheThreeInt()
     {
-        "three".Cache(1, 2, 3, OneHour);
+        "three".Cache(1, 2, 3, TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheFourInt()
     {
-        "four".Cache(1, 2, 3, 4, OneHour);
-    }
-
-    [Benchmark]
-    public void CacheSevenInt()
-    {
-        "seven".Cache(1, 2, 3, 4, 5, 6, 7, OneHour);
+        "four".Cache(1, 2, 3, 4, TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheTwoMixed()
     {
-        "two".Cache("one", 2, OneHour);
+        "two".Cache("one", 2, TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheThreeMixed()
     {
-        "three".Cache("one", 2, "three", OneHour);
+        "three".Cache("one", 2, "three", TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
     public void CacheFourMixed()
     {
-        "four".Cache("one", 2, "three", 4, OneHour);
+        "four".Cache("one", 2, "three", 4, TimeSpan.FromMinutes(60));
     }
 
     [Benchmark]
-    public void CacheSevenMixed()
-    {
-        "seven".Cache("one", 2, "three", 4, "five", 6, "seven", OneHour);
-    }
+    public string GetOrCompute() => Cached.GetOrCompute("new computed value", param => Delegate(param), TimeSpan.FromMinutes(60));
 
     [Benchmark]
-    public string GetOrCompute() => Cached.GetOrCompute("new computed value", param => Delegate(param), OneHour);
+    public async ValueTask<string> GetOrComputeValueTask() => await Cached.GetOrCompute("new computed value", param => DelegateValueTask(param), TimeSpan.FromMinutes(60));
 
     [Benchmark]
-    public async ValueTask<string> GetOrComputeValueTask() => await Cached.GetOrCompute("new computed value", param => DelegateValueTask(param), OneHour);
-
-    [Benchmark]
-    public async Task<string> GetOrComputeTask() => await Cached.GetOrCompute("new computed value", param => DelegateTask(param), OneHour);
+    public async Task<string> GetOrComputeTask() => await Cached.GetOrCompute("new computed value", param => DelegateTask(param), TimeSpan.FromMinutes(60));
 
     private static string Delegate(string input) => $"computed: {input}";
 

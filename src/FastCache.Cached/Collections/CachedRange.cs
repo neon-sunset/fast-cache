@@ -143,7 +143,6 @@ public static partial class CachedRange<V>
         else if (keys.TryGetNonEnumeratedCount(out var count) && GetParallelism((uint)count) > 1)
         {
             keys.AsParallel()
-                .AsUnordered()
                 .ForAll(static key => CacheStaticHolder<K, V>.Store.TryRemove(key, out _));
         }
 #endif

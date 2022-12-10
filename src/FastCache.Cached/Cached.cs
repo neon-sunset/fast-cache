@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using FastCache.Helpers;
 using FastCache.Services;
 
@@ -71,12 +70,10 @@ public readonly record struct Cached<K, V> where K : notnull
     /// <returns>Saved value</returns>
     public V Save(V value, TimeSpan expiration, uint limit)
     {
-        if (CacheStaticHolder<K, V>.Store.Count < limit || CacheManager.Trim<K, V>(Constants.FullCapacityTrimPercentage))
-        {
-            return Save(value, expiration);
-        }
-
-        return value;
+        return CacheStaticHolder<K, V>.Store.Count < limit
+            || CacheManager.Trim<K, V>(Constants.FullCapacityTrimPercentage)
+                ? Save(value, expiration)
+                : value;
     }
 
     /// <summary>
