@@ -90,9 +90,7 @@ public static class EvictionStress
         foreach (var step in 0..steps)
         {
             var expiration = TimeSpan.FromSeconds(secondsMin + (stepIncrement * step));
-            var values = (0..countPerStep)
-                .AsEnumerable()
-                .Select(i => ((step, i), new T()));
+            var values = (0..countPerStep).Select(i => ((step, i), new T()));
 
             CachedRange<T>.Save(values, expiration);
         }

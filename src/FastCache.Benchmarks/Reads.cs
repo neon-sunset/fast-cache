@@ -15,7 +15,7 @@ public class Reads
     [GlobalSetup]
     public void GlobalSetup()
     {
-        Range = Enumerable.Range(0, Length).Select(i => (i.ToString(), ItemValue)).ToArray();
+        Range = (0..Length).Select(i => ($"{i}", ItemValue)).ToArray();
 
         Services.CacheManager.SuspendEviction<string, string>();
         CachedRange<string>.Save(Range, TimeSpan.FromHours(3));

@@ -18,7 +18,7 @@ public class RangeWritesOverloads
     [GlobalSetup]
     public void Setup()
     {
-        var seed = (0..Length).AsEnumerable().Select(key => (key, $"{key}")).ToArray();
+        var seed = (0..Length).Select(key => (key, $"{key}")).ToArray();
 
         _array = seed;
         _list = seed.ToList();

@@ -30,7 +30,7 @@ public class RangeWrites
     public void GlobalSetup()
     {
         Services.CacheManager.SuspendEviction<string, string>();
-        Range = Enumerable.Range(0, Length).Select(i => (i.ToString(), ItemValue)).ToArray();
+        Range = (0..Length).Select(i => ($"{i}", ItemValue)).ToArray();
     }
 
     [Benchmark(Baseline = true)]
