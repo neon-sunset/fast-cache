@@ -52,7 +52,7 @@ public class RangeWrites
         var sliceLength = range.Length / Environment.ProcessorCount;
         var expiration = DateTimeOffset.UtcNow + TimeSpan.FromHours(3);
 
-        Parallel.For(0, Environment.ProcessorCount, i => WriteSlice(i));
+        Parallel.For(0, Environment.ProcessorCount, WriteSlice);
 
         void WriteSlice(int i)
         {

@@ -36,7 +36,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
         if (count < entries.Length)
         {
             entries[count] = (key, expiresAt);
-            if (!TypeInfo<K>.IsManaged)
+            if (!TypeInfo.IsManaged<K>())
             {
                 Interlocked.MemoryBarrier();
             }
@@ -176,7 +176,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
                 Reset(lockRequired: false);
             }
 
-            CacheManager.ReportEvictions<V>(entriesRemovedCount);
+            CacheManager.ReportEvictions(entriesRemovedCount);
             _evictionLock.Release();
 
 #if FASTCACHE_DEBUG
@@ -226,7 +226,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
         // will be handled by the next full eviction (evicted or pushed to quick list if capacity allows it).
         AtomicSwapActive(copyLength);
 
-        CacheManager.ReportEvictions<V>(entriesRemovedCount);
+        CacheManager.ReportEvictions(entriesRemovedCount);
         _evictionLock.Release();
 
 #if FASTCACHE_DEBUG
@@ -305,7 +305,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
             return _inactive.Length;
         }
 
-        ArrayPool<(K, long)>.Shared.Return(_inactive, TypeInfo<K>.IsManaged);
+        ArrayPool<(K, long)>.Shared.Return(_inactive, TypeInfo.IsManaged<K>());
         _inactive = ArrayPool<(K, long)>.Shared.Rent(requestedLength);
 
         if (copy)
@@ -333,7 +333,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
             _evictionLock.Wait();
         }
 
-        if (TypeInfo<K>.IsManaged)
+        if (TypeInfo.IsManaged<K>())
         {
             var entries = _active;
             var length = Math.Min((int)AtomicCount, entries.Length);

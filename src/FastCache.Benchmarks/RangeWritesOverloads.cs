@@ -6,11 +6,11 @@ namespace FastCache.Benchmarks;
 // [DisassemblyDiagnoser(maxDepth: 3, exportCombinedDisassemblyReport: true)]
 public class RangeWritesOverloads
 {
-    private (int, string)[] _array = Array.Empty<(int, string)>();
+    private (int, string)[] _array = default!;
 
     private List<(int, string)> _list = new();
 
-    private (int[], string[]) _kvpArrays = (Array.Empty<int>(), Array.Empty<string>());
+    private (int[], string[]) _kvpArrays = default!;
 
     [Params(1000, 1_000_000)]
     public int Length;
@@ -18,9 +18,9 @@ public class RangeWritesOverloads
     [GlobalSetup]
     public void Setup()
     {
-        var seed = (0..Length).Select(key => (key, $"{key}")).ToArray();
+        var seed = (0..Length).Select(key => (key, $"{key}"));
 
-        _array = seed;
+        _array = seed.ToArray();
         _list = seed.ToList();
         _kvpArrays = (
             seed.Select(kvp => kvp.key).ToArray(),

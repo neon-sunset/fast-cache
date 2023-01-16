@@ -140,24 +140,15 @@ public static class CacheManager
     /// </summary>
     public static void ResumeEviction<K, V>() where K : notnull => CacheStaticHolder<K, V>.EvictionJob.Resume();
 
-    internal static void ReportEvictions<T>(uint count)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void ReportEvictions(uint count)
     {
         if (!Constants.ConsiderFullGC)
         {
             return;
         }
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-        var countTowardsEvictions = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
-#elif NETSTANDARD2_0
-        // Inaccurate but this is an optional feature so this tradeoff is ok for legacy/uncommon tragets.
-        var countTowardsEvictions = !typeof(T).IsValueType;
-#endif
-
-        if (countTowardsEvictions)
-        {
-            Interlocked.Add(ref s_AggregatedEvictionsCount, count);
-        }
+        Interlocked.Add(ref s_AggregatedEvictionsCount, count);
     }
 
     internal static void QueueFullEviction<K, V>(bool triggeredByTimer) where K : notnull
@@ -225,7 +216,7 @@ public static class CacheManager
 
         if (Constants.ConsiderFullGC && evictedFromCacheStore > 0)
         {
-            ReportEvictions<V>(evictedFromCacheStore);
+            ReportEvictions(evictedFromCacheStore);
         }
 
 #if FASTCACHE_DEBUG
@@ -275,7 +266,7 @@ public static class CacheManager
 
         if (Constants.ConsiderFullGC && evictedFromCacheStore > 0)
         {
-            ReportEvictions<V>(evictedFromCacheStore);
+            ReportEvictions(evictedFromCacheStore);
         }
 
 #if FASTCACHE_DEBUG
