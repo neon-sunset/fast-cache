@@ -4,6 +4,7 @@
     <TargetFrameworks>netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net48</TargetFrameworks>
     <IsPackable>false</IsPackable>
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>

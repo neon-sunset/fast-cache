@@ -39,7 +39,7 @@ public sealed class CacheManagerTests
         CachedRange<EnumerableEntry>.Save(expired.Select(kvp => (kvp.Key, kvp.Value)), DelayTolerance);
         CachedRange<EnumerableEntry>.Save(notExpired.Select(kvp => (kvp.Key, kvp.Value)), DelayTolerance.MultiplyBy(2));
 
-        await Task.Delay(DelayTolerance);
+        await Task.Delay(DelayTolerance + TimeSpan.FromMilliseconds(1));
 
         foreach (var cached in CacheManager.EnumerateEntries<int, EnumerableEntry>())
         {
