@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using FastCache.Extensions;
 
 namespace FastCache.CachedTests;
@@ -10,6 +11,7 @@ public sealed class CachedTests_ExpirationPermutations
     [InlineData(500)]
     [InlineData(1000)]
     [InlineData(2500)]
+    [MethodImpl(0x200)]
     public async Task Cached_TryGet_ReturnsValueBeforeExpiration_DoesNotReturnAfter(int milliseconds)
     {
         const int delayTolerance = 200;
