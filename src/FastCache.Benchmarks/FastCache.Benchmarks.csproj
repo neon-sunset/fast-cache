@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.4" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.5" />
     <PackageReference Include="CacheManager.Core" Version="1.2.0" />
     <PackageReference Include="CacheManager.Microsoft.Extensions.Caching.Memory" Version="1.2.0" />
     <PackageReference Include="LazyCache" Version="2.4.0" />
