@@ -26,7 +26,7 @@ public static class CacheManager
     /// </summary>
     public static void QueueFullClear<K, V>() where K : notnull
     {
-        ThreadPool.QueueUserWorkItem(async static _ =>
+        Task.Run(async static () =>
         {
             var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
             await evictionJob.FullEvictionLock.WaitAsync();
@@ -122,7 +122,7 @@ public static class CacheManager
         }
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-        ThreadPool.QueueUserWorkItem(static count => ExecuteTrim(count, takeLock: true), trimCount, preferLocal: false);
+        ThreadPool.QueueUserWorkItem(static count => ExecuteTrim(count, takeLock: true), trimCount, preferLocal: true);
 #elif NETSTANDARD2_0
         ThreadPool.QueueUserWorkItem(static count => ExecuteTrim((uint)count, takeLock: true), trimCount);
 #endif
@@ -160,35 +160,11 @@ public static class CacheManager
 
         if (triggeredByTimer)
         {
-            ThreadPool.QueueUserWorkItem(static _ =>
-            {
-                try
-                {
-                    ImmediateFullEviction<K, V>();
-                }
-                catch
-                {
-#if DEBUG
-                    throw;
-#endif
-                }
-            });
+            Task.Run(ImmediateFullEviction<K, V>);
         }
         else
         {
-            ThreadPool.QueueUserWorkItem(async static _ =>
-            {
-                try
-                {
-                    await StaggeredFullEviction<K, V>();
-                }
-                catch
-                {
-#if DEBUG
-                    throw;
-#endif
-                }
-            });
+            Task.Run(async () => await StaggeredFullEviction<K, V>());
         }
     }
 
@@ -223,7 +199,7 @@ public static class CacheManager
         PrintEvicted<K, V>(evictedFromCacheStore, stopwatch.Elapsed);
 #endif
 
-        ThreadPool.QueueUserWorkItem(async static _ => await ConsiderFullGC<V>());
+        Task.Run(async static () => await ConsiderFullGC<V>());
 
         evictionJob.FullEvictionLock.Release();
     }
