@@ -1,6 +1,6 @@
 namespace FastCache;
 
-public static class Cached<V>
+public static partial class Cached<V>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGet<K>(K key, out Cached<K, V> cached) where K : notnull
