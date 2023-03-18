@@ -90,6 +90,10 @@ var report = Cached.GetOrCompute(companyId, GetReport, TimeSpan.FromMinutes(60),
 
 Add new data without accessing cache item first
 ```csharp
+Cached<SalesReport>.Save(companyId, report, TimeSpan.FromMinutes(60));
+```
+```csharp
+// Same as above but via extension method for more concise syntax
 using FastCache.Extensions;
 ...
 report.Cache(companyId, TimeSpan.FromMinutes(60));
