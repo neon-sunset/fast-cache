@@ -26,10 +26,14 @@ public static class CacheManager
     /// </summary>
     public static void QueueFullClear<K, V>() where K : notnull
     {
-        Task.Run(static () => FullCleanAsync<K, V>());
+        Task.Run(static () => ExecuteFullClear<K, V>());
     }
 
-    public static async Task FullCleanAsync<K, V>() where K : notnull
+    /// <summary>
+    /// Remove all cache entries of type Cached[K, V] from the cache
+    /// </summary>
+    /// <returns>A task that completes upon full clear execution.</returns>
+    public static async Task ExecuteFullClear<K, V>() where K : notnull
     {
         var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
         await evictionJob.FullEvictionLock.WaitAsync();
@@ -168,6 +172,19 @@ public static class CacheManager
         {
             Task.Run(async () => await StaggeredFullEviction<K, V>());
         }
+    }
+
+    /// <summary>
+    /// Remove all expired cache entries of type Cached[K, V] from the cache
+    /// </summary>
+    public static void ExecuteFullEviction<K, V>() where K : notnull
+    {
+        //if already in progress, return
+        if (CacheStaticHolder<K, V>.EvictionJob.IsActive)
+        {
+            return;
+        }
+        ImmediateFullEviction<K, V>();
     }
 
     private static void ImmediateFullEviction<K, V>() where K : notnull
