@@ -26,25 +26,31 @@ public static class CacheManager
     /// </summary>
     public static void QueueFullClear<K, V>() where K : notnull
     {
-        Task.Run(async static () =>
-        {
-            var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
-            await evictionJob.FullEvictionLock.WaitAsync();
+        Task.Run(static () => ExecuteFullClear<K, V>());
+    }
+
+    /// <summary>
+    /// Remove all cache entries of type Cached[K, V] from the cache
+    /// </summary>
+    /// <returns>A task that completes upon full clear execution.</returns>
+    public static async Task ExecuteFullClear<K, V>() where K : notnull
+    {
+        var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
+        await evictionJob.FullEvictionLock.WaitAsync();
 
 #if FASTCACHE_DEBUG
             var countBefore = CacheStaticHolder<K, V>.Store.Count;
 #endif
 
-            CacheStaticHolder<K, V>.Store.Clear();
-            CacheStaticHolder<K, V>.QuickList.Reset();
+        CacheStaticHolder<K, V>.Store.Clear();
+        CacheStaticHolder<K, V>.QuickList.Reset();
 
-            evictionJob.FullEvictionLock.Release();
+        evictionJob.FullEvictionLock.Release();
 
 #if FASTCACHE_DEBUG
             Console.WriteLine(
                 $"FastCache: Cache has been fully cleared for {typeof(K).Name}:{typeof(V).Name}. Was {countBefore}, now {CacheStaticHolder<K, V>.QuickList.AtomicCount}/{CacheStaticHolder<K, V>.Store.Count}");
 #endif
-        });
     }
 
     /// <summary>
