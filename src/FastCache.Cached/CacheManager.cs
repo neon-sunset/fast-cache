@@ -17,39 +17,60 @@ public static class CacheManager
     public static int TotalCount<K, V>() where K : notnull => CacheStaticHolder<K, V>.Store.Count;
 
     /// <summary>
-    /// Trigger full eviction for expired cache entries of type Cached[K, V]
+    /// Trigger full eviction for expired cache entries of type Cached[K, V].
+    /// This operation is a no-op when eviction is suspended.
     /// </summary>
-    public static void QueueFullEviction<K, V>() where K : notnull => QueueFullEviction<K, V>(triggeredByTimer: true);
+    public static void QueueFullEviction<K, V>() where K : notnull
+    {
+        _ = ExecuteFullEviction<K, V>(triggeredByGC: false);
+    }
 
     /// <summary>
     /// Remove all cache entries of type Cached[K, V] from the cache
     /// </summary>
     public static void QueueFullClear<K, V>() where K : notnull
     {
-        Task.Run(static () => ExecuteFullClear<K, V>());
+        _ = ExecuteFullClear<K, V>();
     }
 
     /// <summary>
-    /// Remove all cache entries of type Cached[K, V] from the cache
+    /// Trigger full eviction for expired cache entries of type Cached[K, V].
+    /// This operation is a no-op when eviction is suspended.
+    /// Disclaimer: if there is an ongoing staggered full eviction (triggered by Gen2 GC), this method will await its completion, which can take significant time.
+    /// </summary>
+    /// <returns>One of: A task for a new full eviction that completes upon its execution; A task for an already ongoing eviction or clear.</returns>
+    public static Task ExecuteFullEviction<K, V>() where K : notnull => ExecuteFullEviction<K, V>(triggeredByGC: false);
+
+    /// <summary>
+    /// Remove all cache entries of type Cached[K, V] from the cache.
+    /// Disclaimer: if there is an ongoing staggered full eviction (triggered by Gen2 GC),
+    /// this method will await its completion before proceeding with full clear, which can take significant time.
+    /// For benchmarking purposes, consider suspending eviction first before calling this method.
     /// </summary>
     /// <returns>A task that completes upon full clear execution.</returns>
     public static async Task ExecuteFullClear<K, V>() where K : notnull
     {
+#if FASTCACHE_DEBUG
+        var countBefore = CacheStaticHolder<K, V>.Store.Count;
+#endif
+
         var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
         await evictionJob.FullEvictionLock.WaitAsync();
 
-#if FASTCACHE_DEBUG
-            var countBefore = CacheStaticHolder<K, V>.Store.Count;
-#endif
+        static void Inner()
+        {
+            CacheStaticHolder<K, V>.Store.Clear();
+            CacheStaticHolder<K, V>.QuickList.Reset();
+        }
 
-        CacheStaticHolder<K, V>.Store.Clear();
-        CacheStaticHolder<K, V>.QuickList.Reset();
+        await (evictionJob.ActiveFullEviction = Task.Run(Inner));
 
         evictionJob.FullEvictionLock.Release();
+        evictionJob.ActiveFullEviction = null;
 
 #if FASTCACHE_DEBUG
-            Console.WriteLine(
-                $"FastCache: Cache has been fully cleared for {typeof(K).Name}:{typeof(V).Name}. Was {countBefore}, now {CacheStaticHolder<K, V>.QuickList.AtomicCount}/{CacheStaticHolder<K, V>.Store.Count}");
+        Console.WriteLine(
+            $"FastCache: Cache has been fully cleared for {typeof(K).Name}:{typeof(V).Name}. Was {countBefore}, now {CacheStaticHolder<K, V>.QuickList.AtomicCount}/{CacheStaticHolder<K, V>.Store.Count}");
 #endif
     }
 
@@ -157,37 +178,43 @@ public static class CacheManager
         Interlocked.Add(ref s_AggregatedEvictionsCount, count);
     }
 
-    internal static void QueueFullEviction<K, V>(bool triggeredByTimer) where K : notnull
+    internal static async Task ExecuteFullEviction<K, V>(bool triggeredByGC) where K : notnull
     {
-        if (!CacheStaticHolder<K, V>.EvictionJob.IsActive)
+        var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
+        if (!evictionJob.IsActive)
         {
             return;
         }
 
-        if (triggeredByTimer)
+    Retry:
+        if (!evictionJob.FullEvictionLock.Wait(millisecondsTimeout: 0))
         {
-            Task.Run(ImmediateFullEviction<K, V>);
+            var activeEviction = evictionJob.ActiveFullEviction;
+            if (activeEviction is null)
+            {
+                goto Retry;
+            }
+
+            await activeEviction;
+            return;
         }
-        else
-        {
-            Task.Run(async () => await StaggeredFullEviction<K, V>());
-        }
+
+        evictionJob.ActiveFullEviction = !triggeredByGC
+            ? Task.Run(ImmediateFullEviction<K, V>)
+            : StaggeredFullEviction<K, V>();
+
+        await evictionJob.ActiveFullEviction;
+
+        evictionJob.FullEvictionLock.Release();
+        evictionJob.ActiveFullEviction = null;
     }
 
     private static void ImmediateFullEviction<K, V>() where K : notnull
     {
-        var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
-
-        if (!evictionJob.FullEvictionLock.Wait(millisecondsTimeout: 0))
-        {
-            return;
-        }
-
-        evictionJob.RescheduleConsideringExpiration();
+        CacheStaticHolder<K, V>.EvictionJob.RescheduleConsideringExpiration();
 
         if (CacheStaticHolder<K, V>.QuickList.Evict(resize: true))
         {
-            evictionJob.FullEvictionLock.Release();
             return;
         }
 
@@ -206,18 +233,11 @@ public static class CacheManager
 #endif
 
         Task.Run(async static () => await ConsiderFullGC<V>());
-
-        evictionJob.FullEvictionLock.Release();
     }
 
-    private static async ValueTask StaggeredFullEviction<K, V>() where K : notnull
+    private static async Task StaggeredFullEviction<K, V>() where K : notnull
     {
         var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
-
-        if (!evictionJob.FullEvictionLock.Wait(millisecondsTimeout: 0))
-        {
-            return;
-        }
 
         if (CacheStaticHolder<K, V>.QuickList.Evict())
         {
@@ -227,7 +247,6 @@ public static class CacheManager
             // over newly added items which is not profitable to do.
             // Delaying lock release for extra (quick list interval / 5) avoids the issue. 
             await Task.Delay(Constants.EvictionCooldownDelayOnGC);
-            evictionJob.FullEvictionLock.Release();
             return;
         }
 
@@ -235,7 +254,6 @@ public static class CacheManager
         if (evictionJob.EvictionGCNotificationsCount < 2)
         {
             await Task.Delay(Constants.EvictionCooldownDelayOnGC);
-            evictionJob.FullEvictionLock.Release();
             return;
         }
 
@@ -256,9 +274,7 @@ public static class CacheManager
 #endif
 
         await Task.Delay(Constants.EvictionCooldownDelayOnGC);
-
         evictionJob.EvictionGCNotificationsCount = 0;
-        evictionJob.FullEvictionLock.Release();
     }
 
     private static uint EvictFromCacheStore<K, V>() where K : notnull

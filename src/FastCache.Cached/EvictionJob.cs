@@ -15,6 +15,8 @@ internal sealed class EvictionJob<K, V> where K : notnull
 
     public readonly SemaphoreSlim FullEvictionLock = new(1, 1);
 
+    public Task? ActiveFullEviction;
+
     public int EvictionGCNotificationsCount;
 
     public EvictionJob()
@@ -48,13 +50,13 @@ internal sealed class EvictionJob<K, V> where K : notnull
         // Full eviction interval is always computed with jitter. Store to local so that start and repeat intervals are equal.
         var fullEvictionInterval = Constants.FullEvictionInterval;
         _fullEvictionTimer = new(
-            static _ => CacheManager.QueueFullEviction<K, V>(triggeredByTimer: true),
+            static _ => CacheManager.QueueFullEviction<K, V>(),
             null,
             fullEvictionInterval,
             fullEvictionInterval);
 
 #if NETCOREAPP3_0_OR_GREATER
-        Gen2GcCallback.Register(() => CacheManager.QueueFullEviction<K, V>(triggeredByTimer: false));
+        Gen2GcCallback.Register(() => _ = CacheManager.ExecuteFullEviction<K, V>(triggeredByGC: true));
 #endif
     }
 
