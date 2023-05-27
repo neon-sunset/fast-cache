@@ -81,7 +81,7 @@ internal static class Constants
         get
         {
             var delay = (int)QuickListEvictionInterval.TotalMilliseconds;
-            var jitter = GetRandomInt(0, delay * 2);
+            var jitter = GetRandomInt(0, delay / 2);
             return TimeSpan.FromMilliseconds(delay + jitter);
         }
     }

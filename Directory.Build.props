@@ -5,7 +5,10 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <WarningsAsErrors>nullable</WarningsAsErrors>
-        <IsTrimmable>true</IsTrimmable>
+        <!-- This is a hack because the life is too short to learn MSBuild -->
+        <IsTrimmable Condition="$(TargetFrameworkVersion) == '6.0'">true</IsTrimmable>
+        <IsTrimmable Condition="$(TargetFrameworkVersion) == '7.0'">true</IsTrimmable>
+        <IsTrimmable Condition="$(TargetFrameworkVersion) == '8.0'">true</IsTrimmable>
         <NoWarn>CS1591</NoWarn>
     </PropertyGroup>
 
