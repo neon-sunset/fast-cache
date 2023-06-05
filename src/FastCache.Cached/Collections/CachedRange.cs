@@ -142,15 +142,17 @@ public static partial class CachedRange<V>
 #if NET6_0_OR_GREATER
         else if (keys.TryGetNonEnumeratedCount(out var count) && GetParallelism((uint)count) > 1)
         {
+            var store = CacheStaticHolder<K, V>.Store;
             keys.AsParallel()
-                .ForAll(static key => CacheStaticHolder<K, V>.Store.TryRemove(key, out _));
+                .ForAll(key => store.TryRemove(key, out _));
         }
 #endif
         else
         {
+            var store = CacheStaticHolder<K, V>.Store;
             foreach (var key in keys)
             {
-                CacheStaticHolder<K, V>.Store.TryRemove(key, out _);
+                store.TryRemove(key, out _);
             }
         }
     }

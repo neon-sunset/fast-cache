@@ -211,9 +211,13 @@ public static class CacheManager
 
     private static void ImmediateFullEviction<K, V>() where K : notnull
     {
-        CacheStaticHolder<K, V>.EvictionJob.RescheduleConsideringExpiration();
+        var (evictionJob, quickList) = (
+            CacheStaticHolder<K, V>.EvictionJob,
+            CacheStaticHolder<K, V>.QuickList);
 
-        if (CacheStaticHolder<K, V>.QuickList.Evict(resize: true))
+        evictionJob.RescheduleConsideringExpiration();
+
+        if (quickList.Evict(resize: true))
         {
             return;
         }
@@ -237,9 +241,11 @@ public static class CacheManager
 
     private static async Task StaggeredFullEviction<K, V>() where K : notnull
     {
-        var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
+        var (quickList, evictionJob) = (
+            CacheStaticHolder<K, V>.QuickList,
+            CacheStaticHolder<K, V>.EvictionJob);
 
-        if (CacheStaticHolder<K, V>.QuickList.Evict())
+        if (quickList.Evict())
         {
             // When a lot of items are being added to cache, it triggers GC and its callbacks
             // which may decrease throughput by accessing the same memory locations
@@ -279,11 +285,15 @@ public static class CacheManager
 
     private static uint EvictFromCacheStore<K, V>() where K : notnull
     {
-        var evictedCount = CacheStaticHolder<K, V>.Store.Count > Constants.ParallelEvictionThreshold
+        var (store, quicklist) = (
+            CacheStaticHolder<K, V>.Store,
+            CacheStaticHolder<K, V>.QuickList);
+
+        var evictedCount = store.Count > Constants.ParallelEvictionThreshold
             ? EvictFromCacheStoreParallel<K, V>()
             : EvictFromCacheStoreSingleThreaded<K, V>();
 
-        CacheStaticHolder<K, V>.QuickList.PullFromCacheStore();
+        quicklist.PullFromCacheStore();
 
         return evictedCount;
     }
@@ -309,6 +319,7 @@ public static class CacheManager
     private static uint EvictFromCacheStoreParallel<K, V>() where K : notnull
     {
         var now = TimeUtils.Now;
+        var store = CacheStaticHolder<K, V>.Store;
         uint totalRemoved = 0;
 
         void CheckAndRemove(KeyValuePair<K, CachedInner<V>> kvp)
@@ -318,12 +329,12 @@ public static class CacheManager
 
             if (now > timestamp)
             {
-                CacheStaticHolder<K, V>.Store.TryRemove(key, out _);
+                store.TryRemove(key, out _);
                 count++;
             }
         }
 
-        CacheStaticHolder<K, V>.Store
+        store
             .AsParallel()
             .AsUnordered()
             .ForAll(CheckAndRemove);

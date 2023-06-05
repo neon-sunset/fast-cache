@@ -247,10 +247,11 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
 
         uint countAfterTrim = currentCount - toRemoveCount;
 
+        var store = CacheStaticHolder<K, V>.Store;
         uint removed = 0;
         for (uint i = countAfterTrim; i < countAfterTrim + toRemoveCount; i++)
         {
-            if (CacheStaticHolder<K, V>.Store.TryRemove(_active[i].Key, out var _))
+            if (store.TryRemove(_active[i].Key, out var _))
             {
                 removed++;
             }
