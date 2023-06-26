@@ -320,17 +320,15 @@ public static class CacheManager
     {
         var now = TimeUtils.Now;
         var store = CacheStaticHolder<K, V>.Store;
-        uint totalRemoved = 0;
+        var countBefore = store.Count;
 
         void CheckAndRemove(KeyValuePair<K, CachedInner<V>> kvp)
         {
             var (key, timestamp) = (kvp.Key, kvp.Value._timestamp);
-            ref var count = ref totalRemoved;
 
             if (now > timestamp)
             {
                 store.TryRemove(key, out _);
-                count++;
             }
         }
 
@@ -339,7 +337,10 @@ public static class CacheManager
             .AsUnordered()
             .ForAll(CheckAndRemove);
 
-        return totalRemoved;
+        // Perform dirty evictions count and discard the result if eviction
+        // happened to overlap with significant amount of insertions.
+        // The logic that consumes this value does not require precise reports.
+        return (uint)Math.Max(countBefore - store.Count, 0);
     }
 
     private static async ValueTask ConsiderFullGC<T>()
