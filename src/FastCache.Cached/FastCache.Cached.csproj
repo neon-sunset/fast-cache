@@ -24,7 +24,7 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NonBlocking" Version="2.1.1" />
+    <PackageReference Include="NonBlocking" Version="2.1.2" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
