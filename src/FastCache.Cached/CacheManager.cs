@@ -65,8 +65,8 @@ public static class CacheManager
 
         await (evictionJob.ActiveFullEviction = Task.Run(Inner));
 
-        evictionJob.FullEvictionLock.Release();
         evictionJob.ActiveFullEviction = null;
+        evictionJob.FullEvictionLock.Release();
 
 #if FASTCACHE_DEBUG
         Console.WriteLine(
@@ -205,8 +205,8 @@ public static class CacheManager
 
         await evictionJob.ActiveFullEviction;
 
-        evictionJob.FullEvictionLock.Release();
         evictionJob.ActiveFullEviction = null;
+        evictionJob.FullEvictionLock.Release();
     }
 
     private static void ImmediateFullEviction<K, V>() where K : notnull

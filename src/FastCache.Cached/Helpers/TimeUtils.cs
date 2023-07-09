@@ -2,7 +2,7 @@ namespace FastCache.Helpers;
 
 internal static class TimeUtils
 {
-#if NETCOREAPP3_0_OR_GREATER
+#if NET6_0_OR_GREATER
     public static long Now
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

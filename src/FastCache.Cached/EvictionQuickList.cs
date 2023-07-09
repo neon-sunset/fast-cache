@@ -336,9 +336,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
 
         if (TypeInfo.IsManaged<K>())
         {
-            var entries = _active;
-            var length = Math.Min((int)AtomicCount, entries.Length);
-            Array.Clear(entries, 0, length);
+            _active.AsSpan().Clear();
         }
 
         Interlocked.Exchange(ref _count, 0);

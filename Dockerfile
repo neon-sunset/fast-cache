@@ -1,11 +1,12 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0
+FROM mcr.microsoft.com/dotnet/sdk:8.0.100-preview.5
 WORKDIR /app
+
 COPY src .
-RUN dotnet build FastCache.Benchmarks/FastCache.Benchmarks.csproj -c release -f net7.0
+COPY Directory.Build.props .
+RUN dotnet publish FastCache.Benchmarks/FastCache.Benchmarks.csproj \
+    -c release \
+    -o publish \
+    -f net8.0
 
-ENV DOTNET_ReadyToRun=0
-ENV DOTNET_TieredPGO=1
-ENV DOTNET_JitVTableProfiling=1
-ENV DOTNET_JitProfileCasts=1
-
-CMD dotnet run --project FastCache.Benchmarks/FastCache.Benchmarks.csproj -c release -f net7.0
+# Must be run interactively
+CMD ./publish/FastCache.Benchmarks
