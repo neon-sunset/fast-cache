@@ -14,7 +14,7 @@ public sealed class CachedTests_ExpirationPermutations
     [MethodImpl(0x200)]
     public async Task Cached_TryGet_ReturnsValueBeforeExpiration_DoesNotReturnAfter(int milliseconds)
     {
-        const int delayTolerance = 200;
+        const int delayTolerance = 100;
 
         var assertDelay = Math.Max(0, milliseconds - delayTolerance);
 
