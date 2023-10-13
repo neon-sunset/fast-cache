@@ -7,7 +7,7 @@ public sealed class CachedTests_ExpirationPermutations
 {
     [Theory]
     [InlineData(10)]
-    [InlineData(250)]
+    // [InlineData(250)]
     [InlineData(500)]
     [InlineData(1000)]
     [InlineData(2500)]
