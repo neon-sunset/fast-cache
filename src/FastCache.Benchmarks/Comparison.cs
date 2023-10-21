@@ -2,6 +2,7 @@ using CacheManager.Core;
 using FastCache.Extensions;
 using LazyCache;
 using Microsoft.Extensions.Caching.Memory;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace FastCache.Benchmarks;
 
@@ -24,6 +25,7 @@ public class Comparison
         .WithExpiration(CacheManager.Core.ExpirationMode.Absolute, TimeSpan.FromMinutes(60)));
 
     private readonly IAppCache _lazyCache = new CachingService();
+    private readonly IFusionCache _fusionCache = new FusionCache(new FusionCacheOptions());
 
     [GlobalSetup]
     public void Initialize()
@@ -32,6 +34,7 @@ public class Comparison
         _memoryCache.Set(ItemKey, ItemValue, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
         _cacheManager.AddOrUpdate(ItemKey, ItemValue, _ => ItemValue);
         _lazyCache.Add(ItemKey, ItemValue, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
+        _fusionCache.Set(ItemKey, ItemValue, options => options.SetDuration(TimeSpan.FromMinutes(60)));
 
         Services.CacheManager.SuspendEviction<string, string>();
     }
@@ -63,6 +66,12 @@ public class Comparison
     }
 
     [Benchmark]
+    public string TryGetFusionCache()
+    {
+        return _fusionCache.GetOrDefault<string>(ItemKey) ?? Unreachable<string>();
+    }
+
+    [Benchmark]
     public void UpdateCached()
     {
         ItemValue.Cache(ItemKey, TimeSpan.FromMinutes(60));
@@ -84,5 +93,11 @@ public class Comparison
     public void UpdateLazyCache()
     {
         _lazyCache.Add(ItemKey, ItemValue, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
+    }
+
+    [Benchmark]
+    public void UpdateFusionCache()
+    {
+        _fusionCache.Set(ItemKey, ItemValue, options => options.SetDuration(TimeSpan.FromMinutes(60)));
     }
 }
