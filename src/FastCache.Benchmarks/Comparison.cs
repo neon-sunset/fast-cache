@@ -25,7 +25,7 @@ public class Comparison
         .WithExpiration(CacheManager.Core.ExpirationMode.Absolute, TimeSpan.FromMinutes(60)));
 
     private readonly IAppCache _lazyCache = new CachingService();
-    private readonly IFusionCache _fusionCache = new FusionCache(new FusionCacheOptions());
+    private readonly FusionCache _fusionCache = new (new FusionCacheOptions());
 
     [GlobalSetup]
     public void Initialize()

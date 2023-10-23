@@ -16,7 +16,7 @@ public class ComparisonAsync
     private readonly MemoryCache _memoryCache = new(new MemoryCacheOptions());
 
     private readonly IAppCache _lazyCache = new CachingService();
-    private readonly IFusionCache _fusionCache = new FusionCache(new FusionCacheOptions());
+    private readonly FusionCache _fusionCache = new (new FusionCacheOptions());
 
     private readonly TimeSpan _expire = TimeSpan.FromMinutes(60);
 
