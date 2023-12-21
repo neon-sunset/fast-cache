@@ -4,8 +4,6 @@ namespace FastCache.Tests;
 
 internal static class TestHelpers
 {
-    private static readonly Random _random = new();
-
     public static string GetTestKey([CallerMemberName] string testName = "")
     {
         return testName;
@@ -23,15 +21,8 @@ internal static class TestHelpers
 
     public static string GetRandomString()
     {
-#if !NETSTANDARD2_0 && !NET48
         var bytes = (stackalloc byte[64]);
-#else
-        var bytes = new byte[64];
-#endif
-        lock (_random)
-        {
-            _random.NextBytes(bytes);
-        }
+        Random.Shared.NextBytes(bytes);
 
         return Convert.ToBase64String(bytes);
     }

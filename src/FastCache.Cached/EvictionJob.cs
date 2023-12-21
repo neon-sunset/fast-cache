@@ -55,9 +55,7 @@ internal sealed class EvictionJob<K, V> where K : notnull
             fullEvictionInterval,
             fullEvictionInterval);
 
-#if NETCOREAPP3_0_OR_GREATER
         Gen2GcCallback.Register(() => _ = CacheManager.ExecuteFullEviction<K, V>(triggeredByGC: true));
-#endif
     }
 
     public void ReportExpiration(long milliseconds)
