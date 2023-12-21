@@ -1,21 +1,11 @@
 <Project>
     <PropertyGroup>
-        <Features>strict</Features>
-        <LangVersion>11</LangVersion>
+        <LangVersion>12</LangVersion>
+        <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <WarningsAsErrors>nullable</WarningsAsErrors>
-        <!-- This is a hack because the life is too short to learn MSBuild -->
-        <IsTrimmable Condition="$(TargetFrameworkVersion) == '6.0'">true</IsTrimmable>
-        <IsTrimmable Condition="$(TargetFrameworkVersion) == '7.0'">true</IsTrimmable>
-        <IsTrimmable Condition="$(TargetFrameworkVersion) == '8.0'">true</IsTrimmable>
+        <IsTrimmable>true</IsTrimmable>
         <NoWarn>CS1591</NoWarn>
     </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="PolySharp" Version="1.13.2">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-    </ItemGroup>
 </Project>

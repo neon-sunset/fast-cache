@@ -148,11 +148,8 @@ public static class CacheManager
             return true;
         }
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
         ThreadPool.QueueUserWorkItem(static count => ExecuteTrim(count, takeLock: true), trimCount, preferLocal: true);
-#elif NETSTANDARD2_0
-        ThreadPool.QueueUserWorkItem(static count => ExecuteTrim((uint)count, takeLock: true), trimCount);
-#endif
+
         return false;
     }
 

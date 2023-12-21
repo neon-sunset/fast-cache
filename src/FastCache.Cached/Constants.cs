@@ -17,10 +17,6 @@ internal static class Constants
     private static readonly TimeSpan DefaultQuickListInterval = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan MaxQuickListInterval = TimeSpan.FromSeconds(60);
 
-#if !NET6_0_OR_GREATER
-    private static readonly Random Random = new();
-#endif
-
     public static readonly int QuickListMinLength = (int
         .TryParse(GetVar("FASTCACHE_QUICKLIST_MIN_LENGTH_FACTOR"), out var parsed) ? parsed : DefaultQuickListMinLengthFactor) * 128;
 
@@ -95,13 +91,6 @@ internal static class Constants
 
     private static int GetRandomInt(int minValue, int maxValue)
     {
-#if NET6_0_OR_GREATER
         return Random.Shared.Next(minValue, maxValue);
-#else
-        lock (Random)
-        {
-            return Random.Next(minValue, maxValue);
-        }
-#endif
     }
 }

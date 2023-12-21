@@ -102,12 +102,10 @@ public static partial class CachedRange<V>
         {
             Save(genericList, expiration);
         }
-#if NET6_0_OR_GREATER
         else if (range.TryGetNonEnumeratedCount(out var length) && GetParallelism((uint)length) > 1)
         {
             SaveEnumerableMultithreaded(range, expiration);
         }
-#endif
         else
         {
             SaveEnumerableSinglethreaded(range, expiration);
@@ -139,14 +137,12 @@ public static partial class CachedRange<V>
         {
             Remove((ReadOnlyMemory<K>)array);
         }
-#if NET6_0_OR_GREATER
         else if (keys.TryGetNonEnumeratedCount(out var count) && GetParallelism((uint)count) > 1)
         {
             var store = CacheStaticHolder<K, V>.Store;
             keys.AsParallel()
                 .ForAll(key => store.TryRemove(key, out _));
         }
-#endif
         else
         {
             var store = CacheStaticHolder<K, V>.Store;

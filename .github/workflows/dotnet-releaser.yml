@@ -23,7 +23,6 @@ jobs:
           6.0.x
           7.0.x
           8.0.x
-        include-prerelease: true
     - name: Build, Test, Pack, Publish
       shell: bash
       env:
@@ -35,7 +34,7 @@ jobs:
         dotnet tool install -g dotnet-releaser
         dotnet-releaser run --nuget-token "${{secrets.NUGET_TOKEN}}" --github-token "${{secrets.GITHUB_TOKEN}}" dotnet-releaser.toml
 
-  tests-extra-net48:
+  tests-extra-windows:
     runs-on: windows-latest
     steps:
     - name: Checkout
@@ -48,9 +47,7 @@ jobs:
       with:
         dotnet-version: |
           6.0.x
-          7.0.x
           8.0.x
-        include-prerelease: true
     - name: Build, Test, Pack, Publish
       shell: pwsh
       env:
