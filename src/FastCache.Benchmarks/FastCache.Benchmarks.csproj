@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
