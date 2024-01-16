@@ -96,7 +96,6 @@ public static class CacheManager
     /// </summary>
     /// <typeparam name="K">Cache entry key type. string, int or (int, int) for multi-key.</typeparam>
     /// <typeparam name="V">Cache entry value type</typeparam>
-    /// <param name="percentage"></param>
     /// <returns>True: trim is performed inline. False: the count to trim is above threshold and removal is queued to thread pool.</returns>
     public static bool Trim<K, V>(double percentage) where K : notnull
     {
@@ -105,52 +104,63 @@ public static class CacheManager
             ThrowHelpers.ArgumentOutOfRange(percentage, nameof(percentage));
         }
 
-        if (CacheStaticHolder<K, V>.QuickList.InProgress)
+        var store = CacheStaticHolder<K, V>.Store;
+        var count = store.Count;
+        var target = (uint)count - (uint)(count * (percentage / 100.0));
+        var toTrim = count - target;
+
+        var trimmed = Trim<K, V>(target, percentage);
+        if (trimmed >= toTrim)
         {
-            // Bail out early if the items are being removed via quick list.
-            return false;
-        }
-
-        static void ExecuteTrim(uint trimCount, bool takeLock)
-        {
-            var removedFromQuickList = CacheStaticHolder<K, V>.QuickList.Trim(trimCount);
-            if (removedFromQuickList >= trimCount)
-            {
-                return;
-            }
-
-            if (takeLock && !CacheStaticHolder<K, V>.QuickList.TryLock())
-            {
-                return;
-            }
-
-            var removed = 0;
-            var store = CacheStaticHolder<K, V>.Store;
-            var enumerator = store.GetEnumerator();
-            var toRemoveFromStore = trimCount - removedFromQuickList;
-
-            while (removed < toRemoveFromStore && enumerator.MoveNext())
-            {
-                store.TryRemove(enumerator.Current.Key, out _);
-                removed++;
-            }
-
-            if (takeLock)
-            {
-                CacheStaticHolder<K, V>.QuickList.Release();
-            }
-        }
-
-        var trimCount = Math.Max(1, (uint)(CacheStaticHolder<K, V>.Store.Count * (percentage / 100.0)));
-        if (trimCount <= Constants.InlineTrimCountThreshold)
-        {
-            ExecuteTrim(trimCount, takeLock: false);
             return true;
         }
+        toTrim -= trimmed;
 
-        ThreadPool.QueueUserWorkItem(static count => ExecuteTrim(count, takeLock: true), trimCount, preferLocal: true);
+        ThreadPool.QueueUserWorkItem(target =>
+        {
+            var store = CacheStaticHolder<K, V>.Store;
+            foreach (var (key, _) in store)
+            {
+                if (target-- <= 0) break;
+                store.TryRemove(key, out _);
+            }
+        }, toTrim, preferLocal: false);
 
         return false;
+    }
+
+    internal static uint Trim<K, V>(uint target, double percentage) where K : notnull
+    {
+        var store = CacheStaticHolder<K, V>.Store;
+        var quickList = CacheStaticHolder<K, V>.QuickList;
+
+        if (quickList.InProgress && store.Count < target)
+        {
+            // Bail out early if a concurrent trim is already in progress and the count is below the limit.
+            return target;
+        }
+
+        var trimCount = Math.Min(
+            Math.Max(1, (uint)(store.Count * (percentage / 100.0))),
+            Constants.InlineTrimCountLimit);
+
+        var removedFromQuickList = quickList.Trim(trimCount);
+        if (removedFromQuickList >= trimCount || store.Count <= target)
+        {
+            return removedFromQuickList;
+        }
+
+        var removed = 0;
+        var enumerator = store.GetEnumerator();
+        var toRemoveFromStore = trimCount - removedFromQuickList;
+
+        while (removed < toRemoveFromStore && enumerator.MoveNext())
+        {
+            store.TryRemove(enumerator.Current.Key, out _);
+            removed++;
+        }
+
+        return (uint)removed + removedFromQuickList;
     }
 
     /// <summary>

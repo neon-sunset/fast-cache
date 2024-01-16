@@ -32,7 +32,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
     public void Add(K key, long expiresAt)
     {
         var entries = _active;
-        var count = (uint)_count;
+        var count = (uint)(ulong)_count;
         if (count < entries.Length)
         {
             entries[count] = (key, expiresAt);
@@ -53,7 +53,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
     internal void OverwritingAdd(K key, long expiresAt)
     {
         var entries = _active;
-        var count = (uint)_count;
+        var count = (uint)(ulong)_count;
         if (count < entries.Length)
         {
             entries[count] = (key, expiresAt);
@@ -242,24 +242,31 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
             return 0;
         }
 
+        var active = _active;
         uint currentCount = AtomicCount;
-        uint toRemoveCount = Math.Min(currentCount, count);
+        uint toTrim = Math.Min(currentCount, count);
 
-        uint countAfterTrim = currentCount - toRemoveCount;
+        var trimEntries = active.AsSpan(
+            (int)(currentCount - toTrim), (int)toTrim);
 
-        var store = CacheStaticHolder<K, V>.Store;
-        uint removed = 0;
-        for (uint i = countAfterTrim; i < countAfterTrim + toRemoveCount; i++)
+        if (trimEntries.IsEmpty)
         {
-            if (store.TryRemove(_active[i].Key, out var _))
+            return 0;
+        }
+
+        var removed = 0;
+        var store = CacheStaticHolder<K, V>.Store;
+        foreach (var (key, _) in trimEntries)
+        {
+            if (store.TryRemove(key, out _))
             {
                 removed++;
             }
         }
 
-        Interlocked.Exchange(ref _count, countAfterTrim);
+        Interlocked.Exchange(ref _count, currentCount - toTrim);
         _evictionLock.Release();
-        return removed;
+        return (uint)removed;
     }
 
     internal void PullFromCacheStore()
