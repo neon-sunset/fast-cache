@@ -1,5 +1,6 @@
 using FastCache.Services;
 using FastCache.Helpers;
+using System.Diagnostics;
 
 namespace FastCache;
 
@@ -36,11 +37,9 @@ internal sealed class EvictionJob<K, V> where K : notnull
                 {
                     CacheStaticHolder<K, V>.QuickList.Evict();
                 }
-                catch
+                catch (Exception ex)
                 {
-#if DEBUG
-                    throw;
-#endif
+                    Debug.Fail(ex.Message);
                 }
             },
             null,

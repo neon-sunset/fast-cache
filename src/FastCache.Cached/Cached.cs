@@ -61,8 +61,8 @@ public readonly record struct Cached<K, V> where K : notnull
 
     /// <summary>
     /// Saves the value to cache. The value will expire once the provided interval of time passes.
-    /// If the cache entries count is equal or above the limit, the cache is either trimmed to make place
-    /// or trimming is queued on a threadpool and the value is returned as is.
+    /// If the cache entries count is equal or above the limit, the cache is trimmed to make place
+    /// for the new entry.
     /// </summary>
     /// <param name="value">Value to save</param>
     /// <param name="expiration">Interval in which the value will expire</param>
@@ -70,10 +70,12 @@ public readonly record struct Cached<K, V> where K : notnull
     /// <returns>Saved value</returns>
     public V Save(V value, TimeSpan expiration, uint limit)
     {
-        return CacheStaticHolder<K, V>.Store.Count < limit
-            || CacheManager.Trim<K, V>(Constants.FullCapacityTrimPercentage)
-                ? Save(value, expiration)
-                : value;
+        if (CacheStaticHolder<K, V>.Store.Count >= limit)
+        {
+            CacheManager.Trim<K, V>(limit, Constants.FullCapacityTrimPercentage);
+        }
+
+        return Save(value, expiration);
     }
 
     /// <summary>
@@ -107,18 +109,12 @@ public readonly record struct Cached<K, V> where K : notnull
 }
 
 [StructLayout(LayoutKind.Auto)]
-internal readonly struct CachedInner<T>
+[method: MethodImpl(MethodImplOptions.AggressiveInlining)]
+internal readonly struct CachedInner<T>(T value, long timestamp)
 {
-    internal readonly long _timestamp;
+    internal readonly long _timestamp = timestamp;
 
-    public readonly T Value;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CachedInner(T value, long timestamp)
-    {
-        Value = value;
-        _timestamp = timestamp;
-    }
+    public readonly T Value = value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsNotExpired() => TimeUtils.Now < _timestamp;
