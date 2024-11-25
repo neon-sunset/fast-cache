@@ -13,7 +13,7 @@
     <PackageReference Include="CacheManager.Core" Version="1.2.0" />
     <PackageReference Include="CacheManager.Microsoft.Extensions.Caching.Memory" Version="1.2.0" />
     <PackageReference Include="LazyCache" Version="2.4.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
     <PackageReference Include="RangeExtensions" Version="2.1.1" />
     <PackageReference Include="ZiggyCreatures.FusionCache" Version="1.4.1" />
   </ItemGroup>
