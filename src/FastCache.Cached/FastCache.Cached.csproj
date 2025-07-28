@@ -27,6 +27,8 @@ Credit to Vladimir Sadov for his implementation of NonBlocking.ConcurrentDiction
   </ItemGroup>
 
   <ItemGroup>
+
+    <PackageReference Include="Microsoft.NET.ILLink.Analyzers" Version="7.0.100-1.23401.1" />
     <None Include="$(MSBuildThisFileDirectory)../../README.md" Pack="true" PackagePath="/" />
     <None Include="$(MSBuildThisFileDirectory)../../img/cached-small-transparent.png" Pack="true" PackagePath="/" />
   </ItemGroup>
