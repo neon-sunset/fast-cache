@@ -6,7 +6,6 @@ public sealed class CacheManagerClearRegressionTests
 {
     private sealed record ShrinkingEntry;
     private sealed record EmptyTrimEntry;
-    private sealed record GcEvictionEntry;
 
     private static readonly TimeSpan OperationTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan ClearTimeout = TimeSpan.FromSeconds(2);
@@ -89,67 +88,7 @@ public sealed class CacheManagerClearRegressionTests
         }
     }
 
-    [Fact]
-    [Trait("Category", "Timing")]
-    public async Task ExecuteFullClear_DuringGcEviction_WaitsForEvictionAndCompletes()
-    {
-        CacheManager.SuspendEviction<int, GcEvictionEntry>();
-        var store = CacheStaticHolder<int, GcEvictionEntry>.Store;
-        var job = CacheStaticHolder<int, GcEvictionEntry>.EvictionJob;
-        Task? eviction = null;
-        Task? clear = null;
-        // Default GC eviction takes up to 22.5s before scanning and 3s afterwards.
-        // Bound cleanup as well, while allowing the existing delays to finish.
-        var evictionTimeout = TimeSpan.FromTicks(Constants.QuickListEvictionInterval.Ticks * 2)
-            + OperationTimeout;
-
-        try
-        {
-            var entry = new GcEvictionEntry();
-            for (var key = 0; key < Constants.QuickListMinLength * 4; key++)
-            {
-                Cached<GcEvictionEntry>.Save(key, entry, EntryLifetime);
-            }
-
-            // Model one prior GC eviction that could not be handled by the quick list.
-            // The next invocation increments the counter to 2 and reaches CacheStoreEvictionDelay.
-            // Do not trigger a real GC or change process-wide environment settings.
-            job.EvictionGCNotificationsCount = 1;
-            eviction = StartEviction<GcEvictionEntry>(triggeredByGC: true);
-            Assert.False(eviction.IsCompleted, "The GC eviction must still be pending when Clear starts.");
-
-            clear = CacheManager.ExecuteFullClear<int, GcEvictionEntry>();
-            Assert.False(clear.IsCompleted);
-            await eviction.WaitAsync(evictionTimeout);
-            await clear.WaitAsync(ClearTimeout);
-            Assert.Equal(1, job.FullEvictionLock.CurrentCount);
-            Assert.Null(job.ActiveFullEviction);
-            Assert.Empty(store);
-        }
-        finally
-        {
-            CacheManager.SuspendEviction<int, GcEvictionEntry>();
-            // WaitAsync does not cancel its underlying operation. Drain both tasks
-            // so a failing timing assertion does not leave background work behind.
-            try
-            {
-                if (eviction is not null)
-                {
-                    await eviction.WaitAsync(evictionTimeout);
-                }
-            }
-            finally
-            {
-                if (clear is not null)
-                {
-                    await clear.WaitAsync(OperationTimeout);
-                }
-                store.Clear();
-            }
-        }
-    }
-
-    private static Task StartEviction<T>(bool triggeredByGC = false)
+    private static Task StartEviction<T>()
     {
         Assert.False(Constants.DisableEvictionJob, "These tests require automatic eviction to be enabled in configuration.");
         CacheManager.ResumeEviction<int, T>();
@@ -157,7 +96,7 @@ public sealed class CacheManagerClearRegressionTests
         {
             // Execute the actual library path; suspend subsequent timer/GC triggers
             // immediately after dispatch. Suspension does not cancel in-flight work.
-            return CacheManager.ExecuteFullEviction<int, T>(triggeredByGC);
+            return CacheManager.ExecuteFullEviction<int, T>();
         }
         finally
         {

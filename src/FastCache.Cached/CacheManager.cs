@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using FastCache.Helpers;
 
 namespace FastCache.Services;
@@ -380,13 +381,13 @@ public static class CacheManager
         {
             await Task.Delay(Constants.DelayToFullGC);
 #if FASTCACHE_DEBUG
-        var sw = Stopwatch.StartNew();
+            var sw = Stopwatch.StartNew();
 #endif
 
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Default, blocking: false);
 
 #if FASTCACHE_DEBUG
-        Console.WriteLine($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}. Elapsed:{sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}. Elapsed:{sw.ElapsedMilliseconds} ms");
 #endif
             Interlocked.Exchange(ref s_AggregatedEvictionsCount, 0);
 
