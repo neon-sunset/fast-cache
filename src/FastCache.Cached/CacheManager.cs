@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using FastCache.Helpers;
 
 namespace FastCache.Services;
@@ -63,10 +62,15 @@ public static class CacheManager
             CacheStaticHolder<K, V>.QuickList.Reset();
         }
 
-        await (evictionJob.ActiveFullEviction = Task.Run(Inner));
-
-        evictionJob.ActiveFullEviction = null;
-        evictionJob.FullEvictionLock.Release();
+        try
+        {
+            await (evictionJob.ActiveFullEviction = Task.Run(Inner));
+        }
+        finally
+        {
+            evictionJob.ActiveFullEviction = null;
+            evictionJob.FullEvictionLock.Release();
+        }
 
 #if FASTCACHE_DEBUG
         Console.WriteLine(
@@ -206,14 +210,19 @@ public static class CacheManager
             return;
         }
 
-        evictionJob.ActiveFullEviction = !triggeredByGC
-            ? Task.Run(ImmediateFullEviction<K, V>)
-            : StaggeredFullEviction<K, V>();
+        try
+        {
+            evictionJob.ActiveFullEviction = !triggeredByGC
+                ? Task.Run(ImmediateFullEviction<K, V>)
+                : StaggeredFullEviction<K, V>();
 
-        await evictionJob.ActiveFullEviction;
-
-        evictionJob.ActiveFullEviction = null;
-        evictionJob.FullEvictionLock.Release();
+            await evictionJob.ActiveFullEviction;
+        }
+        finally
+        {
+            evictionJob.ActiveFullEviction = null;
+            evictionJob.FullEvictionLock.Release();
+        }
     }
 
     private static void ImmediateFullEviction<K, V>() where K : notnull
@@ -367,20 +376,26 @@ public static class CacheManager
             return;
         }
 
-        await Task.Delay(Constants.DelayToFullGC);
+        try
+        {
+            await Task.Delay(Constants.DelayToFullGC);
 #if FASTCACHE_DEBUG
         var sw = Stopwatch.StartNew();
 #endif
 
-        GC.Collect(GC.MaxGeneration, GCCollectionMode.Default, blocking: false);
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Default, blocking: false);
 
 #if FASTCACHE_DEBUG
         Console.WriteLine($"FastCache: Full GC has been requested or ran, reported evictions count has been reset, was: {s_AggregatedEvictionsCount}. Source: {typeof(T).Name}. Elapsed:{sw.ElapsedMilliseconds} ms");
 #endif
-        Interlocked.Exchange(ref s_AggregatedEvictionsCount, 0);
+            Interlocked.Exchange(ref s_AggregatedEvictionsCount, 0);
 
-        await Task.Delay(Constants.CooldownDelayAfterFullGC);
-        FullGCLock.Release();
+            await Task.Delay(Constants.CooldownDelayAfterFullGC);
+        }
+        finally
+        {
+            FullGCLock.Release();
+        }
     }
 
 #if FASTCACHE_DEBUG
