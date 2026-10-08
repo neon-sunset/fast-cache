@@ -15,7 +15,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
 
     public uint AtomicCount => (uint)Interlocked.Read(ref _count);
 
-    public uint FreeSpace => (uint)_active.Length - AtomicCount;
+    public uint FreeSpace => (uint)Math.Max(0L, _active.Length - (long)AtomicCount);
 
     public bool InProgress => _evictionLock.CurrentCount == 0;
 
@@ -77,162 +77,160 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
             return false;
         }
 
-        var totalCount = store.Count;
-        if (totalCount is 0)
+        uint[]? entriesSurvivedIndexes = null;
+        try
         {
-            if (resize || _inactive.Length != Constants.QuickListMinLength)
+            var totalCount = store.Count;
+            if (totalCount is 0)
             {
-                ResizeInactive(Constants.QuickListMinLength);
-                AtomicSwapActive(0);
+                if (resize || _inactive.Length != Constants.QuickListMinLength)
+                {
+                    ResizeInactive(Constants.QuickListMinLength);
+                    AtomicSwapActive(0);
+                }
+                else
+                {
+                    Reset(lockRequired: false);
+                }
+                return true;
             }
-            else
+            else if (AtomicCount is 0)
             {
-                Reset(lockRequired: false);
+                if (resize)
+                {
+                    ResizeInactive(CalculateResize(totalCount));
+                    AtomicSwapActive(0);
+                }
+                return false;
             }
 
-            _evictionLock.Release();
-            return true;
-        }
-        else if (AtomicCount is 0)
-        {
+            var needsResizing = false;
+            var resizedLength = 0;
             if (resize)
             {
-                ResizeInactive(CalculateResize(totalCount));
-                AtomicSwapActive(0);
+                resizedLength = CalculateResize(totalCount);
+                needsResizing = resizedLength > Constants.QuickListMinLength;
+            }
+            else if (_active.Length != _inactive.Length)
+            {
+                resizedLength = _active.Length;
+                needsResizing = true;
             }
 
-            _evictionLock.Release();
-            return false;
-        }
+            var entries = _active;
+            var entriesCount = Math.Min(AtomicCount, (uint)entries.Length);
 
-        var needsResizing = false;
-        var resizedLength = 0;
-        if (resize)
-        {
-            resizedLength = CalculateResize(totalCount);
-            needsResizing = resizedLength > Constants.QuickListMinLength;
-        }
-        else if (_active.Length != _inactive.Length)
-        {
-            resizedLength = _active.Length;
-            needsResizing = true;
-        }
+            entriesSurvivedIndexes = ArrayPool<uint>.Shared.Rent((int)entriesCount);
 
-        var entries = _active;
-        var entriesCount = AtomicCount;
+            uint entriesRemovedCount = 0;
+            uint entriesSurvivedCount = 0;
 
-        var entriesSurvivedIndexes = ArrayPool<uint>.Shared.Rent((int)entriesCount);
-
-        uint entriesRemovedCount = 0;
-        uint entriesSurvivedCount = 0;
-
-        for (uint i = 0; i < entriesCount; i++)
-        {
-            var (key, expiresAt) = entries[i];
-
-            if (now > expiresAt)
+            for (uint i = 0; i < entriesCount; i++)
             {
-                if (store.TryGetValue(key, out var inner))
+                var (key, expiresAt) = entries[i];
+
+                if (now > expiresAt)
                 {
-                    var itemTimestamp = inner._timestamp;
-                    if (now > itemTimestamp)
+                    if (store.TryGetValue(key, out var inner))
                     {
-                        store.TryRemove(key, out _);
-                        entriesRemovedCount++;
+                        var itemTimestamp = inner._timestamp;
+                        if (now > itemTimestamp)
+                        {
+                            store.TryRemove(key, out _);
+                            entriesRemovedCount++;
+                        }
+                        else
+                        {
+                            entries[i] = (key, itemTimestamp);
+                            entriesSurvivedIndexes[entriesSurvivedCount] = i;
+                            entriesSurvivedCount++;
+                        }
                     }
                     else
                     {
-                        entries[i] = (key, itemTimestamp);
-                        entriesSurvivedIndexes[entriesSurvivedCount] = i;
-                        entriesSurvivedCount++;
+                        // Duplicate entry present in quick list has already been removed from cache store.
+                        // Count duplicates towards total removed count so they aren't copied as survived.
+                        // This will also count towards aggregated evictions count which is ok.
+                        entriesRemovedCount++;
                     }
                 }
                 else
                 {
-                    // Duplicate entry present in quick list has already been removed from cache store.
-                    // Count duplicates towards total removed count so they aren't copied as survived.
-                    // This will also count towards aggregated evictions count which is ok.
-                    entriesRemovedCount++;
+                    entriesSurvivedIndexes[entriesSurvivedCount] = i;
+                    entriesSurvivedCount++;
                 }
             }
-            else
-            {
-                entriesSurvivedIndexes[entriesSurvivedCount] = i;
-                entriesSurvivedCount++;
-            }
-        }
 
-        if (entriesSurvivedCount == 0)
-        {
-            ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
+            if (entriesSurvivedCount == 0)
+            {
+                if (needsResizing)
+                {
+                    ResizeInactive(resizedLength);
+                    AtomicSwapActive(0);
+                }
+                else
+                {
+                    Reset(lockRequired: false);
+                }
+
+                CacheManager.ReportEvictions(entriesRemovedCount);
+
+#if FASTCACHE_DEBUG
+                PrintEvicted(sw.Elapsed, entriesRemovedCount);
+#endif
+                return entriesRemovedCount >= totalCount;
+            }
+
+            if (entriesRemovedCount == 0)
+            {
+                if (needsResizing)
+                {
+                    ResizeInactive(resizedLength, copy: true);
+                    AtomicSwapActive(entriesSurvivedCount);
+                }
+
+#if FASTCACHE_DEBUG
+                PrintEvicted(sw.Elapsed, entriesRemovedCount);
+#endif
+                return entriesSurvivedCount >= totalCount;
+            }
 
             if (needsResizing)
             {
                 ResizeInactive(resizedLength);
-                AtomicSwapActive(0);
             }
-            else
+
+            // Use 'inactive' replacement array to store survived items.
+            // In addition, if survived items exceed resized _inactive array length,
+            // just drop the rest that didn't fit - they will be handled by full eviction.
+            var entriesSurvived = _inactive;
+            var copyLength = Math.Min(entriesSurvivedCount, (uint)entriesSurvived.Length);
+            for (uint j = 0; j < copyLength; j++)
             {
-                Reset(lockRequired: false);
+                var entryIndex = entriesSurvivedIndexes[j];
+                entriesSurvived[j] = entries[entryIndex];
             }
+
+            // Set inactive backing array where we stored survived entries as active and update entries counter accordingly.
+            // In-flight writes between active-inactive swap and counter update will be missed which is by design and
+            // will be handled by the next full eviction (evicted or pushed to quick list if capacity allows it).
+            AtomicSwapActive(copyLength);
 
             CacheManager.ReportEvictions(entriesRemovedCount);
-            _evictionLock.Release();
 
 #if FASTCACHE_DEBUG
             PrintEvicted(sw.Elapsed, entriesRemovedCount);
 #endif
-            return entriesRemovedCount >= totalCount;
+            return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
         }
-
-        if (entriesRemovedCount == 0)
+        finally
         {
-            ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
-
-            if (needsResizing)
+            if (entriesSurvivedIndexes is not null)
             {
-                ResizeInactive(resizedLength, copy: true);
-                AtomicSwapActive(entriesSurvivedCount);
+                ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
             }
-
             _evictionLock.Release();
-
-#if FASTCACHE_DEBUG
-            PrintEvicted(sw.Elapsed, entriesRemovedCount);
-#endif
-            return entriesSurvivedCount >= totalCount;
         }
-
-        if (needsResizing)
-        {
-            ResizeInactive(resizedLength);
-        }
-
-        // Use 'inactive' replacement array to store survived items.
-        // In addition, if survived items exceed resized _inactive array length,
-        // just drop the rest that didn't fit - they will be handled by full eviction.
-        var entriesSurvived = _inactive;
-        var copyLength = Math.Min(entriesSurvivedCount, (uint)entriesSurvived.Length);
-        for (uint j = 0; j < copyLength; j++)
-        {
-            var entryIndex = entriesSurvivedIndexes[j];
-            entriesSurvived[j] = entries[entryIndex];
-        }
-
-        ArrayPool<uint>.Shared.Return(entriesSurvivedIndexes);
-
-        // Set inactive backing array where we stored survived entries as active and update entries counter accordingly.
-        // In-flight writes between active-inactive swap and counter update will be missed which is by design and
-        // will be handled by the next full eviction (evicted or pushed to quick list if capacity allows it).
-        AtomicSwapActive(copyLength);
-
-        CacheManager.ReportEvictions(entriesRemovedCount);
-        _evictionLock.Release();
-
-#if FASTCACHE_DEBUG
-        PrintEvicted(sw.Elapsed, entriesRemovedCount);
-#endif
-        return (entriesSurvivedCount + entriesRemovedCount) >= totalCount;
     }
 
     internal uint Trim(uint count)
@@ -242,31 +240,37 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
             return 0;
         }
 
-        var active = _active;
-        uint currentCount = AtomicCount;
-        uint toTrim = Math.Min(currentCount, count);
-
-        var trimEntries = active.AsSpan(
-            (int)(currentCount - toTrim), (int)toTrim);
-
-        if (trimEntries.IsEmpty)
+        try
         {
-            return 0;
-        }
+            var active = _active;
+            uint currentCount = Math.Min(AtomicCount, (uint)active.Length);
+            uint toTrim = Math.Min(currentCount, count);
 
-        var removed = 0;
-        var store = CacheStaticHolder<K, V>.Store;
-        foreach (var (key, _) in trimEntries)
-        {
-            if (store.TryRemove(key, out _))
+            var trimEntries = active.AsSpan(
+                (int)(currentCount - toTrim), (int)toTrim);
+
+            if (trimEntries.IsEmpty)
             {
-                removed++;
+                return 0;
             }
-        }
 
-        Interlocked.Exchange(ref _count, currentCount - toTrim);
-        _evictionLock.Release();
-        return (uint)removed;
+            var removed = 0;
+            var store = CacheStaticHolder<K, V>.Store;
+            foreach (var (key, _) in trimEntries)
+            {
+                if (store.TryRemove(key, out _))
+                {
+                    removed++;
+                }
+            }
+
+            Interlocked.Exchange(ref _count, currentCount - toTrim);
+            return (uint)removed;
+        }
+        finally
+        {
+            _evictionLock.Release();
+        }
     }
 
     internal void PullFromCacheStore()
@@ -308,17 +312,17 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
     {
         // Opt. opportunity: round up requestedLength to the next PowOf2
         // so that we don't return and then rent the array when there is no need to
-        if (requestedLength == _inactive.Length)
+        if (requestedLength != _inactive.Length)
         {
-            return _inactive.Length;
+            // Rent first: allocation failure must leave the existing array owned by us.
+            var replacement = ArrayPool<(K, long)>.Shared.Rent(requestedLength);
+            ArrayPool<(K, long)>.Shared.Return(_inactive, TypeInfo.IsManaged<K>());
+            _inactive = replacement;
         }
-
-        ArrayPool<(K, long)>.Shared.Return(_inactive, TypeInfo.IsManaged<K>());
-        _inactive = ArrayPool<(K, long)>.Shared.Rent(requestedLength);
 
         if (copy)
         {
-            var length = Math.Min(AtomicCount, _inactive.Length);
+            var length = Math.Min(AtomicCount, Math.Min(_active.Length, _inactive.Length));
             Array.Copy(_active, _inactive, length);
         }
 
@@ -331,7 +335,7 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
     private void AtomicSwapActive(uint postEvictionCount)
     {
         _inactive = Interlocked.Exchange(ref _active, _inactive);
-        Interlocked.Exchange(ref _count, postEvictionCount);
+        Interlocked.Exchange(ref _count, Math.Min(postEvictionCount, (uint)_active.Length));
     }
 
     private void Reset(bool lockRequired)
@@ -341,16 +345,21 @@ internal sealed class EvictionQuickList<K, V> : IDisposable where K : notnull
             _evictionLock.Wait();
         }
 
-        if (TypeInfo.IsManaged<K>())
+        try
         {
-            _active.AsSpan().Clear();
+            if (TypeInfo.IsManaged<K>())
+            {
+                _active.AsSpan().Clear();
+            }
+
+            Interlocked.Exchange(ref _count, 0);
         }
-
-        Interlocked.Exchange(ref _count, 0);
-
-        if (lockRequired)
+        finally
         {
-            _evictionLock.Release();
+            if (lockRequired)
+            {
+                _evictionLock.Release();
+            }
         }
     }
 
