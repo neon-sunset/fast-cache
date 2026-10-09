@@ -55,7 +55,18 @@ public static class CacheManager
 #endif
 
         var evictionJob = CacheStaticHolder<K, V>.EvictionJob;
-        await evictionJob.FullEvictionLock.WaitAsync();
+
+    Retry:
+        if (!evictionJob.FullEvictionLock.Wait(millisecondsTimeout: 1))
+        {
+            var delayTokenSource = evictionJob.DelayFullEvictionCancellationSource;
+            if (delayTokenSource is null)
+            {
+                goto Retry;
+            }
+            delayTokenSource.Cancel();
+            evictionJob.FullEvictionLock.Wait();
+        }
 
         static void Inner()
         {
@@ -268,19 +279,22 @@ public static class CacheManager
             // which may decrease throughput by accessing the same memory locations
             // from multiple threads and wasting CPU time on repeated eviction cycles
             // over newly added items which is not profitable to do.
-            // Delaying lock release for extra (quick list interval / 5) avoids the issue. 
-            await Task.Delay(Constants.EvictionCooldownDelayOnGC);
+            // Delaying lock release for extra (quick list interval / 5) avoids the issue.             
+            await evictionJob.Delay(Constants.EvictionCooldownDelayOnGC);
             return;
         }
 
         evictionJob.EvictionGCNotificationsCount++;
         if (evictionJob.EvictionGCNotificationsCount < 2)
         {
-            await Task.Delay(Constants.EvictionCooldownDelayOnGC);
+            await evictionJob.Delay(Constants.EvictionCooldownDelayOnGC);
             return;
         }
 
-        await Task.Delay(Constants.CacheStoreEvictionDelay);
+        if (!await evictionJob.Delay(Constants.CacheStoreEvictionDelay))
+        {
+            return;//delay was cancelled by ExecuteFullClear return here. eviction will be processed by ExecuteFullClear
+        }
 
 #if FASTCACHE_DEBUG
         var stopwatch = Stopwatch.StartNew();
@@ -296,8 +310,14 @@ public static class CacheManager
         PrintEvicted<K, V>(evictedFromCacheStore, stopwatch.Elapsed);
 #endif
 
-        await Task.Delay(Constants.EvictionCooldownDelayOnGC);
-        evictionJob.EvictionGCNotificationsCount = 0;
+        try
+        {
+            await evictionJob.Delay(Constants.EvictionCooldownDelayOnGC);
+        }
+        finally
+        {
+            evictionJob.EvictionGCNotificationsCount = 0;
+        }
     }
 
     private static uint EvictFromCacheStore<K, V>() where K : notnull
