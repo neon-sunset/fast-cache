@@ -1,6 +1,6 @@
-using FastCache.Services;
-using FastCache.Helpers;
 using System.Diagnostics;
+using FastCache.Helpers;
+using FastCache.Services;
 
 namespace FastCache;
 
@@ -17,6 +17,7 @@ internal sealed class EvictionJob<K, V> where K : notnull
     public readonly SemaphoreSlim FullEvictionLock = new(1, 1);
 
     public Task? ActiveFullEviction;
+    public CancellationTokenSource? DelayFullEvictionCancellationSource;
 
     public int EvictionGCNotificationsCount;
 
@@ -126,5 +127,29 @@ internal sealed class EvictionJob<K, V> where K : notnull
 
         _quickListEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
         _fullEvictionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Exec delay for full eviction
+    /// </summary>
+    /// <returns>true if Eviction can be continued. false if cancelled</returns>
+    public async Task<bool> Delay(TimeSpan delay)
+    {
+        try
+        {
+            CancellationTokenSource cancellationTokenSource = new();
+            DelayFullEvictionCancellationSource = cancellationTokenSource;
+            await Task.Delay(delay, cancellationTokenSource.Token);
+            return true;
+        }
+        catch (TaskCanceledException)
+        {
+            // Ignore cancellation
+            return false;//do not need to continue eviction
+        }
+        finally
+        {
+            DelayFullEvictionCancellationSource = null;
+        }
     }
 }
